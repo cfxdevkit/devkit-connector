@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import PatternADemo from "../components/PatternADemo.tsx";
+import PatternADemo from "../components/PatternADemo";
 
 const PatternAPage: React.FC = () => {
   return (

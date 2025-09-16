@@ -6,16 +6,16 @@
 import "hardhat/types/artifacts";
 import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
 
-import { Counter$Type } from "./Counter";
+import { Context$Type } from "./Context";
 
 declare module "hardhat/types/artifacts" {
   interface ArtifactsMap {
-    ["Counter"]: Counter$Type;
-    ["contracts/Counter.sol:Counter"]: Counter$Type;
+    ["Context"]: Context$Type;
+    ["@openzeppelin/contracts/utils/Context.sol:Context"]: Context$Type;
   }
 
   interface ContractTypesMap {
-    ["Counter"]: GetContractReturnType<Counter$Type["abi"]>;
-    ["contracts/Counter.sol:Counter"]: GetContractReturnType<Counter$Type["abi"]>;
+    ["Context"]: GetContractReturnType<Context$Type["abi"]>;
+    ["@openzeppelin/contracts/utils/Context.sol:Context"]: GetContractReturnType<Context$Type["abi"]>;
   }
 }

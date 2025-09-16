@@ -1,9 +1,9 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./styles/global.css";
-import HomePage from "./pages/index.tsx";
-import PatternAPage from "./pages/PatternA.tsx";
-import PatternBPage from "./pages/PatternB.tsx";
+import HomePage from "./pages/index";
+import PatternAPage from "./pages/PatternA";
+import PatternBPage from "./pages/PatternB";
 
 const App: React.FC = () => {
   return (

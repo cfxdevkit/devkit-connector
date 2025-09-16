@@ -173,14 +173,15 @@ const PatternADemo: React.FC = () => {
               <div className="status-item">
                 <h3>Counter Contract</h3>
                 <p>
-                  Deployed: {contractStatus.core.deployed ? "✅ Yes" : "❌ No"}
+                  Deployed:{" "}
+                  {contractStatus.espace.deployed ? "✅ Yes" : "❌ No"}
                 </p>
-                {contractStatus.core.address && (
+                {contractStatus.espace.address && (
                   <p>
-                    Address: <code>{contractStatus.core.address}</code>
+                    Address: <code>{contractStatus.espace.address}</code>
                   </p>
                 )}
-                <p>Type: {contractStatus.core.mock ? "Mock" : "Real"}</p>
+                <p>Type: {contractStatus.espace.mock ? "Mock" : "Real"}</p>
               </div>
             </div>
           ) : (

@@ -6,16 +6,16 @@
 import "hardhat/types/artifacts";
 import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
 
-import { Counter$Type } from "./Counter";
+import { Ownable$Type } from "./Ownable";
 
 declare module "hardhat/types/artifacts" {
   interface ArtifactsMap {
-    ["Counter"]: Counter$Type;
-    ["contracts/Counter.sol:Counter"]: Counter$Type;
+    ["Ownable"]: Ownable$Type;
+    ["@openzeppelin/contracts/access/Ownable.sol:Ownable"]: Ownable$Type;
   }
 
   interface ContractTypesMap {
-    ["Counter"]: GetContractReturnType<Counter$Type["abi"]>;
-    ["contracts/Counter.sol:Counter"]: GetContractReturnType<Counter$Type["abi"]>;
+    ["Ownable"]: GetContractReturnType<Ownable$Type["abi"]>;
+    ["@openzeppelin/contracts/access/Ownable.sol:Ownable"]: GetContractReturnType<Ownable$Type["abi"]>;
   }
 }
