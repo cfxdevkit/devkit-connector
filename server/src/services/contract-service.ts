@@ -1,5 +1,5 @@
-import { ethers } from "ethers";
-import { Conflux } from "js-conflux-sdk";
+import { createPublicClient, createWalletClient, http, parseEther, formatEther } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
 import fs from "fs-extra";
 import path from "path";
 import {
@@ -13,26 +13,22 @@ import {
 } from "../types";
 
 export class ContractService {
-  private espaceProvider: ethers.JsonRpcProvider;
-  private coreConflux: Conflux;
-  private espaceWallet: ethers.Wallet;
-  private coreAccount: any;
+  private espaceClient: any;
+  private espaceWallet: any;
   private deployments: Map<string, DeploymentResult> = new Map();
 
   constructor(config: ContractServiceConfig) {
-    // Initialize eSpace (EVM) connection
-    this.espaceProvider = new ethers.JsonRpcProvider(config.espaceRpcUrl);
-    this.espaceWallet = new ethers.Wallet(
-      config.privateKey,
-      this.espaceProvider
-    );
-
-    // Initialize Core connection (simplified - not used)
-    this.coreConflux = new Conflux({
-      url: config.coreRpcUrl,
-      networkId: 1111,
+    // Initialize eSpace (EVM) connection using viem
+    const account = privateKeyToAccount(config.privateKey as `0x${string}`);
+    
+    this.espaceClient = createPublicClient({
+      transport: http(config.espaceRpcUrl),
     });
-    this.coreAccount = this.coreConflux.wallet.addPrivateKey(config.privateKey);
+
+    this.espaceWallet = createWalletClient({
+      account,
+      transport: http(config.espaceRpcUrl),
+    });
 
     // Load deployments
     this.loadDeployments(config.deploymentsPath);
@@ -84,15 +80,15 @@ export class ContractService {
   // Get network info
   async getNetworkInfo(): Promise<NetworkInfo> {
     try {
-      const espaceNetwork = await this.espaceProvider.getNetwork();
-      const espaceBlockNumber = await this.espaceProvider.getBlockNumber();
-      const espaceGasPrice = await this.espaceProvider.getFeeData();
+      const chainId = await this.espaceClient.getChainId();
+      const blockNumber = await this.espaceClient.getBlockNumber();
+      const gasPrice = await this.espaceClient.getGasPrice();
 
       return {
         espace: {
-          chainId: Number(espaceNetwork.chainId),
-          blockNumber: espaceBlockNumber,
-          gasPrice: espaceGasPrice.gasPrice?.toString() || "0",
+          chainId: Number(chainId),
+          blockNumber: Number(blockNumber),
+          gasPrice: gasPrice.toString(),
         },
         core: {
           networkId: 0,
@@ -124,60 +120,118 @@ export class ContractService {
 
       // DelegationManager ABI
       const contractABI = [
-        "function owner() view returns (address)",
-        "function paused() view returns (bool)",
-        "function createDelegation(address _delegate, uint256 _limit) external",
-        "function revokeDelegation() external",
-        "function getDelegation(address _delegator) view returns (tuple(address delegate, uint256 limit, bool active, uint256 createdAt))",
-      ];
-
-      const contract = new ethers.Contract(
-        deployment.address,
-        contractABI,
-        this.espaceWallet
-      );
+        {
+          name: "owner",
+          type: "function",
+          stateMutability: "view",
+          inputs: [],
+          outputs: [{ name: "", type: "address" }],
+        },
+        {
+          name: "paused",
+          type: "function",
+          stateMutability: "view",
+          inputs: [],
+          outputs: [{ name: "", type: "bool" }],
+        },
+        {
+          name: "createDelegation",
+          type: "function",
+          stateMutability: "nonpayable",
+          inputs: [
+            { name: "_delegate", type: "address" },
+            { name: "_limit", type: "uint256" },
+          ],
+          outputs: [],
+        },
+        {
+          name: "revokeDelegation",
+          type: "function",
+          stateMutability: "nonpayable",
+          inputs: [],
+          outputs: [],
+        },
+        {
+          name: "getDelegation",
+          type: "function",
+          stateMutability: "view",
+          inputs: [{ name: "_delegator", type: "address" }],
+          outputs: [
+            {
+              name: "",
+              type: "tuple",
+              components: [
+                { name: "delegate", type: "address" },
+                { name: "limit", type: "uint256" },
+                { name: "active", type: "bool" },
+                { name: "createdAt", type: "uint256" },
+              ],
+            },
+          ],
+        },
+      ] as const;
 
       let result;
       if (method === "createDelegation") {
-        const tx = await contract.createDelegation(params[0], params[1]);
-        const receipt = await tx.wait();
+        const hash = await this.espaceWallet.writeContract({
+          address: deployment.address as `0x${string}`,
+          abi: contractABI,
+          functionName: "createDelegation",
+          args: [params[0] as `0x${string}`, BigInt(params[1])],
+        });
+        
+        const receipt = await this.espaceClient.waitForTransactionReceipt({ hash });
 
         result = {
           success: true,
           data: {
-            delegator: this.espaceWallet.address,
+            delegator: this.espaceWallet.account.address,
             delegate: params[0],
             limit: params[1].toString(),
           },
-          transactionHash: receipt.hash,
+          transactionHash: receipt.transactionHash,
           gasUsed: receipt.gasUsed.toString(),
         };
       } else if (method === "revokeDelegation") {
-        const tx = await contract.revokeDelegation();
-        const receipt = await tx.wait();
+        const hash = await this.espaceWallet.writeContract({
+          address: deployment.address as `0x${string}`,
+          abi: contractABI,
+          functionName: "revokeDelegation",
+        });
+        
+        const receipt = await this.espaceClient.waitForTransactionReceipt({ hash });
 
         result = {
           success: true,
           data: {
-            delegator: this.espaceWallet.address,
+            delegator: this.espaceWallet.account.address,
           },
-          transactionHash: receipt.hash,
+          transactionHash: receipt.transactionHash,
           gasUsed: receipt.gasUsed.toString(),
         };
       } else if (method === "getDelegation") {
-        const delegation = await contract.getDelegation(params[0]);
+        const delegation = await this.espaceClient.readContract({
+          address: deployment.address as `0x${string}`,
+          abi: contractABI,
+          functionName: "getDelegation",
+          args: [params[0] as `0x${string}`],
+        });
 
         result = {
           success: true,
           data: {
-            delegate: delegation.delegate,
-            limit: delegation.limit.toString(),
-            active: delegation.active,
-            createdAt: delegation.createdAt.toString(),
+            delegate: delegation[0],
+            limit: delegation[1].toString(),
+            active: delegation[2],
+            createdAt: delegation[3].toString(),
           },
         };
       } else if (method === "owner") {
-        const owner = await contract.owner();
+        const owner = await this.espaceClient.readContract({
+          address: deployment.address as `0x${string}`,
+          abi: contractABI,
+          functionName: "owner",
+        });
 
         result = {
           success: true,
@@ -186,7 +240,11 @@ export class ContractService {
           },
         };
       } else if (method === "paused") {
-        const paused = await contract.paused();
+        const paused = await this.espaceClient.readContract({
+          address: deployment.address as `0x${string}`,
+          abi: contractABI,
+          functionName: "paused",
+        });
 
         result = {
           success: true,
@@ -220,18 +278,33 @@ export class ContractService {
 
       // Counter ABI
       const counterABI = [
-        "function getCount() view returns (uint256)",
-        "function getMaxCount() view returns (uint256)",
-      ];
+        {
+          name: "getCount",
+          type: "function",
+          stateMutability: "view",
+          inputs: [],
+          outputs: [{ name: "", type: "uint256" }],
+        },
+        {
+          name: "getMaxCount",
+          type: "function",
+          stateMutability: "view",
+          inputs: [],
+          outputs: [{ name: "", type: "uint256" }],
+        },
+      ] as const;
 
-      const counterContract = new ethers.Contract(
-        counterDeployment.address,
-        counterABI,
-        this.espaceProvider
-      );
+      const count = await this.espaceClient.readContract({
+        address: counterDeployment.address as `0x${string}`,
+        abi: counterABI,
+        functionName: "getCount",
+      });
 
-      const count = await counterContract.getCount();
-      const maxCount = await counterContract.getMaxCount();
+      const maxCount = await this.espaceClient.readContract({
+        address: counterDeployment.address as `0x${string}`,
+        abi: counterABI,
+        functionName: "getMaxCount",
+      });
 
       return {
         count: count.toString(),
@@ -259,47 +332,117 @@ export class ContractService {
       }
 
       const counterABI = [
-        "function add(uint256 value) external",
-        "function subtract(uint256 value) external",
-        "function multiply(uint256 value) external",
-        "function divide(uint256 value) external",
-        "function reset() external",
-        "function batchAdd(uint256[] calldata values) external",
-        "function batchSubtract(uint256[] calldata values) external",
-      ];
+        {
+          name: "add",
+          type: "function",
+          stateMutability: "nonpayable",
+          inputs: [{ name: "value", type: "uint256" }],
+          outputs: [],
+        },
+        {
+          name: "subtract",
+          type: "function",
+          stateMutability: "nonpayable",
+          inputs: [{ name: "value", type: "uint256" }],
+          outputs: [],
+        },
+        {
+          name: "multiply",
+          type: "function",
+          stateMutability: "nonpayable",
+          inputs: [{ name: "value", type: "uint256" }],
+          outputs: [],
+        },
+        {
+          name: "divide",
+          type: "function",
+          stateMutability: "nonpayable",
+          inputs: [{ name: "value", type: "uint256" }],
+          outputs: [],
+        },
+        {
+          name: "reset",
+          type: "function",
+          stateMutability: "nonpayable",
+          inputs: [],
+          outputs: [],
+        },
+        {
+          name: "batchAdd",
+          type: "function",
+          stateMutability: "nonpayable",
+          inputs: [{ name: "values", type: "uint256[]" }],
+          outputs: [],
+        },
+        {
+          name: "batchSubtract",
+          type: "function",
+          stateMutability: "nonpayable",
+          inputs: [{ name: "values", type: "uint256[]" }],
+          outputs: [],
+        },
+      ] as const;
 
-      const counterContract = new ethers.Contract(
-        counterDeployment.address,
-        counterABI,
-        this.espaceWallet
-      );
-
-      let tx;
+      let hash;
       if (operation === "add" && value !== undefined) {
-        tx = await counterContract.add(value);
+        hash = await this.espaceWallet.writeContract({
+          address: counterDeployment.address as `0x${string}`,
+          abi: counterABI,
+          functionName: "add",
+          args: [BigInt(value)],
+        });
       } else if (operation === "subtract" && value !== undefined) {
-        tx = await counterContract.subtract(value);
+        hash = await this.espaceWallet.writeContract({
+          address: counterDeployment.address as `0x${string}`,
+          abi: counterABI,
+          functionName: "subtract",
+          args: [BigInt(value)],
+        });
       } else if (operation === "multiply" && value !== undefined) {
-        tx = await counterContract.multiply(value);
+        hash = await this.espaceWallet.writeContract({
+          address: counterDeployment.address as `0x${string}`,
+          abi: counterABI,
+          functionName: "multiply",
+          args: [BigInt(value)],
+        });
       } else if (operation === "divide" && value !== undefined) {
-        tx = await counterContract.divide(value);
+        hash = await this.espaceWallet.writeContract({
+          address: counterDeployment.address as `0x${string}`,
+          abi: counterABI,
+          functionName: "divide",
+          args: [BigInt(value)],
+        });
       } else if (operation === "reset") {
-        tx = await counterContract.reset();
+        hash = await this.espaceWallet.writeContract({
+          address: counterDeployment.address as `0x${string}`,
+          abi: counterABI,
+          functionName: "reset",
+        });
       } else if (operation === "batchAdd" && values) {
-        tx = await counterContract.batchAdd(values);
+        hash = await this.espaceWallet.writeContract({
+          address: counterDeployment.address as `0x${string}`,
+          abi: counterABI,
+          functionName: "batchAdd",
+          args: [values.map(v => BigInt(v))],
+        });
       } else if (operation === "batchSubtract" && values) {
-        tx = await counterContract.batchSubtract(values);
+        hash = await this.espaceWallet.writeContract({
+          address: counterDeployment.address as `0x${string}`,
+          abi: counterABI,
+          functionName: "batchSubtract",
+          args: [values.map(v => BigInt(v))],
+        });
       } else {
         throw new Error(`Invalid operation: ${operation}`);
       }
 
-      const receipt = await tx.wait();
+      const receipt = await this.espaceClient.waitForTransactionReceipt({ hash });
       const newStatus = await this.getCounterStatus();
 
       return {
         success: true,
-        transactionHash: tx.hash,
-        gasUsed: receipt?.gasUsed?.toString() || "0",
+        transactionHash: receipt.transactionHash,
+        gasUsed: receipt.gasUsed.toString(),
         data: {
           operation,
           value,

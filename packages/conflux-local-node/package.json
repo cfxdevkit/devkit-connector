@@ -2,7 +2,6 @@
   "name": "@conflux-local/node",
   "version": "1.0.0",
   "description": "Standalone local Conflux node using @xcfx/node for development and testing",
-  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
@@ -25,7 +24,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node src/cli.ts",
+    "dev": "node dist/cli.js dev",
     "start": "node dist/cli.js",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit",

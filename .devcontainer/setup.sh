@@ -50,6 +50,13 @@ fi
 # Install dependencies for all components
 print_status "Installing dependencies for all components..."
 
+# Install root dependencies first
+if [ -f "package.json" ]; then
+    print_status "Installing root dependencies..."
+    pnpm install
+    print_success "Root dependencies installed"
+fi
+
 # Server dependencies
 if [ -d "server" ]; then
     print_status "Installing server dependencies..."
@@ -59,47 +66,29 @@ if [ -d "server" ]; then
     print_success "Server dependencies installed"
 fi
 
-# Frontend dependencies
-if [ -d "frontend" ]; then
-    print_status "Installing frontend dependencies..."
-    cd frontend
+# Demo app dependencies
+if [ -d "connector-source/apps/demo-app" ]; then
+    print_status "Installing demo app dependencies..."
+    cd connector-source/apps/demo-app
     pnpm install
-    cd ..
-    print_success "Frontend dependencies installed"
+    cd ../../..
+    print_success "Demo app dependencies installed"
 fi
 
-# Contracts dependencies
-if [ -d "contracts" ]; then
-    print_status "Installing contracts dependencies..."
-    cd contracts
+# Conflux local node dependencies
+if [ -d "packages/conflux-local-node" ]; then
+    print_status "Installing conflux-local-node dependencies..."
+    cd packages/conflux-local-node
     pnpm install
-    cd ..
-    print_success "Contracts dependencies installed"
-fi
-
-# Deployment dependencies
-if [ -d "deployment" ]; then
-    print_status "Installing deployment dependencies..."
-    cd deployment
-    pnpm install
-    cd ..
-    print_success "Deployment dependencies installed"
-fi
-
-# Node manager dependencies
-if [ -d "node-manager" ]; then
-    print_status "Installing node-manager dependencies..."
-    cd node-manager
-    pnpm install
-    cd ..
-    print_success "Node manager dependencies installed"
+    cd ../..
+    print_success "Conflux local node dependencies installed"
 fi
 
 # Create necessary directories
 print_status "Creating necessary directories..."
 mkdir -p logs
 mkdir -p deployment/deployments
-mkdir -p node-manager/data
+mkdir -p packages/conflux-local-node/data
 print_success "Directories created"
 
 # Set up Git configuration (if not already set)
@@ -110,10 +99,12 @@ if [ -z "$(git config --global user.name)" ]; then
     print_success "Git configuration set"
 fi
 
-# Install additional useful tools
-print_status "Installing additional development tools..."
+# Install OpenSSL 3.0 and development tools
+print_status "Installing OpenSSL 3.0 and development tools..."
+sudo apt-get update
+sudo apt-get install -y libssl3 libssl-dev openssl
 npm install -g @types/node typescript ts-node nodemon concurrently
-print_success "Additional tools installed"
+print_success "OpenSSL 3.0 and additional tools installed"
 
 # Create a workspace configuration file
 print_status "Creating workspace configuration..."

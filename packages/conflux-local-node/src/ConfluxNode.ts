@@ -15,7 +15,7 @@ import {
   ExecutionResult,
   NodeStatus,
   WalletInfo,
-} from "./types.js";
+} from "./types";
 
 const bip32 = BIP32Factory(ecc);
 

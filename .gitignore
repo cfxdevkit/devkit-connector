@@ -103,3 +103,6 @@ temp/
 test-results/
 playwright-report/
 test-results.xml
+
+# Untracked directories
+.untracked/

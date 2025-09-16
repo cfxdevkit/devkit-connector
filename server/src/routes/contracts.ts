@@ -2,12 +2,12 @@ import { Router, Request, Response } from 'express';
 import { ContractService } from '../services/contract-service';
 import { z } from 'zod';
 
-const router = Router();
+const router: Router = Router();
 
 // Initialize contract service
 const contractService = new ContractService({
-  espaceRpcUrl: process.env.ESPACE_RPC_URL || 'http://localhost:12537',
-  coreRpcUrl: process.env.CORE_RPC_URL || 'http://localhost:12539',
+  espaceRpcUrl: process.env.ESPACE_RPC_URL || 'http://localhost:8545',
+  coreRpcUrl: process.env.CORE_RPC_URL || 'http://localhost:12537',
   privateKey: process.env.PRIVATE_KEY || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
   deploymentsPath: process.env.DEPLOYMENTS_PATH || '../deployment'
 });

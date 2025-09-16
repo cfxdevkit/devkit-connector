@@ -102,8 +102,8 @@ class MinimalDeployer {
 
     // For now, create mock deployments
     // In a real scenario, you would compile and deploy actual contracts
-    const mockAddress = '0x' + Math.random().toString(16).substr(2, 40);
-    const mockTxHash = '0x' + Math.random().toString(16).substr(2, 64);
+    const mockAddress = '0x' + Array.from({length: 40}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    const mockTxHash = '0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
     
     const deployment: DeploymentResult = {
       network: networkKey,

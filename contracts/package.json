@@ -2,19 +2,28 @@
   "name": "minimal-contracts",
   "version": "1.0.0",
   "description": "Minimal smart contracts for Conflux dual wallet demo",
+  "type": "module",
   "scripts": {
     "deploy": "ts-node scripts/deploy.ts",
     "compile": "echo 'Compilation would happen here with Hardhat'",
     "test": "echo 'Tests would run here'"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
     "ethers": "^6.8.1",
     "fs-extra": "^11.1.1"
   },
   "devDependencies": {
-    "typescript": "^5.3.3",
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "@nomicfoundation/hardhat-viem": "^3.0.0",
+    "@types/fs-extra": "^11.0.4",
+    "hardhat": "^3.0.6",
     "ts-node": "^10.9.2",
-    "@types/fs-extra": "^11.0.4"
+    "typescript": "^5.3.3",
+    "viem": "^2.37.6",
+    "@types/node": "^22.0.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
   }
 }
-

@@ -20,13 +20,13 @@
     "conflux-node:dev": "pnpm run dev --filter @conflux-local/node"
   },
   "devDependencies": {
-    "@types/node": "^20.8.0",
+    "@types/node": "^22.0.0",
     "typescript": "^5.2.2",
     "prettier": "^3.0.0",
     "eslint": "^8.0.0"
   },
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=22.0.0",
     "pnpm": ">=8.0.0"
   },
   "keywords": [

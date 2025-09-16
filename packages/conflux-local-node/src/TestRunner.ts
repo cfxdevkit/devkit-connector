@@ -2,7 +2,7 @@ import { createWalletClient, http, createPublicClient } from "viem";
 import { createPublicClient as createCiveClient, http as civeHttp } from "cive";
 import chalk from "chalk";
 import ora from "ora";
-import { TestOptions, TestResult } from "./types.js";
+import { TestOptions, TestResult } from "./types";
 
 export class TestRunner {
   private spinner: any = null;
