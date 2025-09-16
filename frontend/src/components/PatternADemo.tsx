@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { apiRequest, getErrorMessage } from "../utils/apiUtils";
 
 interface ContractStatus {
   espace: {
@@ -44,32 +45,30 @@ const PatternADemo: React.FC = () => {
   // Load contract status
   const loadContractStatus = async () => {
     try {
-      const response = await fetch("/api/contracts/status");
-      const data = await response.json();
+      const response = await apiRequest<ContractStatus>("/api/contracts/status");
 
-      if (data.success) {
-        setContractStatus(data.data);
+      if (response.success && response.data) {
+        setContractStatus(response.data);
       } else {
-        setError(data.error || "Failed to load contract status");
+        setError(response.error || "Failed to load contract status");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(getErrorMessage(err));
     }
   };
 
   // Load counter status
   const loadCounterStatus = async () => {
     try {
-      const response = await fetch("/api/contracts/counter/status");
-      const data = await response.json();
+      const response = await apiRequest<CounterStatus>("/api/contracts/counter/status");
 
-      if (data.success) {
-        setCounterStatus(data.data);
+      if (response.success && response.data) {
+        setCounterStatus(response.data);
       } else {
-        setError(data.error || "Failed to load counter status");
+        setError(response.error || "Failed to load counter status");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(getErrorMessage(err));
     }
   };
 
@@ -83,24 +82,19 @@ const PatternADemo: React.FC = () => {
     setError(null);
 
     try {
-      const response = await fetch("/api/contracts/counter/operation", {
+      const response = await apiRequest<CounterOperation>("/api/contracts/counter/operation", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ operation, value, values }),
       });
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.success) {
         // Reload counter status
         await loadCounterStatus();
       } else {
-        setError(data.error || "Operation failed");
+        setError(response.error || "Operation failed");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

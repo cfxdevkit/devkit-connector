@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import WalletManager from "../components/WalletManager";
 
 const HomePage: React.FC = () => {
   return (
@@ -39,6 +40,11 @@ const HomePage: React.FC = () => {
               Try Delegation Manager
             </Link>
           </div>
+        </div>
+
+        {/* Wallet Management Section */}
+        <div className="wallet-section">
+          <WalletManager />
         </div>
 
         <div className="features">

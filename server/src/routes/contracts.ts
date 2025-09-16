@@ -141,6 +141,48 @@ router.get("/getDelegation/:address", async (req: Request, res: Response) => {
   }
 });
 
+// Get current user's delegation status
+router.get("/delegation/status", async (req: Request, res: Response) => {
+  try {
+    // Get the current wallet address from the contract service
+    const walletAddress = contractService.getWalletAddress();
+    const result = await contractService.callEspaceContract("getDelegation", [
+      walletAddress,
+    ]);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+// Create delegation (alias for createDelegation)
+router.post("/delegation/create", async (req: Request, res: Response) => {
+  try {
+    const { delegate, limit } = createDelegationSchema.parse(req.body);
+    const result = await contractService.callEspaceContract(
+      "createDelegation",
+      [delegate, limit]
+    );
+    res.json(result);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({
+        success: false,
+        error: "Validation error",
+        details: error.errors,
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+});
+
 // Counter contract methods
 router.get("/counter/status", async (req: Request, res: Response) => {
   try {

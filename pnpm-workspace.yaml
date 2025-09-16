@@ -1,6 +1,11 @@
 packages:
   - 'packages/*'
   - 'apps/*'
+  - 'server'
+  - 'frontend'
+  - 'contracts'
+  - 'deployment'
+
 
 
 

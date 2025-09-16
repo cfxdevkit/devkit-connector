@@ -18,13 +18,35 @@ import {
   CounterOperation,
 } from "../types";
 
+// Import the generated contract configuration at runtime
+let contractConfig: any;
+
 export class ContractService {
   private espaceClient: any;
   private espaceWallet: any;
   private deployments: Map<string, DeploymentResult> = new Map();
+  private contractConfig: any;
 
   constructor(config: ContractServiceConfig) {
     console.log(`🔗 EVM_RPC_URL: ${config.espaceRpcUrl}`);
+
+    // Load contract configuration at runtime
+    try {
+      const configPath = path.resolve(__dirname, '../../../shared/contract-config.json');
+      console.log(`🔍 Looking for config at: ${configPath}`);
+
+      if (fs.existsSync(configPath)) {
+        const configData = fs.readFileSync(configPath, 'utf8');
+        this.contractConfig = JSON.parse(configData);
+        console.log(`📋 Loaded contract config with ${Object.keys(this.contractConfig.contracts).length} contracts`);
+      } else {
+        console.warn(`⚠️ Contract config not found at ${configPath}`);
+        this.contractConfig = { contracts: {} };
+      }
+    } catch (error) {
+      console.warn(`⚠️ Failed to load contract config: ${error}`);
+      this.contractConfig = { contracts: {} };
+    }
 
     // Initialize EVM space connection using viem
     const account = privateKeyToAccount(config.privateKey as `0x${string}`);
@@ -38,8 +60,11 @@ export class ContractService {
       transport: http(config.espaceRpcUrl),
     });
 
-    // Load deployments
+    // Load deployments (legacy support)
     this.loadDeployments(config.deploymentsPath);
+
+    // Load contracts from the generated configuration
+    this.loadContractConfig();
   }
 
   private loadDeployments(deploymentsPath: string): void {
@@ -56,19 +81,50 @@ export class ContractService {
               // Use contract name as key if available, otherwise use network
               const key = deployment.contract || deployment.network;
               this.deployments.set(key, deployment);
-              console.log(`📄 Loaded ${key} deployment: ${deployment.address}`);
+              console.log(`📄 Loaded legacy ${key} deployment: ${deployment.address}`);
             }
           }
         }
       }
     } catch (error) {
-      console.warn("⚠️ Failed to load deployments:", error);
+      console.warn("⚠️ Failed to load legacy deployments:", error);
+    }
+  }
+
+  private loadContractConfig(): void {
+    try {
+      for (const [contractName, contract] of Object.entries(this.contractConfig.contracts)) {
+        const deploymentResult: DeploymentResult = {
+          network: (contract as any).network,
+          contract: contractName,
+          address: (contract as any).address,
+          txHash: (contract as any).metadata?.txHash || '0x0',
+          gasUsed: (contract as any).metadata?.gasUsed || '0',
+          timestamp: (contract as any).metadata?.timestamp || new Date().toISOString(),
+          mock: (contract as any).metadata?.mock || false
+        };
+
+        // Override legacy deployments with config data (config is the source of truth)
+        this.deployments.set(contractName, deploymentResult);
+        console.log(`🔧 Loaded config ${contractName}: ${(contract as any).address} (${(contract as any).source})`);
+      }
+    } catch (error) {
+      console.warn("⚠️ Failed to load contract config:", error);
     }
   }
 
   // Get contract status
   async getContractStatus(): Promise<ContractStatus> {
-    const counterDeployment = this.deployments.get("Counter");
+    // Try to get Counter from multiple possible names
+    const counterDeployment = this.deployments.get("Counter") ||
+                              this.deployments.get("counter") ||
+                              this.deployments.get("CounterModule#Counter");
+
+    const delegationDeployment = this.deployments.get("DelegationManager") ||
+                                 this.deployments.get("delegation") ||
+                                 this.deployments.get("DelegationManagerModule#DelegationManager");
+
+    console.log(`📊 Contract status - Counter: ${counterDeployment?.address}, Delegation: ${delegationDeployment?.address}`);
 
     return {
       espace: {
@@ -82,6 +138,11 @@ export class ContractService {
         mock: true,
       },
     };
+  }
+
+  // Get wallet address
+  getWalletAddress(): string {
+    return this.espaceWallet.account.address;
   }
 
   // Get network info
@@ -287,17 +348,6 @@ export class ContractService {
         throw new Error("Counter contract not deployed");
       }
 
-      // If it's a mock deployment, return mock data
-      console.log("🔍 Counter deployment mock flag:", counterDeployment.mock);
-      if (counterDeployment.mock) {
-        console.log("🎭 Using mock data for Counter");
-        return {
-          count: "42",
-          maxCount: "100",
-          address: counterDeployment.address,
-        };
-      }
-
       // Counter ABI
       const counterABI = [
         {
@@ -334,16 +384,6 @@ export class ContractService {
         address: counterDeployment.address,
       };
     } catch (error) {
-      // If contract call fails, return mock data
-      const counterDeployment = this.deployments.get("Counter");
-      if (counterDeployment) {
-        return {
-          count: "42",
-          maxCount: "100",
-          address: counterDeployment.address,
-        };
-      }
-
       throw new Error(
         `Failed to get counter status: ${
           error instanceof Error ? error.message : "Unknown error"
@@ -363,21 +403,6 @@ export class ContractService {
         throw new Error("Counter contract not deployed");
       }
 
-      // If it's a mock deployment, return mock response
-      if (counterDeployment.mock) {
-        return {
-          success: true,
-          transactionHash: "0x" + Math.random().toString(16).substr(2, 64),
-          gasUsed: "21000",
-          data: {
-            operation,
-            value,
-            values,
-            newCount: "42",
-          },
-          mock: true,
-        };
-      }
 
       const counterABI = [
         {
