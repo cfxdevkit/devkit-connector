@@ -1,4 +1,31 @@
 import React, { useState } from "react";
+import {
+  Card,
+  Title,
+  Text,
+  Button,
+  Group,
+  Stack,
+  Grid,
+  Alert,
+  Badge,
+  ScrollArea,
+  Code,
+  ActionIcon,
+  Paper,
+  ThemeIcon,
+  Box,
+} from "@mantine/core";
+import {
+  IconServer,
+  IconWorld,
+  IconCheck,
+  IconX,
+  IconClock,
+  IconTrash,
+  IconApi,
+  IconRefresh,
+} from "@tabler/icons-react";
 import { useServerWallet } from "../hooks/useServerWallet";
 import { useBrowserWallet } from "../hooks/useBrowserWallet";
 
@@ -109,206 +136,324 @@ const WalletTest: React.FC = () => {
     setIsLoading(false);
   };
 
+  const getStatusBadge = (
+    loading: boolean,
+    connected: boolean,
+    error: string | null
+  ) => {
+    if (loading) {
+      return (
+        <Badge color="yellow" leftSection={<IconClock size={12} />}>
+          Loading
+        </Badge>
+      );
+    }
+    if (connected) {
+      return (
+        <Badge color="green" leftSection={<IconCheck size={12} />}>
+          Connected
+        </Badge>
+      );
+    }
+    if (error) {
+      return (
+        <Badge color="red" leftSection={<IconX size={12} />}>
+          Error
+        </Badge>
+      );
+    }
+    return <Badge color="gray">Not Connected</Badge>;
+  };
+
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
-      <h1 className="text-3xl font-bold text-center mb-8">
-        Wallet Connection Test
-      </h1>
-
-      {/* Server Wallet Section */}
-      <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
-        <h2 className="text-xl font-semibold mb-4 text-blue-800">
-          🖥️ Server-Managed Wallet
-        </h2>
-
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Status
-              </label>
-              <div className="text-sm">
-                {serverLoading
-                  ? "⏳ Loading..."
-                  : serverConnected
-                    ? "✅ Connected"
-                    : serverError
-                      ? "❌ Error"
-                      : "⏸️ Not Connected"}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Mode
-              </label>
-              <div className="text-sm">{serverMode || "None"}</div>
-            </div>
-          </div>
-
-          {serverESpaceAddress && (
-            <div className="space-y-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  eSpace Address
-                </label>
-                <div className="text-xs font-mono bg-gray-100 p-2 rounded">
-                  {serverESpaceAddress}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Core Address
-                </label>
-                <div className="text-xs font-mono bg-gray-100 p-2 rounded">
-                  {serverCoreAddress}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {serverError && (
-            <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded">
-              <strong>Error:</strong> {serverError}
-            </div>
-          )}
-
-          <button
-            onClick={testServerWallet}
-            disabled={isLoading || serverLoading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            {serverLoading ? "Testing..." : "Test Server Wallet"}
-          </button>
-        </div>
-      </div>
-
-      {/* Browser Wallet Section */}
-      <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
-        <h2 className="text-xl font-semibold mb-4 text-green-800">
-          🌐 Browser Wallet
-        </h2>
-
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Status
-              </label>
-              <div className="text-sm">
-                {browserLoading
-                  ? "⏳ Loading..."
-                  : browserWallet
-                    ? "✅ Connected"
-                    : browserError
-                      ? "❌ Error"
-                      : "⏸️ Not Connected"}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Connector
-              </label>
-              <div className="text-sm">
-                {browserWallet?.connector || "None"}
-              </div>
-            </div>
-          </div>
-
-          {browserWallet && (
-            <div className="space-y-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Address
-                </label>
-                <div className="text-xs font-mono bg-gray-100 p-2 rounded">
-                  {browserWallet.address}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Chain ID
-                </label>
-                <div className="text-sm">{browserWallet.chainId}</div>
-              </div>
-            </div>
-          )}
-
-          {browserError && (
-            <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded">
-              <strong>Error:</strong> {browserError}
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <button
-              onClick={testBrowserWallet}
-              disabled={isLoading || browserLoading}
-              className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 disabled:opacity-50"
+    <Stack gap="xl">
+      {/* Header Section */}
+      <Card shadow="sm" padding="lg" radius="md" withBorder>
+        <Group justify="space-between" mb="md">
+          <Box>
+            <Title order={2}>Wallet Connection Test</Title>
+            <Text c="dimmed" size="sm">
+              Test and verify wallet connections for both server and browser
+              patterns
+            </Text>
+          </Box>
+          <Group>
+            <Button
+              onClick={() => {
+                testServerWallet();
+                testBrowserWallet();
+              }}
+              loading={isLoading}
+              leftSection={<IconRefresh size={16} />}
+              variant="outline"
             >
-              {browserLoading ? "Testing..." : "Test Browser Wallet"}
-            </button>
+              Test All
+            </Button>
+            <Button
+              onClick={clearResults}
+              leftSection={<IconTrash size={16} />}
+              variant="outline"
+              color="red"
+            >
+              Clear Results
+            </Button>
+          </Group>
+        </Group>
+      </Card>
 
-            {browserWallet && (
-              <button
-                onClick={testBrowserDelegation}
-                disabled={isLoading}
-                className="w-full bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700 disabled:opacity-50"
+      {/* Wallet Status Overview */}
+      <Grid>
+        <Grid.Col span={6}>
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Group mb="md">
+              <ThemeIcon color="blue" variant="light" size="lg">
+                <IconServer size={20} />
+              </ThemeIcon>
+              <Box>
+                <Title order={3}>Server Wallet</Title>
+                <Text size="sm" c="dimmed">
+                  Server-managed wallet for Pattern A
+                </Text>
+              </Box>
+            </Group>
+
+            <Stack gap="md">
+              {/* Status Row */}
+              <Group justify="space-between">
+                <Text fw={500}>Connection Status</Text>
+                {getStatusBadge(serverLoading, serverConnected, serverError)}
+              </Group>
+
+              {/* Wallet Details - Always Visible */}
+              <Paper p="md" withBorder>
+                <Stack gap="sm">
+                  <Group justify="space-between">
+                    <Text size="sm" fw={500}>
+                      Mode
+                    </Text>
+                    <Badge color="blue" variant="light">
+                      {serverMode || "Not Set"}
+                    </Badge>
+                  </Group>
+
+                  {serverESpaceAddress ? (
+                    <>
+                      <div>
+                        <Text size="sm" fw={500} mb="xs">
+                          eSpace Address
+                        </Text>
+                        <Code block>{serverESpaceAddress}</Code>
+                      </div>
+                      <div>
+                        <Text size="sm" fw={500} mb="xs">
+                          Core Address
+                        </Text>
+                        <Code block>{serverCoreAddress}</Code>
+                      </div>
+                    </>
+                  ) : (
+                    <Text size="sm" c="dimmed" ta="center" py="md">
+                      No wallet loaded
+                    </Text>
+                  )}
+                </Stack>
+              </Paper>
+
+              {/* Error Display */}
+              {serverError && (
+                <Alert
+                  color="red"
+                  title="Connection Error"
+                  icon={<IconX size={16} />}
+                >
+                  {serverError}
+                </Alert>
+              )}
+
+              {/* Action Button - Always Visible */}
+              <Button
+                onClick={testServerWallet}
+                loading={isLoading || serverLoading}
+                fullWidth
+                color="blue"
+                leftSection={<IconServer size={16} />}
               >
-                Test Delegation to Server
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+                {serverConnected
+                  ? "Reconnect Server Wallet"
+                  : "Connect Server Wallet"}
+              </Button>
+            </Stack>
+          </Card>
+        </Grid.Col>
 
-      {/* Test Results */}
-      <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-800">
-            📊 Test Results
-          </h2>
-          <button
-            onClick={clearResults}
-            className="bg-gray-600 text-white py-1 px-3 rounded text-sm hover:bg-gray-700"
-          >
-            Clear
-          </button>
-        </div>
+        <Grid.Col span={6}>
+          <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Group mb="md">
+              <ThemeIcon color="green" variant="light" size="lg">
+                <IconWorld size={20} />
+              </ThemeIcon>
+              <Box>
+                <Title order={3}>Browser Wallet</Title>
+                <Text size="sm" c="dimmed">
+                  User-controlled wallet for Pattern B
+                </Text>
+              </Box>
+            </Group>
 
-        <div className="bg-black text-green-400 p-4 rounded font-mono text-sm h-64 overflow-y-auto">
-          {testResults.length === 0 ? (
-            <div className="text-gray-500">No tests run yet...</div>
-          ) : (
-            testResults.map((result, index) => (
-              <div key={index} className="mb-1">
-                {result}
-              </div>
-            ))
-          )}
-        </div>
-      </div>
+            <Stack gap="md">
+              {/* Status Row */}
+              <Group justify="space-between">
+                <Text fw={500}>Connection Status</Text>
+                {getStatusBadge(browserLoading, !!browserWallet, browserError)}
+              </Group>
 
-      {/* API Test */}
-      <div className="bg-yellow-50 p-6 rounded-lg border-2 border-yellow-200">
-        <h2 className="text-xl font-semibold mb-4 text-yellow-800">
-          🔧 API Test
-        </h2>
-        <button
-          onClick={() => {
-            addResult("🔄 Testing API connection...");
-            fetch("http://localhost:3001/health")
-              .then((response) => response.json())
-              .then((data) =>
-                addResult(`✅ API Health: ${JSON.stringify(data)}`)
-              )
-              .catch((error) => addResult(`❌ API Error: ${error.message}`));
+              {/* Wallet Details - Always Visible */}
+              <Paper p="md" withBorder>
+                <Stack gap="sm">
+                  <Group justify="space-between">
+                    <Text size="sm" fw={500}>
+                      Connector
+                    </Text>
+                    <Badge color="green" variant="light">
+                      {browserWallet?.connector || "Not Connected"}
+                    </Badge>
+                  </Group>
+
+                  {browserWallet ? (
+                    <>
+                      <div>
+                        <Text size="sm" fw={500} mb="xs">
+                          Address
+                        </Text>
+                        <Code block>{browserWallet.address}</Code>
+                      </div>
+                      <div>
+                        <Text size="sm" fw={500} mb="xs">
+                          Chain ID
+                        </Text>
+                        <Text size="sm">{browserWallet.chainId}</Text>
+                      </div>
+                    </>
+                  ) : (
+                    <Text size="sm" c="dimmed" ta="center" py="md">
+                      No wallet connected
+                    </Text>
+                  )}
+                </Stack>
+              </Paper>
+
+              {/* Error Display */}
+              {browserError && (
+                <Alert
+                  color="red"
+                  title="Connection Error"
+                  icon={<IconX size={16} />}
+                >
+                  {browserError}
+                </Alert>
+              )}
+
+              {/* Action Buttons - Always Visible */}
+              <Stack gap="sm">
+                <Button
+                  onClick={testBrowserWallet}
+                  loading={isLoading || browserLoading}
+                  fullWidth
+                  color="green"
+                  leftSection={<IconWorld size={16} />}
+                >
+                  {browserWallet
+                    ? "Reconnect Browser Wallet"
+                    : "Connect Browser Wallet"}
+                </Button>
+
+                {browserWallet && serverESpaceAddress && (
+                  <Button
+                    onClick={testBrowserDelegation}
+                    loading={isLoading}
+                    fullWidth
+                    color="violet"
+                    variant="outline"
+                  >
+                    Test Delegation to Server
+                  </Button>
+                )}
+              </Stack>
+            </Stack>
+          </Card>
+        </Grid.Col>
+      </Grid>
+
+      {/* Test Results - Always Visible */}
+      <Card shadow="sm" padding="lg" radius="md" withBorder>
+        <Group justify="space-between" mb="md">
+          <Title order={3}>Test Results</Title>
+          <Badge color="blue" variant="light">
+            {testResults.length} tests
+          </Badge>
+        </Group>
+
+        <Paper
+          p="md"
+          style={{
+            backgroundColor: "#1a1a1a",
+            color: "#00ff00",
+            fontFamily: "monospace",
+            fontSize: "12px",
+            minHeight: "200px",
           }}
-          className="bg-yellow-600 text-white py-2 px-4 rounded hover:bg-yellow-700"
         >
-          Test API Connection
-        </button>
-      </div>
-    </div>
+          <ScrollArea h={200}>
+            {testResults.length === 0 ? (
+              <Text c="dimmed" ta="center" py="xl">
+                No tests run yet. Click "Test All" or individual test buttons
+                above.
+              </Text>
+            ) : (
+              testResults.map((result, index) => (
+                <Text key={index} size="xs" style={{ marginBottom: "4px" }}>
+                  {result}
+                </Text>
+              ))
+            )}
+          </ScrollArea>
+        </Paper>
+      </Card>
+
+      {/* System Health - Always Visible */}
+      <Card shadow="sm" padding="lg" radius="md" withBorder>
+        <Group mb="md">
+          <ThemeIcon color="yellow" variant="light" size="lg">
+            <IconApi size={20} />
+          </ThemeIcon>
+          <Box>
+            <Title order={3}>System Health</Title>
+            <Text size="sm" c="dimmed">
+              Check API connectivity and system status
+            </Text>
+          </Box>
+        </Group>
+
+        <Group>
+          <Button
+            onClick={() => {
+              addResult("🔄 Testing API connection...");
+              fetch("http://localhost:3001/health")
+                .then((response) => response.json())
+                .then((data) =>
+                  addResult(`✅ API Health: ${JSON.stringify(data)}`)
+                )
+                .catch((error) => addResult(`❌ API Error: ${error.message}`));
+            }}
+            color="yellow"
+            variant="outline"
+            leftSection={<IconApi size={16} />}
+          >
+            Test API Connection
+          </Button>
+        </Group>
+      </Card>
+    </Stack>
   );
 };
 

@@ -1,9 +1,9 @@
 // Auto-generated contract configuration (ES Module)
-// Generated: 2025-09-16T15:51:18.583Z
+// Generated: 2025-09-16T17:35:11.641Z
 
 const contractConfig = {
   "metadata": {
-    "generated": "2025-09-16T15:51:18.583Z",
+    "generated": "2025-09-16T17:35:11.641Z",
     "version": "1.0.0",
     "sources": [
       "legacy",

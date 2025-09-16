@@ -1,4 +1,31 @@
 import React, { useState, useEffect } from "react";
+import {
+  Card,
+  Title,
+  Text,
+  Button,
+  Group,
+  Stack,
+  Grid,
+  TextInput,
+  Alert,
+  Badge,
+  Code,
+  NumberInput,
+  ThemeIcon,
+  Paper,
+  Loader,
+  Center,
+} from "@mantine/core";
+import {
+  IconCalculator,
+  IconCheck,
+  IconX,
+  IconPlus,
+  IconMinus,
+  IconX as IconMultiply,
+  IconDivide,
+} from "@tabler/icons-react";
 import { apiRequest, getErrorMessage } from "../utils/apiUtils";
 
 interface ContractStatus {
@@ -45,7 +72,9 @@ const PatternADemo: React.FC = () => {
   // Load contract status
   const loadContractStatus = async () => {
     try {
-      const response = await apiRequest<ContractStatus>("/api/contracts/status");
+      const response = await apiRequest<ContractStatus>(
+        "/api/contracts/status"
+      );
 
       if (response.success && response.data) {
         setContractStatus(response.data);
@@ -60,7 +89,9 @@ const PatternADemo: React.FC = () => {
   // Load counter status
   const loadCounterStatus = async () => {
     try {
-      const response = await apiRequest<CounterStatus>("/api/contracts/counter/status");
+      const response = await apiRequest<CounterStatus>(
+        "/api/contracts/counter/status"
+      );
 
       if (response.success && response.data) {
         setCounterStatus(response.data);
@@ -82,10 +113,13 @@ const PatternADemo: React.FC = () => {
     setError(null);
 
     try {
-      const response = await apiRequest<CounterOperation>("/api/contracts/counter/operation", {
-        method: "POST",
-        body: JSON.stringify({ operation, value, values }),
-      });
+      const response = await apiRequest<CounterOperation>(
+        "/api/contracts/counter/operation",
+        {
+          method: "POST",
+          body: JSON.stringify({ operation, value, values }),
+        }
+      );
 
       if (response.success) {
         // Reload counter status
@@ -131,193 +165,313 @@ const PatternADemo: React.FC = () => {
   }, []);
 
   return (
-    <div className="minimal-pattern-a">
-      <div className="container">
-        <h1>Contract Demo: Direct Interaction</h1>
-        <p className="description">
-          Direct interaction with smart contracts through the server API on
-          Conflux eSpace.
-        </p>
-
-        {/* Error Display */}
-        {error && (
-          <div className="error-message">
-            <strong>Error:</strong> {error}
+    <Stack gap="xl">
+      <Card shadow="sm" padding="lg" radius="md" withBorder>
+        <Group mb="md">
+          <ThemeIcon color="blue" variant="light" size="lg">
+            <IconCalculator size={20} />
+          </ThemeIcon>
+          <div>
+            <Title order={3}>Contract Demo: Direct Interaction</Title>
+            <Text c="dimmed" size="sm">
+              Direct interaction with smart contracts through the server API on
+              Conflux eSpace.
+            </Text>
           </div>
+        </Group>
+
+        {error && (
+          <Alert color="red" title="Error" mb="md">
+            {error}
+          </Alert>
         )}
 
         {/* Contract Status */}
-        <div className="section">
-          <h2>Contract Status</h2>
+        <Stack gap="md">
+          <Title order={4}>Contract Status</Title>
           {contractStatus ? (
-            <div className="status-grid">
-              <div className="status-item">
-                <h3>DelegationManager Contract</h3>
-                <p>
-                  Deployed:{" "}
-                  {contractStatus.espace.deployed ? "✅ Yes" : "❌ No"}
-                </p>
-                {contractStatus.espace.address && (
-                  <p>
-                    Address: <code>{contractStatus.espace.address}</code>
-                  </p>
-                )}
-                <p>Type: {contractStatus.espace.mock ? "Mock" : "Real"}</p>
-              </div>
-              <div className="status-item">
-                <h3>Counter Contract</h3>
-                <p>
-                  Deployed:{" "}
-                  {contractStatus.espace.deployed ? "✅ Yes" : "❌ No"}
-                </p>
-                {contractStatus.espace.address && (
-                  <p>
-                    Address: <code>{contractStatus.espace.address}</code>
-                  </p>
-                )}
-                <p>Type: {contractStatus.espace.mock ? "Mock" : "Real"}</p>
-              </div>
-            </div>
+            <Grid>
+              <Grid.Col span={6}>
+                <Paper p="md" withBorder>
+                  <Title order={5} mb="sm">
+                    DelegationManager Contract
+                  </Title>
+                  <Stack gap="xs">
+                    <Group>
+                      <Text size="sm" fw={500}>
+                        Deployed:
+                      </Text>
+                      <Badge
+                        color={contractStatus.espace.deployed ? "green" : "red"}
+                        leftSection={
+                          contractStatus.espace.deployed ? (
+                            <IconCheck size={12} />
+                          ) : (
+                            <IconX size={12} />
+                          )
+                        }
+                      >
+                        {contractStatus.espace.deployed ? "Yes" : "No"}
+                      </Badge>
+                    </Group>
+                    {contractStatus.espace.address && (
+                      <div>
+                        <Text size="sm" fw={500} mb="xs">
+                          Address:
+                        </Text>
+                        <Code block>{contractStatus.espace.address}</Code>
+                      </div>
+                    )}
+                    <Text size="sm">
+                      Type: {contractStatus.espace.mock ? "Mock" : "Real"}
+                    </Text>
+                  </Stack>
+                </Paper>
+              </Grid.Col>
+              <Grid.Col span={6}>
+                <Paper p="md" withBorder>
+                  <Title order={5} mb="sm">
+                    Counter Contract
+                  </Title>
+                  <Stack gap="xs">
+                    <Group>
+                      <Text size="sm" fw={500}>
+                        Deployed:
+                      </Text>
+                      <Badge
+                        color={contractStatus.espace.deployed ? "green" : "red"}
+                        leftSection={
+                          contractStatus.espace.deployed ? (
+                            <IconCheck size={12} />
+                          ) : (
+                            <IconX size={12} />
+                          )
+                        }
+                      >
+                        {contractStatus.espace.deployed ? "Yes" : "No"}
+                      </Badge>
+                    </Group>
+                    {contractStatus.espace.address && (
+                      <div>
+                        <Text size="sm" fw={500} mb="xs">
+                          Address:
+                        </Text>
+                        <Code block>{contractStatus.espace.address}</Code>
+                      </div>
+                    )}
+                    <Text size="sm">
+                      Type: {contractStatus.espace.mock ? "Mock" : "Real"}
+                    </Text>
+                  </Stack>
+                </Paper>
+              </Grid.Col>
+            </Grid>
           ) : (
-            <p>Loading contract status...</p>
+            <Center p="xl">
+              <Loader size="sm" />
+              <Text ml="sm">Loading contract status...</Text>
+            </Center>
           )}
-        </div>
+        </Stack>
+      </Card>
 
-        {/* Counter Contract Demo */}
-        <div className="section">
-          <h2>Counter Contract Demo</h2>
-          {counterStatus ? (
-            <div className="counter-demo">
-              <div className="counter-status">
-                <h3>Current Status</h3>
-                <p>
-                  Count: <strong>{counterStatus.count}</strong>
-                </p>
-                <p>
-                  Max Count: <strong>{counterStatus.maxCount}</strong>
-                </p>
-                <p>
-                  Address: <code>{counterStatus.address}</code>
-                </p>
-              </div>
+      {/* Counter Contract Demo */}
+      <Card shadow="sm" padding="lg" radius="md" withBorder>
+        <Title order={4} mb="md">
+          Counter Contract Demo
+        </Title>
+        {counterStatus ? (
+          <Stack gap="lg">
+            {/* Current Status */}
+            <Paper p="md" withBorder>
+              <Title order={5} mb="sm">
+                Current Status
+              </Title>
+              <Grid>
+                <Grid.Col span={4}>
+                  <Text size="sm" fw={500}>
+                    Count
+                  </Text>
+                  <Text size="lg" fw={700}>
+                    {counterStatus.count}
+                  </Text>
+                </Grid.Col>
+                <Grid.Col span={4}>
+                  <Text size="sm" fw={500}>
+                    Max Count
+                  </Text>
+                  <Text size="lg" fw={700}>
+                    {counterStatus.maxCount}
+                  </Text>
+                </Grid.Col>
+                <Grid.Col span={4}>
+                  <Text size="sm" fw={500}>
+                    Address
+                  </Text>
+                  <Code block>{counterStatus.address}</Code>
+                </Grid.Col>
+              </Grid>
+            </Paper>
 
-              <div className="counter-operations">
-                <h3>Single Operations</h3>
-                <div className="operation-group">
-                  <input
-                    type="number"
-                    value={operationValue}
-                    onChange={(e) => setOperationValue(e.target.value)}
-                    placeholder="Enter value"
-                    className="text-black"
-                  />
-                  <div className="button-group">
-                    <button
-                      onClick={() => handleSingleOperation("add")}
-                      disabled={loading}
-                    >
-                      Add
-                    </button>
-                    <button
-                      onClick={() => handleSingleOperation("subtract")}
-                      disabled={loading}
-                    >
-                      Subtract
-                    </button>
-                    <button
-                      onClick={() => handleSingleOperation("multiply")}
-                      disabled={loading}
-                    >
-                      Multiply
-                    </button>
-                    <button
-                      onClick={() => handleSingleOperation("divide")}
-                      disabled={loading}
-                    >
-                      Divide
-                    </button>
-                  </div>
-                </div>
+            {/* Single Operations */}
+            <Paper p="md" withBorder>
+              <Title order={5} mb="md">
+                Single Operations
+              </Title>
+              <Stack gap="md">
+                <NumberInput
+                  label="Enter value"
+                  placeholder="Enter value"
+                  value={operationValue}
+                  onChange={(value) =>
+                    setOperationValue(value?.toString() || "")
+                  }
+                  min={1}
+                />
+                <Group>
+                  <Button
+                    onClick={() => handleSingleOperation("add")}
+                    loading={loading}
+                    leftSection={<IconPlus size={16} />}
+                    color="green"
+                  >
+                    Add
+                  </Button>
+                  <Button
+                    onClick={() => handleSingleOperation("subtract")}
+                    loading={loading}
+                    leftSection={<IconMinus size={16} />}
+                    color="red"
+                  >
+                    Subtract
+                  </Button>
+                  <Button
+                    onClick={() => handleSingleOperation("multiply")}
+                    loading={loading}
+                    leftSection={<IconMultiply size={16} />}
+                    color="blue"
+                  >
+                    Multiply
+                  </Button>
+                  <Button
+                    onClick={() => handleSingleOperation("divide")}
+                    loading={loading}
+                    leftSection={<IconDivide size={16} />}
+                    color="orange"
+                  >
+                    Divide
+                  </Button>
+                </Group>
+              </Stack>
+            </Paper>
 
-                <h3>Quick Actions</h3>
-                <div className="button-group">
-                  <button
-                    onClick={() => performCounterOperation("add", 1)}
-                    disabled={loading}
-                  >
-                    +1
-                  </button>
-                  <button
-                    onClick={() => performCounterOperation("add", 10)}
-                    disabled={loading}
-                  >
-                    +10
-                  </button>
-                  <button
-                    onClick={() => performCounterOperation("add", 100)}
-                    disabled={loading}
-                  >
-                    +100
-                  </button>
-                  <button
-                    onClick={() => performCounterOperation("multiply", 2)}
-                    disabled={loading}
-                  >
-                    ×2
-                  </button>
-                  <button
-                    onClick={() => performCounterOperation("divide", 2)}
-                    disabled={loading}
-                  >
-                    ÷2
-                  </button>
-                  <button
-                    onClick={() => performCounterOperation("reset")}
-                    disabled={loading}
-                  >
-                    Reset
-                  </button>
-                </div>
+            {/* Quick Actions */}
+            <Paper p="md" withBorder>
+              <Title order={5} mb="md">
+                Quick Actions
+              </Title>
+              <Group>
+                <Button
+                  onClick={() => performCounterOperation("add", 1)}
+                  loading={loading}
+                  variant="outline"
+                  size="sm"
+                >
+                  +1
+                </Button>
+                <Button
+                  onClick={() => performCounterOperation("add", 10)}
+                  loading={loading}
+                  variant="outline"
+                  size="sm"
+                >
+                  +10
+                </Button>
+                <Button
+                  onClick={() => performCounterOperation("add", 100)}
+                  loading={loading}
+                  variant="outline"
+                  size="sm"
+                >
+                  +100
+                </Button>
+                <Button
+                  onClick={() => performCounterOperation("multiply", 2)}
+                  loading={loading}
+                  variant="outline"
+                  size="sm"
+                >
+                  ×2
+                </Button>
+                <Button
+                  onClick={() => performCounterOperation("divide", 2)}
+                  loading={loading}
+                  variant="outline"
+                  size="sm"
+                >
+                  ÷2
+                </Button>
+                <Button
+                  onClick={() => performCounterOperation("reset")}
+                  loading={loading}
+                  variant="outline"
+                  color="red"
+                  size="sm"
+                >
+                  Reset
+                </Button>
+              </Group>
+            </Paper>
 
-                <h3>Batch Operations</h3>
-                <div className="operation-group">
-                  <input
-                    type="text"
-                    value={batchValues}
-                    onChange={(e) => setBatchValues(e.target.value)}
-                    placeholder="Enter values separated by commas (e.g., 1,2,3)"
-                    className="text-black"
-                  />
-                  <div className="button-group">
-                    <button
-                      onClick={() => handleBatchOperation("batchAdd")}
-                      disabled={loading}
-                    >
-                      Batch Add
-                    </button>
-                    <button
-                      onClick={() => handleBatchOperation("batchSubtract")}
-                      disabled={loading}
-                    >
-                      Batch Subtract
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p>Loading counter status...</p>
-          )}
-        </div>
+            {/* Batch Operations */}
+            <Paper p="md" withBorder>
+              <Title order={5} mb="md">
+                Batch Operations
+              </Title>
+              <Stack gap="md">
+                <TextInput
+                  label="Enter values separated by commas"
+                  placeholder="Enter values separated by commas (e.g., 1,2,3)"
+                  value={batchValues}
+                  onChange={(e) => setBatchValues(e.target.value)}
+                />
+                <Group>
+                  <Button
+                    onClick={() => handleBatchOperation("batchAdd")}
+                    loading={loading}
+                    leftSection={<IconPlus size={16} />}
+                    color="green"
+                  >
+                    Batch Add
+                  </Button>
+                  <Button
+                    onClick={() => handleBatchOperation("batchSubtract")}
+                    loading={loading}
+                    leftSection={<IconMinus size={16} />}
+                    color="red"
+                  >
+                    Batch Subtract
+                  </Button>
+                </Group>
+              </Stack>
+            </Paper>
+          </Stack>
+        ) : (
+          <Center p="xl">
+            <Loader size="sm" />
+            <Text ml="sm">Loading counter status...</Text>
+          </Center>
+        )}
 
         {/* Loading Indicator */}
         {loading && (
-          <div className="loading">
-            <p>Processing operation...</p>
-          </div>
+          <Center p="md">
+            <Loader size="sm" />
+            <Text ml="sm">Processing operation...</Text>
+          </Center>
         )}
-      </div>
-    </div>
+      </Card>
+    </Stack>
   );
 };
 

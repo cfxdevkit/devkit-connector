@@ -1,5 +1,5 @@
 // Auto-generated contract configuration types
-// Generated: 2025-09-16T15:51:18.583Z
+// Generated: 2025-09-16T17:35:11.641Z
 
 export interface ContractConfig {
   name: string;
