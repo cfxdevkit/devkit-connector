@@ -1,0 +1,32 @@
+{
+  "name": "@conflux-wallet/testing",
+  "version": "1.0.0",
+  "description": "Testing utilities for Conflux Dual Wallet System",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@conflux-wallet/types": "workspace:*",
+    "@conflux-wallet/core": "workspace:*",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3",
+    "ethers": "^6.8.0",
+    "js-conflux-sdk": "^2.2.0",
+    "viem": "^1.18.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.5",
+    "@types/supertest": "^2.0.13",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.2.2"
+  }
+}

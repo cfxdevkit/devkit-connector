@@ -1,0 +1,40 @@
+# Development Dockerfile for Local Conflux Node
+FROM node:18-alpine
+
+# Install system dependencies
+RUN apk add --no-cache \
+    git \
+    python3 \
+    make \
+    g++ \
+    bash
+
+# Install pnpm
+RUN npm install -g pnpm@8.10.0
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-workspace.yaml ./
+COPY tools/node-manager/package.json ./tools/node-manager/
+COPY contracts/espace/package.json ./contracts/espace/
+COPY contracts/core/package.json ./contracts/core/
+
+# Install dependencies
+RUN pnpm install
+
+# Copy source code
+COPY . .
+
+# Build the project
+RUN pnpm run build
+
+# Create necessary directories
+RUN mkdir -p .conflux-dev deployments test-results
+
+# Expose ports
+EXPOSE 12537 8545 3000
+
+# Set default command
+CMD ["npm", "run", "node:dev"]

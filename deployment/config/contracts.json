@@ -1,0 +1,44 @@
+{
+  "DelegationManager": {
+    "name": "DelegationManager",
+    "description": "Simple delegation contract for spending limits",
+    "version": "1.0.0",
+    "license": "MIT",
+    "features": [
+      "Create delegation",
+      "Revoke delegation", 
+      "Query delegation",
+      "Owner controls"
+    ],
+    "gasEstimate": {
+      "deploy": 2000000,
+      "createDelegation": 100000,
+      "revokeDelegation": 50000,
+      "getDelegation": 0
+    }
+  },
+  "Counter": {
+    "name": "Counter",
+    "description": "Simple counter contract for testing and demonstration",
+    "version": "1.0.0",
+    "license": "MIT",
+    "features": [
+      "Add/subtract values",
+      "Multiply/divide values",
+      "Batch operations",
+      "Reset counter",
+      "Overflow protection"
+    ],
+    "gasEstimate": {
+      "deploy": 500000,
+      "add": 30000,
+      "subtract": 30000,
+      "multiply": 30000,
+      "divide": 30000,
+      "reset": 25000,
+      "batchAdd": 50000,
+      "batchSubtract": 50000
+    }
+  }
+}
+

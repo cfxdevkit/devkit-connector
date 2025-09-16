@@ -1,0 +1,43 @@
+{
+  "name": "conflux-monorepo",
+  "version": "1.0.0",
+  "description": "Conflux development tools and utilities monorepo",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "clean": "pnpm -r run clean",
+    "lint": "pnpm -r run lint",
+    "format": "pnpm -r run format",
+    "dev": "pnpm -r run dev",
+    "install:all": "pnpm install",
+    "conflux-node": "pnpm run start --filter @conflux-local/node",
+    "conflux-node:dev": "pnpm run dev --filter @conflux-local/node"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "typescript": "^5.2.2",
+    "prettier": "^3.0.0",
+    "eslint": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "keywords": [
+    "conflux",
+    "blockchain",
+    "development",
+    "monorepo",
+    "node",
+    "evm",
+    "core"
+  ],
+  "author": "Conflux Development Team",
+  "license": "MIT"
+}

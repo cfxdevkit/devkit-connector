@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: conflux-wallet-service
+  namespace: conflux-wallet
+  labels:
+    app: conflux-wallet-app
+spec:
+  selector:
+    app: conflux-wallet-app
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3000
+    protocol: TCP
+  type: LoadBalancer

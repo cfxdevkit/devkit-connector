@@ -1,0 +1,22 @@
+{
+  "name": "minimal-deployment",
+  "version": "1.0.0",
+  "description": "Minimal deployment scripts for Conflux dual wallet demo",
+  "scripts": {
+    "deploy": "ts-node scripts/deploy-all.ts",
+    "deploy:local": "ts-node scripts/deploy-all.ts localEspace",
+    "deploy:testnet": "ts-node scripts/deploy-all.ts testnetEspace",
+    "deploy:counter": "ts-node scripts/deploy-all.ts localEspace Counter",
+    "deploy:delegation": "ts-node scripts/deploy-all.ts localEspace DelegationManager"
+  },
+  "dependencies": {
+    "ethers": "^6.8.1",
+    "fs-extra": "^11.1.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2",
+    "@types/fs-extra": "^11.0.4"
+  }
+}
+

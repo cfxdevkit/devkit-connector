@@ -1,0 +1,31 @@
+{
+  "name": "@conflux-wallet/codegen",
+  "version": "1.0.0",
+  "description": "Code generation tools for Conflux Dual Wallet System",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "generate": "node dist/generate.js"
+  },
+  "dependencies": {
+    "@conflux-wallet/types": "workspace:*",
+    "@wagmi/cli": "^2.5.1",
+    "wagmi": "^1.4.0",
+    "viem": "^1.18.0",
+    "ethers": "^6.8.0",
+    "js-conflux-sdk": "^2.2.0",
+    "fs-extra": "^11.1.1",
+    "glob": "^10.3.3"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.1",
+    "@types/node": "^20.8.0",
+    "typescript": "^5.2.2"
+  }
+}

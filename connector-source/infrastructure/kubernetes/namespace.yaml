@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: conflux-wallet
+  labels:
+    name: conflux-wallet
+    app: conflux-dual-wallet

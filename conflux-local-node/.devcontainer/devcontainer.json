@@ -1,0 +1,52 @@
+{
+  "name": "Conflux Local Node Development",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-json",
+        "redhat.vscode-yaml",
+        "ms-vscode.vscode-docker"
+      ],
+      "settings": {
+        "typescript.preferences.importModuleSpecifier": "relative",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        }
+      }
+    }
+  },
+  "forwardPorts": [12537, 8545],
+  "portsAttributes": {
+    "12537": {
+      "label": "Conflux Core RPC",
+      "onAutoForward": "notify"
+    },
+    "8545": {
+      "label": "Conflux EVM RPC",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "remoteUser": "node",
+  "workspaceFolder": "/usr/src/app",
+  "mounts": [
+    "source=${localWorkspaceFolder}/data,target=/usr/src/app/data,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/deployments,target=/usr/src/app/deployments,type=bind,consistency=cached"
+  ],
+  "containerEnv": {
+    "NODE_ENV": "development"
+  }
+}

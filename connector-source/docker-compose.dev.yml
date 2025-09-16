@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  # Development PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: conflux-wallet-postgres-dev
+    environment:
+      POSTGRES_DB: conflux_wallet_dev
+      POSTGRES_USER: conflux_user
+      POSTGRES_PASSWORD: conflux_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./packages/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U conflux_user -d conflux_wallet_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Development Redis
+  redis:
+    image: redis:7-alpine
+    container_name: conflux-wallet-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Development Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: conflux-wallet-app-dev
+    ports:
+      - "3000:3000"
+      - "3001:3001" # For additional services
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://conflux_user:conflux_password@postgres:5432/conflux_wallet_dev
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev-jwt-secret-key
+      WALLET_ENCRYPTION_KEY: dev-32-byte-hex-encryption-key
+      NEXT_PUBLIC_CONFLUX_ESPACE_RPC: https://evmtestnet.confluxrpc.com
+      NEXT_PUBLIC_CONFLUX_CORE_RPC: https://test.confluxrpc.com
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/packages/*/node_modules
+      - /app/apps/*/node_modules
+    command: pnpm dev
+    restart: unless-stopped
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:

@@ -1,0 +1,42 @@
+{
+  "name": "@conflux-wallet/client",
+  "version": "1.0.0",
+  "description": "Client SDK and React hooks for Conflux Dual Wallet System",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@conflux-wallet/core": "workspace:*",
+    "@conflux-wallet/types": "workspace:*",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@tanstack/react-query": "^5.0.0",
+    "ethers": "^6.8.0",
+    "wagmi": "^1.4.0",
+    "viem": "^1.18.0",
+    "@tanstack/react-query": "^4.35.0",
+    "socket.io-client": "^4.7.2",
+    "axios": "^1.5.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.21",
+    "@types/react-dom": "^18.2.7",
+    "@types/jest": "^29.5.5",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.2.2"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  }
+}

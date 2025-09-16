@@ -1,0 +1,20 @@
+{
+  "name": "minimal-contracts",
+  "version": "1.0.0",
+  "description": "Minimal smart contracts for Conflux dual wallet demo",
+  "scripts": {
+    "deploy": "ts-node scripts/deploy.ts",
+    "compile": "echo 'Compilation would happen here with Hardhat'",
+    "test": "echo 'Tests would run here'"
+  },
+  "dependencies": {
+    "ethers": "^6.8.1",
+    "fs-extra": "^11.1.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2",
+    "@types/fs-extra": "^11.0.4"
+  }
+}
+

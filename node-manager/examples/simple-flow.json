@@ -1,0 +1,24 @@
+{
+  "name": "Simple Deployment Flow",
+  "description": "Deploy contracts and test basic functionality",
+  "steps": [
+    {
+      "name": "Deploy DelegationManager",
+      "script": "../deployment/scripts/deploy-all.ts",
+      "args": ["localEspace", "DelegationManager"],
+      "delay": 2000
+    },
+    {
+      "name": "Deploy Counter",
+      "script": "../deployment/scripts/deploy-all.ts",
+      "args": ["localEspace", "Counter"],
+      "delay": 2000
+    },
+    {
+      "name": "Test Counter Operations",
+      "script": "./test-counter.ts",
+      "delay": 1000
+    }
+  ]
+}
+

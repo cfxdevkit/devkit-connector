@@ -1,0 +1,9 @@
+{
+  "network": "hardhat",
+  "contract": "DelegationManager",
+  "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "txHash": "0x6539e2cb960af78cb9fb3eb35ef798d1f870cc6a60318b41d45ec4084ee3bf48",
+  "gasUsed": "1869814",
+  "timestamp": "2025-09-16T08:32:04.960Z",
+  "mock": false
+}

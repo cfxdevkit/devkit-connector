@@ -1,0 +1,31 @@
+{
+  "localEspace": {
+    "name": "Local Conflux eSpace",
+    "rpcUrl": "http://localhost:12537",
+    "chainId": 1030,
+    "explorer": "http://localhost:3000",
+    "description": "Local Conflux eSpace for development"
+  },
+  "localCore": {
+    "name": "Local Conflux Core",
+    "rpcUrl": "http://localhost:12539",
+    "networkId": 1111,
+    "explorer": "http://localhost:3000",
+    "description": "Local Conflux Core for development"
+  },
+  "testnetEspace": {
+    "name": "Conflux eSpace Testnet",
+    "rpcUrl": "https://evmtestnet.confluxrpc.com",
+    "chainId": 71,
+    "explorer": "https://evmtestnet.confluxscan.net",
+    "description": "Conflux eSpace testnet"
+  },
+  "testnetCore": {
+    "name": "Conflux Core Testnet",
+    "rpcUrl": "https://test.confluxrpc.com",
+    "networkId": 1,
+    "explorer": "https://testnet.confluxscan.net",
+    "description": "Conflux Core testnet"
+  }
+}
+

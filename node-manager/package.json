@@ -1,0 +1,30 @@
+{
+  "name": "minimal-node-manager",
+  "version": "1.0.0",
+  "description": "Minimal node management wrapper for Conflux",
+  "main": "dist/index.js",
+  "bin": {
+    "minimal-node": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "start:node": "ts-node src/index.ts start",
+    "stop:node": "ts-node src/index.ts stop",
+    "exec": "ts-node src/index.ts exec",
+    "flow": "ts-node src/index.ts flow",
+    "status": "ts-node src/index.ts status",
+    "test:flow": "ts-node src/index.ts flow examples/simple-flow.json",
+    "test:counter": "ts-node examples/test-counter.ts"
+  },
+  "dependencies": {
+    "fs-extra": "^11.1.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2",
+    "@types/fs-extra": "^11.0.4"
+  }
+}
+

@@ -1,0 +1,38 @@
+{
+  "name": "@conflux-wallet/database",
+  "version": "1.0.0",
+  "description": "Database schemas, migrations, and ORM for Conflux Dual Wallet System",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "migrations"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "migrate": "node dist/migrate.js",
+    "seed": "node dist/seed.js",
+    "reset": "node dist/reset.js",
+    "generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:pull": "prisma db pull"
+  },
+  "dependencies": {
+    "@conflux-wallet/types": "workspace:*",
+    "pg": "^8.11.3",
+    "prisma": "^5.4.2",
+    "@prisma/client": "^5.4.2",
+    "redis": "^4.6.8",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.10.7",
+    "@types/bcryptjs": "^2.4.5",
+    "@types/jsonwebtoken": "^9.0.3",
+    "typescript": "^5.2.2"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "network": "localEspace",
+  "contract": "Counter",
+  "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+  "txHash": "0xe75a3dd7dcd1d71c07e6d587a4b4eb7ba758a33b18a28fb87730d2e6f6545fff",
+  "gasUsed": "731707",
+  "timestamp": "2025-09-16T08:32:00.000Z",
+  "mock": false
+}
+

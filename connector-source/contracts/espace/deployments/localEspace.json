@@ -1,0 +1,8 @@
+{
+  "DelegationManager_localEspace": {
+    "address": "0x8bFc6fD9437CF1879fB84aADe867b6E81EfB5631",
+    "deploymentTx": "0x992332920fdd136c21983297859658a78a68bea21edd38ed109e336c3302a7b9",
+    "contractName": "DelegationManager",
+    "network": "localEspace"
+  }
+}

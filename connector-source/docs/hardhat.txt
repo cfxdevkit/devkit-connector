@@ -1,0 +1,672 @@
+// types/orchestrator.ts
+export interface DeploymentConfig {
+  network: string;
+  contractName: string;
+  constructorArgs?: any[];
+  libraries?: Record<string, string>;
+  gasLimit?: number;
+  gasPrice?: string;
+}
+
+export interface ContractInstance {
+  address: string;
+  contract: any;
+  deploymentTx: string;
+  network: string;
+  contractName: string;
+}
+
+export interface OperationResult {
+  success: boolean;
+  data?: any;
+  error?: string;
+  txHash?: string;
+  gasUsed?: number;
+}
+
+// lib/hardhat-orchestrator.ts
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { task, subtask, types } from 'hardhat/config';
+import '@nomiclabs/hardhat-ethers';
+import '@nomiclabs/hardhat-waffle';
+import { ethers } from 'hardhat';
+import fs from 'fs';
+import path from 'path';
+
+export class HardhatOrchestrator {
+  private hre: HardhatRuntimeEnvironment;
+  private deployedContracts: Map<string, ContractInstance> = new Map();
+  private deploymentHistory: any[] = [];
+
+  constructor(hre: HardhatRuntimeEnvironment) {
+    this.hre = hre;
+  }
+
+  // Initialize the orchestrator with custom network if needed
+  async initialize(networkName?: string) {
+    if (networkName && networkName !== this.hre.network.name) {
+      // Switch network programmatically
+      this.hre.changeNetwork(networkName);
+    }
+    
+    console.log(`🚀 Hardhat Orchestrator initialized on ${this.hre.network.name}`);
+    
+    // Load existing deployments if available
+    await this.loadExistingDeployments();
+    
+    return this;
+  }
+
+  // Compile contracts programmatically
+  async compileContracts(): Promise<OperationResult> {
+    try {
+      console.log('🔨 Compiling contracts...');
+      await this.hre.run('compile');
+      
+      return {
+        success: true,
+        data: 'Contracts compiled successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  // Deploy a single contract
+  async deployContract(config: DeploymentConfig): Promise<ContractInstance | null> {
+    try {
+      console.log(`📦 Deploying ${config.contractName} on ${this.hre.network.name}...`);
+
+      // Get contract factory
+      const ContractFactory = await this.hre.ethers.getContractFactory(
+        config.contractName,
+        config.libraries ? { libraries: config.libraries } : undefined
+      );
+
+      // Deploy with custom gas settings if provided
+      const deployOptions: any = {};
+      if (config.gasLimit) deployOptions.gasLimit = config.gasLimit;
+      if (config.gasPrice) deployOptions.gasPrice = this.hre.ethers.utils.parseUnits(config.gasPrice, 'gwei');
+
+      const contract = await ContractFactory.deploy(
+        ...(config.constructorArgs || []),
+        deployOptions
+      );
+
+      await contract.deployed();
+
+      const instance: ContractInstance = {
+        address: contract.address,
+        contract: contract,
+        deploymentTx: contract.deployTransaction.hash,
+        network: this.hre.network.name,
+        contractName: config.contractName
+      };
+
+      // Store the deployment
+      const key = `${config.contractName}_${this.hre.network.name}`;
+      this.deployedContracts.set(key, instance);
+
+      // Add to deployment history
+      this.deploymentHistory.push({
+        ...instance,
+        timestamp: new Date().toISOString(),
+        constructorArgs: config.constructorArgs,
+        gasUsed: (await contract.deployTransaction.wait()).gasUsed.toString()
+      });
+
+      console.log(`✅ ${config.contractName} deployed to: ${contract.address}`);
+      
+      return instance;
+    } catch (error) {
+      console.error(`❌ Failed to deploy ${config.contractName}:`, error.message);
+      return null;
+    }
+  }
+
+  // Deploy multiple contracts in sequence
+  async deployMultipleContracts(configs: DeploymentConfig[]): Promise<ContractInstance[]> {
+    const deployedContracts: ContractInstance[] = [];
+    
+    for (const config of configs) {
+      const instance = await this.deployContract(config);
+      if (instance) {
+        deployedContracts.push(instance);
+      }
+    }
+    
+    return deployedContracts;
+  }
+
+  // Execute contract method
+  async executeContractMethod(
+    contractKey: string, 
+    methodName: string, 
+    args: any[] = [],
+    options: { gasLimit?: number, value?: string } = {}
+  ): Promise<OperationResult> {
+    try {
+      const instance = this.deployedContracts.get(contractKey);
+      if (!instance) {
+        return {
+          success: false,
+          error: `Contract ${contractKey} not found`
+        };
+      }
+
+      console.log(`🔄 Executing ${methodName} on ${instance.contractName}...`);
+
+      const txOptions: any = {};
+      if (options.gasLimit) txOptions.gasLimit = options.gasLimit;
+      if (options.value) txOptions.value = this.hre.ethers.utils.parseEther(options.value);
+
+      const tx = await instance.contract[methodName](...args, txOptions);
+      const receipt = await tx.wait();
+
+      console.log(`✅ ${methodName} executed successfully. Tx: ${tx.hash}`);
+
+      return {
+        success: true,
+        data: receipt,
+        txHash: tx.hash,
+        gasUsed: receipt.gasUsed.toNumber()
+      };
+    } catch (error) {
+      console.error(`❌ Failed to execute ${methodName}:`, error.message);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  // Call view/pure contract method
+  async callContractMethod(
+    contractKey: string,
+    methodName: string,
+    args: any[] = []
+  ): Promise<OperationResult> {
+    try {
+      const instance = this.deployedContracts.get(contractKey);
+      if (!instance) {
+        return {
+          success: false,
+          error: `Contract ${contractKey} not found`
+        };
+      }
+
+      const result = await instance.contract[methodName](...args);
+      
+      return {
+        success: true,
+        data: result
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  // Verify contracts on block explorer
+  async verifyContract(
+    contractKey: string,
+    constructorArgs: any[] = []
+  ): Promise<OperationResult> {
+    try {
+      const instance = this.deployedContracts.get(contractKey);
+      if (!instance) {
+        return {
+          success: false,
+          error: `Contract ${contractKey} not found`
+        };
+      }
+
+      console.log(`🔍 Verifying ${instance.contractName} on block explorer...`);
+
+      await this.hre.run('verify:verify', {
+        address: instance.address,
+        constructorArguments: constructorArgs,
+      });
+
+      console.log(`✅ ${instance.contractName} verified successfully`);
+
+      return {
+        success: true,
+        data: 'Contract verified successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  // Load existing deployments from file
+  private async loadExistingDeployments() {
+    const deploymentsPath = path.join(process.cwd(), 'deployments', `${this.hre.network.name}.json`);
+    
+    if (fs.existsSync(deploymentsPath)) {
+      try {
+        const deployments = JSON.parse(fs.readFileSync(deploymentsPath, 'utf8'));
+        
+        for (const [key, deployment] of Object.entries(deployments as any)) {
+          const contractFactory = await this.hre.ethers.getContractFactory(deployment.contractName);
+          const contract = contractFactory.attach(deployment.address);
+          
+          const instance: ContractInstance = {
+            address: deployment.address,
+            contract: contract,
+            deploymentTx: deployment.deploymentTx,
+            network: this.hre.network.name,
+            contractName: deployment.contractName
+          };
+          
+          this.deployedContracts.set(key, instance);
+        }
+        
+        console.log(`📂 Loaded ${Object.keys(deployments).length} existing deployments`);
+      } catch (error) {
+        console.warn('⚠️  Failed to load existing deployments:', error.message);
+      }
+    }
+  }
+
+  // Save deployments to file
+  async saveDeployments(): Promise<void> {
+    const deploymentsDir = path.join(process.cwd(), 'deployments');
+    if (!fs.existsSync(deploymentsDir)) {
+      fs.mkdirSync(deploymentsDir, { recursive: true });
+    }
+
+    const deploymentsPath = path.join(deploymentsDir, `${this.hre.network.name}.json`);
+    
+    const deployments: any = {};
+    for (const [key, instance] of this.deployedContracts.entries()) {
+      deployments[key] = {
+        address: instance.address,
+        deploymentTx: instance.deploymentTx,
+        contractName: instance.contractName,
+        network: instance.network
+      };
+    }
+
+    fs.writeFileSync(deploymentsPath, JSON.stringify(deployments, null, 2));
+    console.log(`💾 Deployments saved to ${deploymentsPath}`);
+  }
+
+  // Get deployed contract instance
+  getContract(contractKey: string): ContractInstance | undefined {
+    return this.deployedContracts.get(contractKey);
+  }
+
+  // List all deployed contracts
+  listDeployedContracts(): ContractInstance[] {
+    return Array.from(this.deployedContracts.values());
+  }
+
+  // Get deployment history
+  getDeploymentHistory(): any[] {
+    return this.deploymentHistory;
+  }
+
+  // Run tests programmatically
+  async runTests(testFiles?: string[]): Promise<OperationResult> {
+    try {
+      console.log('🧪 Running tests...');
+      
+      const testOptions: any = {};
+      if (testFiles) {
+        testOptions.testFiles = testFiles;
+      }
+
+      await this.hre.run('test', testOptions);
+      
+      return {
+        success: true,
+        data: 'Tests completed successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  // Execute custom task
+  async executeTask(taskName: string, args: any = {}): Promise<OperationResult> {
+    try {
+      console.log(`⚙️  Executing task: ${taskName}`);
+      
+      const result = await this.hre.run(taskName, args);
+      
+      return {
+        success: true,
+        data: result
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+}
+
+// scripts/deployment-orchestrator.ts
+import { HardhatOrchestrator } from '../lib/hardhat-orchestrator';
+import hre from 'hardhat';
+
+export class DeploymentOrchestrator {
+  private orchestrator: HardhatOrchestrator;
+
+  constructor() {
+    this.orchestrator = new HardhatOrchestrator(hre);
+  }
+
+  // Complete deployment pipeline
+  async deploymentPipeline(network: string = 'localhost'): Promise<void> {
+    try {
+      console.log('🎭 Starting Deployment Pipeline...');
+
+      // Initialize orchestrator
+      await this.orchestrator.initialize(network);
+
+      // Step 1: Compile contracts
+      const compileResult = await this.orchestrator.compileContracts();
+      if (!compileResult.success) {
+        throw new Error(`Compilation failed: ${compileResult.error}`);
+      }
+
+      // Step 2: Deploy contracts
+      const deploymentConfigs: DeploymentConfig[] = [
+        {
+          network,
+          contractName: 'MyToken',
+          constructorArgs: ['MyToken', 'MTK', 1000000]
+        },
+        {
+          network,
+          contractName: 'MyNFT',
+          constructorArgs: ['MyNFT Collection', 'NFT']
+        }
+      ];
+
+      const deployedContracts = await this.orchestrator.deployMultipleContracts(deploymentConfigs);
+      
+      if (deployedContracts.length === 0) {
+        throw new Error('No contracts were deployed successfully');
+      }
+
+      // Step 3: Execute post-deployment operations
+      await this.postDeploymentOperations();
+
+      // Step 4: Save deployment state
+      await this.orchestrator.saveDeployments();
+
+      // Step 5: Run verification (for testnets/mainnet)
+      if (network !== 'localhost' && network !== 'hardhat') {
+        await this.verifyDeployedContracts();
+      }
+
+      console.log('🎉 Deployment Pipeline Completed Successfully!');
+      
+    } catch (error) {
+      console.error('💥 Deployment Pipeline Failed:', error.message);
+      throw error;
+    }
+  }
+
+  // Post-deployment operations
+  private async postDeploymentOperations(): Promise<void> {
+    console.log('🔧 Executing post-deployment operations...');
+
+    // Example: Initialize token contract
+    const tokenResult = await this.orchestrator.executeContractMethod(
+      'MyToken_localhost',
+      'transfer',
+      ['0x1234567890123456789012345678901234567890', '1000'],
+      { gasLimit: 100000 }
+    );
+
+    if (tokenResult.success) {
+      console.log('✅ Token transfer completed');
+    }
+
+    // Example: Set NFT base URI
+    const nftResult = await this.orchestrator.executeContractMethod(
+      'MyNFT_localhost',
+      'setBaseURI',
+      ['https://api.mynft.com/metadata/'],
+      { gasLimit: 50000 }
+    );
+
+    if (nftResult.success) {
+      console.log('✅ NFT base URI set');
+    }
+  }
+
+  // Verify all deployed contracts
+  private async verifyDeployedContracts(): Promise<void> {
+    console.log('🔍 Verifying deployed contracts...');
+
+    const contracts = this.orchestrator.listDeployedContracts();
+    
+    for (const contract of contracts) {
+      const result = await this.orchestrator.verifyContract(
+        `${contract.contractName}_${contract.network}`,
+        [] // Add constructor args if needed
+      );
+      
+      if (result.success) {
+        console.log(`✅ ${contract.contractName} verified`);
+      } else {
+        console.warn(`⚠️  ${contract.contractName} verification failed: ${result.error}`);
+      }
+    }
+  }
+
+  // Interactive operations after deployment
+  async interactiveOperations(): Promise<void> {
+    console.log('🎮 Starting interactive operations...');
+
+    // Get contract balance
+    const balanceResult = await this.orchestrator.callContractMethod(
+      'MyToken_localhost',
+      'totalSupply'
+    );
+
+    if (balanceResult.success) {
+      console.log(`💰 Total Supply: ${balanceResult.data.toString()}`);
+    }
+
+    // Mint NFT
+    const mintResult = await this.orchestrator.executeContractMethod(
+      'MyNFT_localhost',
+      'mint',
+      ['0x1234567890123456789012345678901234567890', 1]
+    );
+
+    if (mintResult.success) {
+      console.log(`🎨 NFT minted. Tx: ${mintResult.txHash}`);
+    }
+  }
+
+  // Run the orchestrator
+  async run(network: string = 'localhost'): Promise<void> {
+    try {
+      await this.deploymentPipeline(network);
+      await this.interactiveOperations();
+    } catch (error) {
+      console.error('Orchestration failed:', error);
+      process.exit(1);
+    }
+  }
+}
+
+// scripts/run-orchestrator.ts
+import { DeploymentOrchestrator } from './deployment-orchestrator';
+
+async function main() {
+  const orchestrator = new DeploymentOrchestrator();
+  
+  // Get network from command line args or default to localhost
+  const network = process.argv[2] || 'localhost';
+  
+  console.log(`🚀 Starting orchestration on ${network} network`);
+  
+  await orchestrator.run(network);
+}
+
+// Handle script execution
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}
+
+// hardhat.config.ts - Example configuration for the orchestrator
+import { HardhatUserConfig } from 'hardhat/config';
+import '@nomiclabs/hardhat-ethers';
+import '@nomiclabs/hardhat-waffle';
+import '@nomiclabs/hardhat-etherscan';
+import 'hardhat-gas-reporter';
+import 'solidity-coverage';
+
+const config: HardhatUserConfig = {
+  solidity: {
+    version: '0.8.19',
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
+    },
+  },
+  networks: {
+    hardhat: {
+      chainId: 1337,
+    },
+    localhost: {
+      url: 'http://127.0.0.1:8545',
+      chainId: 1337,
+    },
+    confluxCore: {
+      url: 'https://main.confluxrpc.com',
+      chainId: 1029,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+    },
+    confluxEspace: {
+      url: 'https://evm.confluxrpc.com',
+      chainId: 1030,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+    },
+    goerli: {
+      url: process.env.GOERLI_URL || '',
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+    },
+  },
+  gasReporter: {
+    enabled: process.env.REPORT_GAS !== undefined,
+    currency: 'USD',
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  },
+  paths: {
+    sources: './contracts',
+    tests: './test',
+    cache: './cache',
+    artifacts: './artifacts',
+  },
+};
+
+export default config;
+
+// package.json scripts section
+/*
+{
+  "scripts": {
+    "orchestrate": "npx hardhat run scripts/run-orchestrator.ts",
+    "orchestrate:goerli": "npx hardhat run scripts/run-orchestrator.ts goerli",
+    "orchestrate:conflux": "npx hardhat run scripts/run-orchestrator.ts confluxCore",
+    "deploy:programmatic": "node -r ts-node/register scripts/run-orchestrator.ts"
+  }
+}
+*/
+
+// Usage Examples
+
+// Example 1: Simple programmatic deployment
+export async function simpleDeployment() {
+  const orchestrator = new HardhatOrchestrator(hre);
+  await orchestrator.initialize('localhost');
+  
+  await orchestrator.compileContracts();
+  
+  const contract = await orchestrator.deployContract({
+    network: 'localhost',
+    contractName: 'MyContract',
+    constructorArgs: ['param1', 'param2']
+  });
+  
+  if (contract) {
+    console.log(`Contract deployed at: ${contract.address}`);
+  }
+}
+
+// Example 2: Advanced orchestration with error handling
+export async function advancedOrchestration() {
+  const orchestrator = new HardhatOrchestrator(hre);
+  await orchestrator.initialize();
+  
+  try {
+    // Deploy multiple contracts
+    const contracts = await orchestrator.deployMultipleContracts([
+      { network: 'localhost', contractName: 'TokenA' },
+      { network: 'localhost', contractName: 'TokenB' },
+      { network: 'localhost', contractName: 'DEX', constructorArgs: ['TokenA', 'TokenB'] }
+    ]);
+    
+    // Execute operations
+    for (const contract of contracts) {
+      const key = `${contract.contractName}_${contract.network}`;
+      await orchestrator.executeContractMethod(key, 'initialize', []);
+    }
+    
+    // Save state
+    await orchestrator.saveDeployments();
+    
+  } catch (error) {
+    console.error('Orchestration failed:', error);
+  }
+}
+
+// Example 3: Testing integration
+export async function testingOrchestration() {
+  const orchestrator = new HardhatOrchestrator(hre);
+  await orchestrator.initialize();
+  
+  // Compile and deploy for testing
+  await orchestrator.compileContracts();
+  await orchestrator.deployContract({
+    network: 'hardhat',
+    contractName: 'TestContract'
+  });
+  
+  // Run tests
+  const testResult = await orchestrator.runTests(['test/TestContract.test.ts']);
+  
+  if (testResult.success) {
+    console.log('All tests passed!');
+  } else {
+    console.error('Tests failed:', testResult.error);
+  }
+}

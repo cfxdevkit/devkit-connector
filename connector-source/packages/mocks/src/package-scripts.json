@@ -1,0 +1,20 @@
+{
+  "scripts": {
+    "build:simple": "node build/simple-build.js",
+    "test:simple": "node testing/simple-test-runner.js",
+    "deploy:simple": "node deploy/simple-deploy.js",
+    "contract:compile": "hardhat compile",
+    "contract:test": "hardhat test",
+    "contract:deploy:espace": "node contracts/espace/deploy-simple.js",
+    "contract:deploy:core": "node contracts/core/deploy-simple.js",
+    "contract:deploy:all": "npm run contract:deploy:espace && npm run contract:deploy:core",
+    "contract:test:espace": "hardhat test contracts/espace/",
+    "contract:test:core": "hardhat test contracts/core/",
+    "contract:test:all": "npm run contract:test:espace && npm run contract:test:core",
+    "mock:build": "npm run build:simple",
+    "mock:test": "npm run test:simple",
+    "mock:deploy": "npm run deploy:simple",
+    "mock:contracts": "npm run contract:deploy:all",
+    "mock:all": "npm run mock:build && npm run mock:test && npm run mock:deploy && npm run mock:contracts"
+  }
+}

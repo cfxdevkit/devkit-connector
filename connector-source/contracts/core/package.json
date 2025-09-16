@@ -1,0 +1,47 @@
+{
+  "name": "@conflux-wallet/contracts-core",
+  "version": "0.1.0",
+  "description": "Conflux Core smart contracts for dual wallet system",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "test:coverage": "hardhat coverage",
+    "deploy:testnet": "hardhat deploy --network confluxCoreTestnet",
+    "deploy:mainnet": "hardhat deploy --network confluxCore",
+    "deploy:local": "hardhat deploy --network localhost",
+    "verify:testnet": "hardhat verify --network confluxCoreTestnet",
+    "verify:mainnet": "hardhat verify --network confluxCore",
+    "gas-report": "REPORT_GAS=true hardhat test",
+    "clean": "hardhat clean",
+    "size": "hardhat size-contracts",
+    "deploy:all": "npm run deploy:testnet && npm run deploy:mainnet",
+    "deploy:local": "hardhat deploy --network localCore",
+    "verify:all": "npm run verify:testnet && npm run verify:mainnet",
+    "generate-types": "npx hardhat run scripts/generate-types.ts",
+    "test:local": "hardhat test --network localCore"
+  },
+  "dependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.0",
+    "hardhat": "^2.19.0",
+    "hardhat-deploy": "^0.11.45",
+    "hardhat-gas-reporter": "^1.0.9",
+    "solidity-coverage": "^0.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "conflux",
+    "core",
+    "wallet",
+    "delegation",
+    "smart-contracts"
+  ],
+  "author": "Conflux Dual Wallet Team",
+  "license": "MIT"
+}
