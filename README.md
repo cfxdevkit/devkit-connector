@@ -1,4 +1,5 @@
 # Conflux Monorepo
+<img width="1403" height="882" alt="image" src="https://github.com/user-attachments/assets/4958b6f6-884c-457b-bf3f-7cbca44e0639" />
 
 A monorepo containing tools and libraries for Conflux blockchain development.
 
