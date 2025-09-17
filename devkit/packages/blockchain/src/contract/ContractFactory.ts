@@ -7,12 +7,12 @@ import type {
   ContractOrchestrator,
   NetworkConfig,
 } from '@conflux-devkit/core';
-import type { BrowserContractOrchestrator } from './types';
 import { createContractError } from '@conflux-devkit/core';
 import { CoreClient } from '../rpc/CoreClient';
 import { EvmClient } from '../rpc/EvmClient';
 import { browserContractManager } from './BrowserContractManager';
 import type { BrowserContractWrapper } from './BrowserContractWrapper';
+import type { BrowserContractOrchestrator } from './types';
 
 /**
  * Create contract wrapper from orchestrator
@@ -320,7 +320,7 @@ function extractContractInterface(
     } else if (item.type === 'event') {
       const event: ContractEvent = {
         name: item.name || 'unnamed',
-        inputs: (item.inputs || []).map(input => ({
+        inputs: (item.inputs || []).map((input) => ({
           name: input.name || 'unnamed',
           type: input.type,
           indexed: input.indexed || false,
@@ -347,8 +347,8 @@ function extractContractInterface(
   }
 
   // Categorize methods
-  const readMethods = methods.filter(m => m.category === 'read');
-  const writeMethods = methods.filter(m => m.category === 'write');
+  const readMethods = methods.filter((m) => m.category === 'read');
+  const writeMethods = methods.filter((m) => m.category === 'write');
 
   // Update orchestrator
   orchestrator.methods = {
@@ -361,17 +361,17 @@ function extractContractInterface(
   orchestrator.capabilities = {
     canRead: readMethods.length > 0,
     canWrite: writeMethods.length > 0,
-    canReceive: abi.some(item => item.type === 'receive'),
-    canFallback: abi.some(item => item.type === 'fallback'),
+    canReceive: abi.some((item) => item.type === 'receive'),
+    canFallback: abi.some((item) => item.type === 'fallback'),
     hasEvents: events.length > 0,
     isUpgradeable: abi.some(
-      item => item.name === 'upgrade' || item.name === 'implementation'
+      (item) => item.name === 'upgrade' || item.name === 'implementation'
     ),
     isPausable: abi.some(
-      item => item.name === 'pause' || item.name === 'unpause'
+      (item) => item.name === 'pause' || item.name === 'unpause'
     ),
     isOwnable: abi.some(
-      item => item.name === 'owner' || item.name === 'transferOwnership'
+      (item) => item.name === 'owner' || item.name === 'transferOwnership'
     ),
   };
 }

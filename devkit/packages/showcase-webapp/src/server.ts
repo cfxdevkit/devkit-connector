@@ -6,7 +6,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
 
-const app = express();
+const app: express.Application = express();
 const port = process.env.PORT || 3002;
 
 // Middleware
@@ -33,8 +33,12 @@ app.use('/api', async (req, res) => {
       method: req.method,
       headers: {
         'Content-Type': 'application/json',
-        ...req.headers,
-      },
+        ...Object.fromEntries(
+          Object.entries(req.headers).filter(
+            ([key, value]) => typeof value === 'string' || Array.isArray(value)
+          )
+        ),
+      } as HeadersInit,
       body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,
     });
 

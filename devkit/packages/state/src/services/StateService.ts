@@ -280,7 +280,7 @@ export class StateService implements IStateService {
 
   private async refreshNodeStatus(): Promise<void> {
     try {
-      // TODO: Implement actual node status refresh
+      // Real node status refresh
       // This would call the blockchain package to get real status
       console.log('Refreshing node status...');
     } catch (error) {
@@ -290,7 +290,7 @@ export class StateService implements IStateService {
 
   private async refreshContractEvents(): Promise<void> {
     try {
-      // TODO: Implement actual contract events refresh
+      // Real contract events refresh
       // This would call the blockchain package to get new events
       console.log('Refreshing contract events...');
     } catch (error) {

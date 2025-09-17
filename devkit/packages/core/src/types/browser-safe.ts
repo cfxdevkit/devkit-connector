@@ -22,7 +22,7 @@ export interface BrowserTransactionReceipt {
   to: BrowserAddress | null;
   gasUsed: string;
   status: 'success' | 'reverted';
-  contractAddress: BrowserAddress | null;
+  contractAddress?: BrowserAddress | null;
   transactionIndex: string;
   effectiveGasPrice: string;
   logs: BrowserLog[];
@@ -34,9 +34,11 @@ export interface BrowserLog {
   topics: string[];
   data: string;
   blockNumber: string;
+  blockHash: string;
   transactionHash: string;
   logIndex: string;
   transactionIndex: string;
+  removed: boolean;
 }
 
 // Browser-safe block information
@@ -47,6 +49,7 @@ export interface BrowserBlock {
   timestamp: string;
   gasLimit: string;
   gasUsed: string;
+  baseFeePerGas: string;
   transactions: string[]; // Transaction hashes only for simplicity
 }
 

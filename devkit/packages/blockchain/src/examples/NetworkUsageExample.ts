@@ -26,13 +26,13 @@ export async function networkUsageExample() {
   // 2. Get specific network types
   console.log('\n🔗 Core Networks:');
   const coreNetworks = networkManager.getCoreNetworks();
-  coreNetworks.forEach(network => {
+  coreNetworks.forEach((network) => {
     console.log(`- ${network.name}: ${network.rpcUrl}`);
   });
 
   console.log('\n⚡ EVM Networks:');
   const evmNetworks = networkManager.getEvmNetworks();
-  evmNetworks.forEach(network => {
+  evmNetworks.forEach((network) => {
     console.log(`- ${network.name}: ${network.rpcUrl}`);
   });
 
@@ -210,7 +210,7 @@ if (require.main === module) {
     .then(() => {
       console.log('\n✅ Network usage example completed successfully!');
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('\n❌ Network usage example failed:', error);
     });
 }

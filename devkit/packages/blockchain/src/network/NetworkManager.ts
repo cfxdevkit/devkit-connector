@@ -42,6 +42,11 @@ export class NetworkManager {
    * Get network ID from network configuration
    */
   private getNetworkId(network: NetworkConfig): string {
+    // Check if it's a local network first
+    if (network.name.toLowerCase().includes('local')) {
+      return network.networkType === 'core' ? 'core-local' : 'evm-local';
+    }
+
     if (network.networkType === 'core') {
       return network.isTestnet ? 'core-testnet' : 'core-mainnet';
     } else {
@@ -141,6 +146,33 @@ export class NetworkManager {
   ): NetworkConfig | undefined {
     const networkId = networkType === 'core' ? 'core-mainnet' : 'evm-mainnet';
     return this.getNetwork(networkId);
+  }
+
+  /**
+   * Get all mainnet networks
+   */
+  getMainnetNetworks(): NetworkConfig[] {
+    return Array.from(this.networks.values()).filter(
+      (network) => !network.isTestnet
+    );
+  }
+
+  /**
+   * Get all testnet networks
+   */
+  getTestnetNetworks(): NetworkConfig[] {
+    return Array.from(this.networks.values()).filter(
+      (network) => network.isTestnet
+    );
+  }
+
+  /**
+   * Get all local networks
+   */
+  getLocalNetworks(): NetworkConfig[] {
+    return Array.from(this.networks.values()).filter((network) =>
+      network.name.toLowerCase().includes('local')
+    );
   }
 
   /**

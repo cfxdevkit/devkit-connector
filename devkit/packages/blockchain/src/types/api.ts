@@ -81,7 +81,7 @@ export interface TransactionReceiptApiResponse
     to: string | null; // Browser-safe
     gasUsed: string; // Browser-safe
     status: 'success' | 'reverted';
-    contractAddress: string | null; // Browser-safe
+    contractAddress?: string | null; // Browser-safe
     transactionIndex: string; // Browser-safe
     effectiveGasPrice: string; // Browser-safe
     logs: Array<{
@@ -102,7 +102,7 @@ export interface TransactionStatusApiResponse
     confirmations: string; // Browser-safe
     blockNumber: string | null; // Browser-safe
     gasUsed: string | null; // Browser-safe
-    receipt: TransactionReceiptApiResponse['data'] | null;
+    receipt: TransactionReceiptApiResponse['data'] | null | undefined;
   }> {}
 
 // Wallet API types

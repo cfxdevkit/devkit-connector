@@ -479,36 +479,36 @@ export function createInteractionForm(contract: ContractOrchestrator): {
     contractAddress: contract.address,
     contractName: contract.ui.displayName,
     methods: [
-      ...contract.methods.read.map(m => ({
+      ...contract.methods.read.map((m) => ({
         name: m.name,
         type: 'read' as const,
-        inputs: m.inputs.map(input => ({
+        inputs: m.inputs.map((input) => ({
           name: input.name || 'unnamed',
           type: input.type,
           required: true,
         })),
-        outputs: m.outputs.map(output => ({
+        outputs: m.outputs.map((output) => ({
           name: output.name || 'unnamed',
           type: output.type,
         })),
       })),
-      ...contract.methods.write.map(m => ({
+      ...contract.methods.write.map((m) => ({
         name: m.name,
         type: 'write' as const,
-        inputs: m.inputs.map(input => ({
+        inputs: m.inputs.map((input) => ({
           name: input.name || 'unnamed',
           type: input.type,
           required: true,
         })),
-        outputs: m.outputs.map(output => ({
+        outputs: m.outputs.map((output) => ({
           name: output.name || 'unnamed',
           type: output.type,
         })),
       })),
     ],
-    events: contract.methods.events.map(e => ({
+    events: contract.methods.events.map((e) => ({
       name: e.name,
-      inputs: e.inputs.map(input => ({
+      inputs: e.inputs.map((input) => ({
         name: input.name || 'unnamed',
         type: input.type,
         indexed: input.indexed || false,

@@ -93,48 +93,78 @@ interface StateService {
   getUIState: () => any;
 }
 
-// Mock state service for now
-const getStateService = (): StateService => ({
-  connect: async () => {},
-  disconnect: async () => {},
-  startNode: async () => {},
-  stopNode: async () => {},
-  restartNode: async () => {},
-  createWallet: async () => ({}) as BrowserWalletInfo,
-  importWallet: async () => ({}) as BrowserWalletInfo,
-  selectWallet: () => {},
-  refreshWalletBalance: async () => {},
-  deployContract: async () => ({}) as BrowserContractOrchestrator,
-  selectContract: () => {},
-  callContractMethod: async () => ({}) as ContractCallState,
-  subscribeToEvents: () => {},
-  unsubscribeFromEvents: () => {},
-  switchNetwork: async () => {},
-  toggleSidebar: () => {},
-  setActiveTab: () => {},
-  addNotification: () => {},
-  removeNotification: () => {},
-  openModal: () => '',
-  closeModal: () => {},
-  setLoading: () => {},
-  reset: () => {},
-  refreshAll: async () => {},
-  getStateForAPI: () => ({}),
-  getContractDataForAPI: () => null,
-  getWalletDataForAPI: () => null,
-  getAllWalletsDataForAPI: () => [],
-  getAllContractsDataForAPI: () => [],
-  on: () => {},
-  off: () => {},
-  emit: () => {},
-  getStore: () => ({}),
-  getConnectionState: () => ({}),
-  getNodeState: () => ({}),
-  getWalletState: () => ({}),
-  getContractState: () => ({}),
-  getNetworkState: () => ({}),
-  getUIState: () => ({}),
-});
+// Real state service integration
+import { useAppStore } from '@conflux-devkit/state';
+
+const getStateService = (): StateService => {
+  const store = useAppStore.getState();
+
+  return {
+    connect: store.connect,
+    disconnect: store.disconnect,
+    startNode: store.startNode,
+    stopNode: store.stopNode,
+    restartNode: store.restartNode,
+    createWallet: store.createWallet,
+    importWallet: store.importWallet,
+    selectWallet: store.selectWallet,
+    refreshWalletBalance: store.refreshWalletBalance,
+    deployContract: store.deployContract,
+    selectContract: store.selectContract,
+    callContractMethod: async (params: ContractCallParams) => {
+      const result = await store.callContractMethod({
+        ...params,
+        args: params.args || [],
+        value: params.value?.toString(),
+      });
+      return {
+        callId: result.id,
+        contractAddress: result.contractAddress,
+        method: result.method,
+        args: result.args,
+        result: result.result,
+        error: result.error || undefined,
+        timestamp: result.timestamp.toISOString(),
+        gasUsed: result.gasUsed,
+        transactionHash: result.transactionHash,
+      };
+    },
+    subscribeToEvents: store.subscribeToEvents,
+    unsubscribeFromEvents: store.unsubscribeFromEvents,
+    switchNetwork: store.switchNetwork,
+    toggleSidebar: store.toggleSidebar,
+    setActiveTab: store.setActiveTab,
+    addNotification: (
+      notification: Omit<NotificationState, 'id' | 'timestamp'>
+    ) => {
+      store.addNotification({
+        ...notification,
+        title: (notification as any).title || 'Notification',
+      });
+    },
+    removeNotification: store.removeNotification,
+    openModal: store.openModal,
+    closeModal: store.closeModal,
+    setLoading: store.setLoading,
+    reset: store.reset,
+    refreshAll: store.refreshAll,
+    getStateForAPI: () => store,
+    getContractDataForAPI: () => store.contracts,
+    getWalletDataForAPI: () => store.wallets,
+    getAllWalletsDataForAPI: () => store.wallets.wallets,
+    getAllContractsDataForAPI: () => store.contracts.deployed,
+    on: () => {},
+    off: () => {},
+    emit: () => {},
+    getStore: () => store,
+    getConnectionState: () => ({ isConnected: store.isConnected }),
+    getNodeState: () => store.node,
+    getWalletState: () => store.wallets,
+    getContractState: () => store.contracts,
+    getNetworkState: () => store.network,
+    getUIState: () => store.ui,
+  };
+};
 
 export class StateIntegrationService {
   private stateService: StateService;

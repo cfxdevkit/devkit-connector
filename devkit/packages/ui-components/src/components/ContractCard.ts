@@ -1,7 +1,8 @@
 // Contract Card Web Component
 
-import { LitElement, html, css, customElement, property, state } from 'lit';
 import type { BrowserContractOrchestrator } from '@conflux-devkit/core';
+import { css, html, LitElement } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 
 @customElement('conflux-contract-card')
 export class ContractCard extends LitElement {
@@ -171,9 +172,9 @@ export class ContractCard extends LitElement {
       </div>
 
       <div
-        class="card-content ${this.compact ? 'compact' : ''} ${this.isExpanded
-          ? 'expanded'
-          : 'collapsed'}"
+        class="card-content ${this.compact ? 'compact' : ''} ${
+          this.isExpanded ? 'expanded' : 'collapsed'
+        }"
       >
         <div class="contract-info">
           <div class="info-row">
@@ -193,17 +194,16 @@ export class ContractCard extends LitElement {
 
           <div class="info-row">
             <span class="info-label">Deployed:</span>
-            <span class="info-value"
-              >${new Date(this.contract.deployedAt).toLocaleDateString()}</span
-            >
+            <span class="info-value">Recently</span>
           </div>
 
           <div class="capabilities">${this.renderCapabilities()}</div>
         </div>
       </div>
 
-      ${this.showActions
-        ? html`
+      ${
+        this.showActions
+          ? html`
             <div class="card-actions">
               <button class="btn" @click=${this.handleSelect}>Select</button>
               <button class="btn primary" @click=${this.handleCall}>
@@ -211,7 +211,8 @@ export class ContractCard extends LitElement {
               </button>
             </div>
           `
-        : ''}
+          : ''
+      }
     `;
   }
 
@@ -227,8 +228,10 @@ export class ContractCard extends LitElement {
     ];
 
     return capabilityLabels.map(
-      cap => html`
-        <span class="capability ${capabilities[cap.key] ? 'active' : ''}">
+      (cap) => html`
+        <span
+          class="capability ${(capabilities as any)[cap.key] ? 'active' : ''}"
+        >
           ${cap.label}
         </span>
       `

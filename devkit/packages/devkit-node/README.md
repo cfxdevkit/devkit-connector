@@ -1,224 +1,519 @@
-# @conflux-devkit/node
+# @conflux-devkit/devkit-node
 
-Unified node management and workflow orchestration for Conflux development.
+> **Node management and CLI tools for Conflux DevKit**
+
+[![npm version](https://img.shields.io/npm/v/@conflux-devkit/devkit-node)](https://www.npmjs.com/package/@conflux-devkit/devkit-node)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ## 🎯 Overview
 
-The node package provides comprehensive node management including direct node operations, workflow orchestration, CLI tools, and service interfaces. It combines the functionality of both direct node management and high-level workflow orchestration.
+The devkit-node package provides comprehensive node management and CLI tools for Conflux DevKit. It includes node lifecycle management, contract deployment automation, workflow orchestration, and command-line interfaces for development and production environments.
 
-## 📦 Features
+## ✨ Features
 
-- **Direct Node Operations** - Start/stop/restart Conflux nodes
-- **Workflow Orchestration** - Complete development workflows
-- **Wallet Management** - Create and manage wallets
-- **Contract Operations** - Deploy and validate contracts
-- **Health Monitoring** - Node status and health checks
-- **CLI Interface** - Comprehensive command-line tools
-- **Service Architecture** - Clean interfaces for all operations
+- **🖥️ Node Management**: Complete Conflux node lifecycle management
+- **📦 Contract Deployment**: Automated contract deployment and management
+- **🔄 Workflow Orchestration**: End-to-end development workflows
+- **🛠️ CLI Tools**: Command-line interface for all operations
+- **📊 Status Monitoring**: Real-time node and network status
+- **🔧 Configuration**: Flexible configuration management
+- **🚀 Automation**: Automated development and deployment processes
+- **📝 Logging**: Comprehensive logging and debugging
 
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                              NODE PACKAGE                                     │
-└─────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   NODE CORE     │    │   WORKFLOWS     │    │   CLI TOOLS     │
-│                 │    │                 │    │                 │
-│  • ConfluxNode  │    │  • NodeService  │    │  • UnifiedCLI   │
-│  • NodeManager  │    │  • WorkflowMgr  │    │  • Commands     │
-│  • NodeOps      │    │  • LifecycleMgr │    │  • Helpers      │
-│  • NodeHealth   │    │  • ValidationMgr│    │  • Utilities    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│    WALLETS      │    │   CONTRACTS     │    │   SERVICES      │
-│                 │    │                 │    │                 │
-│  • WalletMgr    │    │  • ContractDep  │    │  • INodeService │
-│  • WalletOps    │    │  • ContractOps  │    │  • IWorkflowService│
-│  • WalletFund   │    │  • ContractVal  │    │  • IWalletService│
-│  • WalletVal    │    │  • ContractReg  │    │  • IContractService│
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-## 🚀 Usage
-
-### CLI Commands
+## 📦 Installation
 
 ```bash
-# Node Management
-devkit-node start                    # Start a Conflux node
-devkit-node stop                     # Stop the Conflux node
-devkit-node restart                  # Restart the Conflux node
-devkit-node status                   # Get node status
-
-# Workflow Commands
-devkit-node workflow                 # Run complete workflow
-devkit-node workflow --dev           # Run in development mode
-devkit-node workflow --network testnet # Run on testnet
-devkit-node workflow --persistent    # Keep node running after workflow
-
-# Deployment Commands
-devkit-node deploy --contracts MyContract # Deploy specific contracts
-devkit-node validate                 # Validate deployed contracts
-
-# Test Commands
-devkit-node test                     # Run tests
-devkit-node test --verbose           # Verbose test output
+pnpm add @conflux-devkit/devkit-node
+# or
+npm install @conflux-devkit/devkit-node
+# or
+yarn add @conflux-devkit/devkit-node
 ```
 
-### Programmatic Usage
-
-```typescript
-import { NodeService, ConfluxNode, WalletManager } from '@conflux-devkit/node';
-
-// Create node service
-const nodeService = new NodeService(config);
-
-// Start node
-await nodeService.start();
-
-// Run workflow
-const result = await nodeService.runCompleteWorkflow({
-  network: 'local',
-  contracts: ['MyContract'],
-  persistent: false,
-});
-
-// Get status
-const status = await nodeService.getStatus();
-```
-
-### Service Interfaces
+## 🚀 Quick Start
 
 ```typescript
 import {
-  INodeService,
-  IWorkflowService,
-  IWalletService,
-  IContractService,
-} from '@conflux-devkit/node';
+  NodeManager,
+  ContractDeployer,
+  WorkflowOrchestrator,
+  createCLI
+} from '@conflux-devkit/devkit-node';
 
-// Implement custom services
-class CustomNodeService implements INodeService {
-  async start(config?: Partial<NodeConfig>): Promise<void> {
-    // Custom implementation
-  }
+// Create node manager
+const nodeManager = new NodeManager({
+  chainId: 2029,
+  evmChainId: 2030,
+  corePort: 12537,
+  evmPort: 8545
+});
 
-  async stop(): Promise<void> {
-    // Custom implementation
-  }
+// Start node
+await nodeManager.startNode();
 
-  // ... other methods
+// Deploy contracts
+const deployer = new ContractDeployer();
+const deployment = await deployer.deployContract({
+  name: 'MyToken',
+  bytecode: '0x608060405234801561001057600080fd5b50...',
+  abi: [...],
+  args: [1000000]
+});
+
+console.log('Contract deployed:', deployment.address);
+
+// Stop node
+await nodeManager.stopNode();
+```
+
+## 📚 API Reference
+
+### Node Management
+
+#### `NodeManager`
+
+```typescript
+class NodeManager {
+  constructor(config: NodeConfig);
+
+  // Node lifecycle
+  startNode(): Promise<void>;
+  stopNode(): Promise<void>;
+  restartNode(): Promise<void>;
+
+  // Status management
+  getNodeStatus(): Promise<NodeStatus>;
+  isNodeRunning(): Promise<boolean>;
+  waitForNode(): Promise<void>;
+
+  // Configuration
+  updateConfig(config: Partial<NodeConfig>): void;
+  getConfig(): NodeConfig;
 }
 ```
 
-## 📋 API Reference
+#### `NodeConfig`
 
-### Core Classes
+```typescript
+interface NodeConfig {
+  chainId: number;
+  evmChainId: number;
+  corePort: number;
+  evmPort: number;
+  dataDir?: string;
+  logLevel?: 'debug' | 'info' | 'warn' | 'error';
+  rpcUrl?: string;
+  evmRpcUrl?: string;
+}
+```
 
-- `ConfluxNode` - Direct node lifecycle management
-- `NodeManager` - Node management utilities
-- `NodeService` - Main service class
-- `WalletManager` - Wallet creation and management
-- `ContractDeployer` - Contract deployment
+#### `NodeStatus`
 
-### Service Interfaces
+```typescript
+interface NodeStatus {
+  running: boolean;
+  chainId: string;
+  evmChainId: string;
+  blockNumber: string;
+  peerCount: string;
+  uptime: number;
+  health: 'healthy' | 'unhealthy' | 'unknown';
+  lastHealthCheck: Date;
+}
+```
 
-- `INodeService` - Node service interface
-- `IWorkflowService` - Workflow service interface
-- `IWalletService` - Wallet service interface
-- `IContractService` - Contract service interface
+### Contract Deployment
 
-### CLI Classes
+#### `ContractDeployer`
 
-- `UnifiedCLI` - Main CLI interface
-- `WorkflowCommand` - Workflow command handler
-- `NodeCommand` - Node command handler
-- `DeployCommand` - Deploy command handler
+```typescript
+class ContractDeployer {
+  constructor(config?: DeployerConfig);
 
-### Types
+  // Contract deployment
+  deployContract(config: ContractDeploymentConfig): Promise<DeploymentResult>;
+  deployMultiple(
+    contracts: ContractDeploymentConfig[]
+  ): Promise<DeploymentResult[]>;
 
-- `NodeStatus` - Enhanced node status interface
-- `WorkflowResult` - Workflow execution result
-- `ValidationResult` - Contract validation result
-- `ExecutionResult` - Generic execution result
-- `WorkflowCommandOptions` - CLI workflow options
-- `NodeCommandOptions` - CLI node options
+  // Contract management
+  getDeployedContracts(): Promise<DeploymentResult[]>;
+  getContractByAddress(address: string): Promise<DeploymentResult | null>;
+
+  // Verification
+  verifyContract(address: string, sourceCode: string): Promise<boolean>;
+}
+```
+
+#### `ContractDeploymentConfig`
+
+```typescript
+interface ContractDeploymentConfig {
+  name: string;
+  bytecode: `0x${string}`;
+  abi: AbiItem[];
+  args?: unknown[];
+  value?: bigint;
+  gasLimit?: bigint;
+  gasPrice?: bigint;
+  network?: 'core' | 'evm' | 'both';
+}
+```
+
+#### `DeploymentResult`
+
+```typescript
+interface DeploymentResult {
+  contractName: string;
+  address: string;
+  transactionHash: string;
+  blockNumber: bigint;
+  blockHash: string;
+  gasUsed: bigint;
+  gasPrice: bigint;
+  abi: AbiItem[];
+  bytecode: string;
+  deployedBytecode: string;
+  deployedAt: Date;
+  network: string;
+  networkId: string;
+  chainId: number;
+  evmChainId: number;
+  chainType: 'core' | 'evm';
+  typesGenerated: boolean;
+}
+```
+
+### Workflow Orchestration
+
+#### `WorkflowOrchestrator`
+
+```typescript
+class WorkflowOrchestrator {
+  constructor(config: WorkflowConfig);
+
+  // Workflow execution
+  executeWorkflow(workflow: Workflow): Promise<WorkflowResult>;
+  executeStep(step: WorkflowStep): Promise<StepResult>;
+
+  // Workflow management
+  createWorkflow(name: string, steps: WorkflowStep[]): Workflow;
+  validateWorkflow(workflow: Workflow): boolean;
+
+  // Step execution
+  executeNodeStep(step: NodeStep): Promise<StepResult>;
+  executeDeployStep(step: DeployStep): Promise<StepResult>;
+  executeVerifyStep(step: VerifyStep): Promise<StepResult>;
+}
+```
+
+#### `Workflow`
+
+```typescript
+interface Workflow {
+  name: string;
+  description?: string;
+  steps: WorkflowStep[];
+  config: WorkflowConfig;
+}
+```
+
+#### `WorkflowStep`
+
+```typescript
+interface WorkflowStep {
+  id: string;
+  type: 'node' | 'deploy' | 'verify' | 'custom';
+  name: string;
+  description?: string;
+  config: Record<string, unknown>;
+  dependencies?: string[];
+  retry?: number;
+  timeout?: number;
+}
+```
+
+### CLI Tools
+
+#### `createCLI`
+
+```typescript
+function createCLI(): CommanderStatic;
+
+// Available commands:
+// - node start [options]
+// - node stop [options]
+// - node restart [options]
+// - node status [options]
+// - contract deploy [options]
+// - contract list [options]
+// - contract verify [options]
+// - workflow run [options]
+// - workflow create [options]
+// - workflow list [options]
+```
+
+## 🧪 Examples
+
+### Basic Node Management
+
+```typescript
+import { NodeManager } from '@conflux-devkit/devkit-node';
+
+const nodeManager = new NodeManager({
+  chainId: 2029,
+  evmChainId: 2030,
+  corePort: 12537,
+  evmPort: 8545,
+  logLevel: 'info',
+});
+
+// Start node
+await nodeManager.startNode();
+console.log('Node started');
+
+// Check status
+const status = await nodeManager.getNodeStatus();
+console.log('Node status:', status);
+
+// Wait for node to be ready
+await nodeManager.waitForNode();
+console.log('Node is ready');
+
+// Stop node
+await nodeManager.stopNode();
+console.log('Node stopped');
+```
+
+### Contract Deployment
+
+```typescript
+import { ContractDeployer } from '@conflux-devkit/devkit-node';
+
+const deployer = new ContractDeployer();
+
+// Deploy single contract
+const deployment = await deployer.deployContract({
+  name: 'MyToken',
+  bytecode: '0x608060405234801561001057600080fd5b50...',
+  abi: [
+    {
+      "type": "constructor",
+      "inputs": [{"name": "initialSupply", "type": "uint256"}],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "totalSupply",
+      "inputs": [],
+      "outputs": [{"name": "", "type": "uint256"}],
+      "stateMutability": "view"
+    }
+  ],
+  args: [1000000],
+  network: 'evm'
+});
+
+console.log('Contract deployed:', deployment.address);
+console.log('Transaction hash:', deployment.transactionHash);
+console.log('Gas used:', deployment.gasUsed.toString());
+
+// Deploy multiple contracts
+const deployments = await deployer.deployMultiple([
+  {
+    name: 'TokenA',
+    bytecode: '0x...',
+    abi: [...],
+    args: [1000000]
+  },
+  {
+    name: 'TokenB',
+    bytecode: '0x...',
+    abi: [...],
+    args: [2000000]
+  }
+]);
+
+console.log('All contracts deployed:', deployments.map(d => d.address));
+```
+
+### Workflow Orchestration
+
+```typescript
+import { WorkflowOrchestrator } from '@conflux-devkit/devkit-node';
+
+const orchestrator = new WorkflowOrchestrator();
+
+// Create workflow
+const workflow = orchestrator.createWorkflow('Deploy and Verify', [
+  {
+    id: 'start-node',
+    type: 'node',
+    name: 'Start Conflux Node',
+    config: {
+      chainId: 2029,
+      evmChainId: 2030,
+      corePort: 12537,
+      evmPort: 8545
+    }
+  },
+  {
+    id: 'deploy-contract',
+    type: 'deploy',
+    name: 'Deploy MyToken Contract',
+    config: {
+      name: 'MyToken',
+      bytecode: '0x608060405234801561001057600080fd5b50...',
+      abi: [...],
+      args: [1000000]
+    },
+    dependencies: ['start-node']
+  },
+  {
+    id: 'verify-contract',
+    type: 'verify',
+    name: 'Verify Contract on Explorer',
+    config: {
+      address: '${deploy-contract.address}',
+      sourceCode: '...'
+    },
+    dependencies: ['deploy-contract']
+  }
+]);
+
+// Execute workflow
+const result = await orchestrator.executeWorkflow(workflow);
+console.log('Workflow completed:', result.success);
+console.log('Results:', result.results);
+```
+
+### CLI Usage
+
+```bash
+# Install globally
+npm install -g @conflux-devkit/devkit-node
+
+# Start node
+conflux-devkit node start --chain-id 2029 --evm-chain-id 2030
+
+# Check node status
+conflux-devkit node status
+
+# Deploy contract
+conflux-devkit contract deploy \
+  --name MyToken \
+  --bytecode 0x608060405234801561001057600080fd5b50... \
+  --abi-file ./abi.json \
+  --args 1000000
+
+# List deployed contracts
+conflux-devkit contract list
+
+# Run workflow
+conflux-devkit workflow run --file ./workflow.json
+
+# Create workflow
+conflux-devkit workflow create --name "Deploy and Verify" --interactive
+```
+
+### Programmatic CLI
+
+```typescript
+import { createCLI } from '@conflux-devkit/devkit-node';
+
+const cli = createCLI();
+
+// Add custom commands
+cli
+  .command('custom <action>')
+  .description('Custom command')
+  .option('-v, --verbose', 'Verbose output')
+  .action((action, options) => {
+    console.log('Custom action:', action);
+    if (options.verbose) {
+      console.log('Verbose mode enabled');
+    }
+  });
+
+// Parse command line arguments
+cli.parse(process.argv);
+```
 
 ## 🔧 Configuration
 
 ### Node Configuration
 
 ```typescript
-import { createDefaultXcfxConfig } from '@conflux-devkit/node';
-
-// Get default configuration
-const config = createDefaultXcfxConfig();
-
-// Customize configuration
-const customConfig = {
-  ...config,
-  corePort: 12537,
-  evmPort: 8545,
+const nodeConfig: NodeConfig = {
   chainId: 2029,
   evmChainId: 2030,
-  network: 'local',
+  corePort: 12537,
+  evmPort: 8545,
+  dataDir: './data',
+  logLevel: 'info',
+  rpcUrl: 'http://localhost:12537',
+  evmRpcUrl: 'http://localhost:8545',
 };
 ```
 
-### Service Configuration
+### Deployer Configuration
 
 ```typescript
-import { NodeService } from '@conflux-devkit/node';
+const deployerConfig: DeployerConfig = {
+  network: 'evm',
+  gasLimit: 1000000n,
+  gasPrice: 20000000000n,
+  timeout: 300000, // 5 minutes
+  retries: 3,
+};
+```
 
-// Create service with custom configuration
-const nodeService = new NodeService(
-  config,
-  {
-    autoStart: true,
-    healthCheckInterval: 5000,
-    maxRetries: 3,
-    timeout: 30000,
-    logLevel: 'info',
+### Workflow Configuration
+
+```typescript
+const workflowConfig: WorkflowConfig = {
+  parallel: false,
+  timeout: 600000, // 10 minutes
+  retries: 3,
+  onError: 'stop', // 'stop' | 'continue' | 'retry'
+  logging: {
+    level: 'info',
+    format: 'json',
   },
-  {
-    defaultNetwork: 'local',
-    autoValidate: true,
-    parallelDeployments: false,
-    maxConcurrentDeployments: 3,
-  }
-);
+};
 ```
 
-## 🧪 Testing
+## 🔗 Dependencies
 
-```bash
-# Run tests
-pnpm test
+- **commander**: CLI framework
+- **chalk**: Terminal styling
+- **ora**: Spinners and progress indicators
+- **@conflux-devkit/core**: Core types and utilities
+- **@conflux-devkit/blockchain**: Blockchain interactions
+- **@xcfx/node**: Conflux node integration
 
-# Run with coverage
-pnpm test:coverage
+## 📊 Bundle Size
 
-# Run specific test
-pnpm test -- --grep "NodeService"
-```
+- **Minified**: ~40KB
+- **Gzipped**: ~15KB
+- **Tree-shakeable**: Import only what you need
 
-## 📚 Examples
+## 🚨 Security Notes
 
-See the [examples](./examples/) directory for usage examples and patterns.
+- **Node Security**: Always run nodes in secure environments
+- **Private Keys**: Never expose private keys in logs
+- **Network Security**: Verify network configurations
+- **File Permissions**: Set appropriate file permissions for data directories
 
 ## 🤝 Contributing
 
-1. Follow the TypeScript coding standards
-2. Add tests for new functionality
-3. Update documentation
-4. Ensure all tests pass
-5. Submit a pull request
+Contributions are welcome! Please read our [Contributing Guide](../../CONTRIBUTING.md) for details.
 
 ## 📄 License
 
 MIT License - see [LICENSE](../../LICENSE) for details.
+
+---
+
+**Part of the Conflux DevKit ecosystem** 🚀

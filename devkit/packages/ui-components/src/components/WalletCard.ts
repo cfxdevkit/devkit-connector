@@ -1,7 +1,8 @@
 // Wallet Card Web Component
 
-import { LitElement, html, css, customElement, property, state } from 'lit';
 import type { BrowserWalletInfo } from '@conflux-devkit/core';
+import { css, html, LitElement } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 
 @customElement('conflux-wallet-card')
 export class WalletCard extends LitElement {
@@ -187,13 +188,13 @@ export class WalletCard extends LitElement {
     return html`
       <div class="card-header" @click=${this.toggleExpanded}>
         <h3 class="card-title">Wallet</h3>
-        <p class="card-subtitle">${this.wallet.network || 'Unknown Network'}</p>
+        <p class="card-subtitle">Wallet</p>
       </div>
 
       <div
-        class="card-content ${this.compact ? 'compact' : ''} ${this.isExpanded
-          ? 'expanded'
-          : 'collapsed'}"
+        class="card-content ${this.compact ? 'compact' : ''} ${
+          this.isExpanded ? 'expanded' : 'collapsed'
+        }"
       >
         <div class="wallet-info">
           <div class="balance">
@@ -208,15 +209,16 @@ export class WalletCard extends LitElement {
 
           <div class="info-row">
             <span class="info-label">Network:</span>
-            <span class="info-value">${this.wallet.network || 'Unknown'}</span>
+            <span class="info-value">Unknown</span>
           </div>
 
           <div class="wallet-badges">${this.renderBadges()}</div>
         </div>
       </div>
 
-      ${this.showActions
-        ? html`
+      ${
+        this.showActions
+          ? html`
             <div class="card-actions">
               <button class="btn" @click=${this.handleSelect}>Select</button>
               <button class="btn primary" @click=${this.handleRefresh}>
@@ -224,14 +226,15 @@ export class WalletCard extends LitElement {
               </button>
             </div>
           `
-        : ''}
+          : ''
+      }
     `;
   }
 
   private renderBadges() {
     const badges = [];
 
-    if (this.wallet.isDefault) {
+    if ((this.wallet as any).isDefault) {
       badges.push(html`<span class="badge default">Default</span>`);
     }
 

@@ -45,7 +45,7 @@ export const DEFAULT_NETWORKS: Record<string, NetworkConfig> = {
   'evm-local': {
     name: 'Conflux eSpace Local',
     rpcUrl: 'http://localhost:8545',
-    chainId: 2029,
+    chainId: 2030,
     evmChainId: 2030,
     currency: {
       name: 'Conflux',

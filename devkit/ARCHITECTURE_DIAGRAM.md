@@ -1,326 +1,377 @@
 # Conflux DevKit Architecture Diagram
 
-## 🏗️ Complete System Architecture
+> **Comprehensive architecture overview of the Conflux DevKit ecosystem**
+
+## 🏗️ System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                          CONFLUX DEVKIT MONOREPO                                              │
-│                                        Complete Architecture Overview                                          │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                              PACKAGE LAYER                                                     │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   @conflux-     │    │   @conflux-     │    │   @conflux-     │    │   @conflux-     │    │   @conflux-     │
-│   devkit/core   │    │   devkit/       │    │   devkit/node   │    │   devkit/       │    │   @conflux-     │
-│                 │    │   blockchain    │    │                 │    │   api-server    │    │   devkit/       │
-│  ✅ Complete    │    │  ✅ Complete    │    │  ✅ Complete    │    │  🔄 Partial     │    │   dashboard     │
-│                 │    │                 │    │                 │    │                 │    │                 │
-│  • Types        │◄───┤  • RPC Clients  │◄───┤  • Node Mgmt    │◄───┤  • Express API  │◄───┤  • Next.js UI  │
-│  • Constants    │    │  • Contracts    │    │  • Workflows    │    │  • Services     │    │  • Mantine UI   │
-│  • Schemas      │    │  • Wallets      │    │  • CLI Tools    │    │  • Routes       │    │  • Components   │
-│  • Utils        │    │  • Networks     │    │  • Lifecycle    │    │  • Middleware   │    │  • Services     │
-│  • Validation   │    │  • API Types    │    │  • Services     │    │  • Error Hand   │    │  • Pages        │
-└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │                       │                       │
-         │                       │                       │                       │                       │
-         ▼                       ▼                       ▼                       ▼                       ▼
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                            DEPENDENCY FLOW                                                     │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────┐
-│   @conflux-     │
-│   devkit/core   │
-│                 │
-│  • No deps      │
-│  • Base types   │
-│  • Utilities    │
-│  • Constants    │
-│  • Schemas      │
-└─────────────────┘
-         │
-         ▼
-┌─────────────────┐
-│   @conflux-     │
-│   devkit/       │
-│   blockchain    │
-│                 │
-│  • Depends on   │
-│    core         │
-│  • RPC clients  │
-│  • Contracts    │
-│  • Wallets      │
-│  • Networks     │
-└─────────────────┘
-         │
-         ▼
-┌─────────────────┐
-│   @conflux-     │
-│   devkit/node   │
-│                 │
-│  • Depends on   │
-│    core +       │
-│    blockchain   │
-│  • Node mgmt    │
-│  • Workflows    │
-│  • CLI tools    │
-└─────────────────┘
-         │
-         ▼
-┌─────────────────┐
-│   @conflux-     │
-│   devkit/       │
-│   api-server    │
-│                 │
-│  • Depends on   │
-│    core +       │
-│    blockchain   │
-│  • Express API  │
-│  • Services     │
-│  • Routes       │
-└─────────────────┘
-         │
-         ▼
-┌─────────────────┐
-│   @conflux-     │
-│   devkit/       │
-│   dashboard     │
-│                 │
-│  • Depends on   │
-│    core +       │
-│    blockchain   │
-│  • Next.js UI   │
-│  • Mantine UI   │
-│  • Components   │
-└─────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              Conflux DevKit Ecosystem                          │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌─────────────────────────────────┐    ┌─────────────────────────────────┐    │
+│  │        🌐 Dashboard             │    │     🎨 Showcase WebApp          │    │
+│  │     (Next.js + Mantine)         │    │      (Express + Static)         │    │
+│  │                                 │    │                                 │    │
+│  │  • Development Checklist        │    │  • UI Components Demo           │    │
+│  │  • Real-time Status Updates     │    │  • React Integration Demo       │    │
+│  │  • Wallet Management UI         │    │  • API Integration Demo         │    │
+│  │  • Contract Operations UI       │    │  • State Management Demo        │    │
+│  │  • Node Control Interface       │    │  • Web Components Demo          │    │
+│  └─────────────────────────────────┘    └─────────────────────────────────┘    │
+│                    │                                        │                  │
+│                    └────────────────┬───────────────────────┘                  │
+│                                     │                                         │
+│  ┌─────────────────────────────────┐ │ ┌─────────────────────────────────┐    │
+│  │     📱 UI Primitives            │ │ │     🧩 UI Components            │    │
+│  │    (React Hooks & Context)      │ │ │      (Web Components)           │    │
+│  │                                 │ │ │                                 │    │
+│  │  • useWallets()                 │ │ │  • <conflux-wallet-card>        │    │
+│  │  • useContracts()               │ │ │  • <conflux-contract-card>      │    │
+│  │  • useNode()                    │ │ │  • <conflux-node-status>        │    │
+│  │  • useNetwork()                 │ │ │  • <conflux-network-selector>   │    │
+│  │  • useUI()                      │ │ │  • <conflux-wallet-list>        │    │
+│  │  • ConfluxProvider              │ │ │  • <conflux-contract-list>      │    │
+│  └─────────────────────────────────┘ │ └─────────────────────────────────┘    │
+│                    │                 │                 │                      │
+│                    └─────────────────┼─────────────────┘                      │
+│                                      │                                       │
+│  ┌─────────────────────────────────┐ │ ┌─────────────────────────────────┐    │
+│  │     🔌 API Server               │ │ │     📊 State Management         │    │
+│  │      (Express + REST)           │ │ │        (Zustand + Persistence)  │    │
+│  │                                 │ │ │                                 │    │
+│  │  • Wallet Management APIs       │ │ │  • Real-time State Updates      │    │
+│  │  • Contract Deployment APIs     │ │ │  • Persistent Storage           │    │
+│  │  • Node Control APIs            │ │ │  • Event-driven Architecture    │    │
+│  │  • Network Management APIs      │ │ │  • Cross-component Communication│    │
+│  │  • System Health APIs           │ │ │  • Real Blockchain Integration  │    │
+│  └─────────────────────────────────┘ │ └─────────────────────────────────┘    │
+│                    │                 │                 │                      │
+│                    └─────────────────┼─────────────────┘                      │
+│                                      │                                       │
+│  ┌─────────────────────────────────┐ │ ┌─────────────────────────────────┐    │
+│  │     ⛓️ Blockchain Package       │ │ │     🏗️ Node Manager             │    │
+│  │   (EVM + Core Integration)      │ │ │        (CLI + Automation)       │    │
+│  │                                 │ │ │                                 │    │
+│  │  • WalletManager                │ │ │  • NodeManager                  │    │
+│  │  • EvmClient                    │ │ │  • ContractDeployer             │    │
+│  │  • CoreClient                   │ │ │  • WorkflowOrchestrator         │    │
+│  │  • ContractManager              │ │ │  • CLI Tools                    │    │
+│  │  • TransactionManager           │ │ │  • Automation Scripts           │    │
+│  │  • NetworkManager               │ │ │  • Status Monitoring            │    │
+│  └─────────────────────────────────┘ │ └─────────────────────────────────┘    │
+│                    │                 │                 │                      │
+│                    └─────────────────┼─────────────────┘                      │
+│                                      │                                       │
+│  ┌─────────────────────────────────┐ │ ┌─────────────────────────────────┐    │
+│  │     🎯 Core Package             │ │ │     🌐 Network Layer            │    │
+│  │   (Types & Utilities)           │ │ │                                 │    │
+│  │                                 │ │ │  • Conflux Mainnet Core        │    │
+│  │  • NetworkConfig                │ │ │  • Conflux Mainnet EVM         │    │
+│  │  • WalletInfo                   │ │ │  • Conflux Testnet Core        │    │
+│  │  • ContractOrchestrator         │ │ │  • Conflux Testnet EVM         │    │
+│  │  • BrowserConversion            │ │ │  • Local Development Core      │    │
+│  │  • TypeNormalization            │ │ │  • Local Development EVM       │    │
+│  │  • ApiUtils                     │ │ │                                 │    │
+│  └─────────────────────────────────┘ │ └─────────────────────────────────┘    │
+│                    │                 │                 │                      │
+│                    └─────────────────┼─────────────────┘                      │
+│                                      │                                       │
+│  ┌─────────────────────────────────┐ │ ┌─────────────────────────────────┐    │
+│  │     🔧 External Dependencies    │ │ │     📚 Documentation            │    │
+│  │                                 │ │ │                                 │    │
+│  │  • viem (EVM)                   │ │ │  • Package READMEs              │    │
+│  │  • @xcfx/node (Core)            │ │ │  • API Documentation            │    │
+│  │  • bip32/bip39 (Wallets)        │ │ │  • Usage Examples               │    │
+│  │  • commander (CLI)              │ │ │  • Architecture Diagrams        │    │
+│  │  • express (API Server)         │ │ │  • Development Guides           │    │
+│  │  • zustand (State)              │ │ │  • Contributing Guidelines      │    │
+│  │  • lit (Web Components)         │ │ │                                 │    │
+│  └─────────────────────────────────┘ │ └─────────────────────────────────┘    │
+│                                      │                                       │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## 🔄 Type System Flow
+## 🔄 Data Flow Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                            TYPE SYSTEM FLOW                                                    │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                              CORE TYPES                                                        │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   NODE TYPES    │    │  WALLET TYPES   │    │ NETWORK TYPES   │    │ CONTRACT TYPES  │
-│                 │    │                 │    │                 │    │                 │
-│  • NodeConfig   │    │  • WalletInfo   │    │  • NetworkConfig│    │  • ContractInfo │
-│  • NodeStatus   │    │  • WalletOps    │    │  • NetworkOps   │    │  • ContractOps  │
-│  • NodeHealth   │    │  • WalletVal    │    │  • NetworkVal   │    │  • ContractVal  │
-│  • NodeLifecycle│    │  • WalletFund   │    │  • NetworkSw    │    │  • ContractReg  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │                       │
-         │                       │                       │                       │
-         ▼                       ▼                       ▼                       ▼
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                            BLOCKCHAIN TYPES                                                    │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   RPC TYPES     │    │  CONTRACT TYPES │    │  WALLET TYPES   │    │  NETWORK TYPES  │
-│                 │    │                 │    │                 │    │                 │
-│  • CoreClient   │    │  • ContractMgr  │    │  • WalletMgr    │    │  • NetworkMgr   │
-│  • EvmClient    │    │  • ContractDep  │    │  • WalletOps    │    │  • NetworkOps   │
-│  • UnifiedClient│    │  • ContractWrap │    │  • WalletFund   │    │  • NetworkVal   │
-│  • Mock Clients │    │  • ContractReg  │    │  • WalletVal    │    │  • NetworkSw    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │                       │
-         │                       │                       │                       │
-         ▼                       ▼                       ▼                       ▼
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                             NODE TYPES                                                         │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   NODE TYPES    │    │ WORKFLOW TYPES  │    │  SERVICE TYPES  │    │   CLI TYPES     │
-│                 │    │                 │    │                 │    │                 │
-│  • NodeStatus   │    │  • WorkflowResult│   │  • INodeService │    │  • WorkflowCmd  │
-│  • NodeHealth   │    │  • ValidationResult│  │  • IWorkflowSvc │    │  • NodeCmd      │
-│  • NodeLifecycle│    │  • ExecutionResult│  │  • IWalletSvc   │    │  • DeployCmd    │
-│  • NodeOps      │    │  • DeployOptions │  │  • IContractSvc  │    │  • TestCmd      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │                       │
-         │                       │                       │                       │
-         ▼                       ▼                       ▼                       ▼
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                            API TYPES                                                           │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   API TYPES     │    │  BROWSER TYPES  │    │  SERVICE TYPES  │    │  MIDDLEWARE     │
-│                 │    │                 │    │                 │    │     TYPES       │
-│  • ApiResponse  │    │  • BrowserWallet│    │  • WalletSvc    │    │  • Auth         │
-│  • ApiError     │    │  • BrowserTx    │    │  • TransactionSvc│    │  • Validation   │
-│  • ResponseMeta │    │  • BrowserBlock │    │  • ContractSvc  │    │  • Logging      │
-│  • Error Classes│    │  • BrowserContract│   │  • NodeSvc      │    │  • Security     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │                       │
-         │                       │                       │                       │
-         ▼                       ▼                       ▼                       ▼
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                           DASHBOARD TYPES                                                      │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  COMPONENT TYPES│    │   PAGE TYPES    │    │  SERVICE TYPES  │    │   UTIL TYPES    │
-│                 │    │                 │    │                 │    │                 │
-│  • Navbar       │    │  • HomePage     │    │  • ApiClient    │    │  • Formatters   │
-│  • Sidebar      │    │  • WalletsPage  │    │  • WalletSvc    │    │  • Validators   │
-│  • Dashboard    │    │  • ContractsPage│    │  • NodeSvc      │    │  • Helpers      │
-│  • Forms        │    │  • TransactionsPage│  │  • ContractSvc  │    │  • Constants    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              Data Flow & State Management                      │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │   🌐 Frontend   │    │   🔌 API Layer  │    │   📊 State      │            │
+│  │                 │    │                 │    │   Management    │            │
+│  │  • Dashboard    │◄──►│  • REST APIs    │◄──►│  • Zustand      │            │
+│  │  • Showcase     │    │  • WebSocket    │    │  • Persistence  │            │
+│  │  • Components   │    │  • Rate Limiting│    │  • Events       │            │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│           │                       │                       │                    │
+│           └───────────────────────┼───────────────────────┘                    │
+│                                   │                                           │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │   ⛓️ Blockchain │    │   🏗️ Node       │    │   🎯 Core       │            │
+│  │   Integration   │    │   Management    │    │   Foundation    │            │
+│  │                 │    │                 │    │                 │            │
+│  │  • Wallet Mgmt  │◄──►│  • Node Control │◄──►│  • Types        │            │
+│  │  • Contract Ops │    │  • Deployment   │    │  • Utilities    │            │
+│  │  • Transactions │    │  • Workflows    │    │  • Normalization│            │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│           │                       │                       │                    │
+│           └───────────────────────┼───────────────────────┘                    │
+│                                   │                                           │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │   🌐 Network    │    │   🔧 External   │    │   📚 Dev Tools  │            │
+│  │   Layer         │    │   Services      │    │                 │            │
+│  │                 │    │                 │    │                 │            │
+│  │  • Mainnet      │◄──►│  • Conflux RPC  │◄──►│  • CLI Tools    │            │
+│  │  • Testnet      │    │  • EVM RPC      │    │  • Build Tools  │            │
+│  │  • Local Dev    │    │  • Explorer APIs│    │  • Testing      │            │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## 🔧 Service Interfaces
+## 📦 Package Dependencies
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                          SERVICE INTERFACES                                                    │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                              CORE SERVICES                                                     │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   NODE SERVICE  │    │ WALLET SERVICE  │    │ CONTRACT SERVICE│    │ NETWORK SERVICE │
-│                 │    │                 │    │                 │    │                 │
-│  • start()      │    │  • create()     │    │  • deploy()     │    │  • switch()     │
-│  • stop()       │    │  • get()        │    │  • call()       │    │  • getInfo()    │
-│  • restart()    │    │  • fund()       │    │  • write()      │    │  • validate()   │
-│  • getStatus()  │    │  • getBalance() │    │  • validate()   │    │  • monitor()    │
-│  • isHealthy()  │    │  • validate()   │    │  • register()   │    │  • getStatus()  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │                       │
-         │                       │                       │                       │
-         ▼                       ▼                       ▼                       ▼
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                            WORKFLOW SERVICES                                                   │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ WORKFLOW SERVICE│    │  DEPLOY SERVICE │    │ VALIDATE SERVICE│    │  TEST SERVICE   │
-│                 │    │                 │    │                 │    │                 │
-│  • runComplete()│    │  • deploy()     │    │  • validate()   │    │  • runTests()   │
-│  • runDeploy()  │    │  • verify()     │    │  • check()      │    │  • runUnit()    │
-│  • runValidate()│    │  • register()   │    │  • report()     │    │  • runE2E()     │
-│  • runTest()    │    │  • monitor()    │    │  • fix()        │    │  • runPerf()    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │                       │
-         │                       │                       │                       │
-         ▼                       ▼                       ▼                       ▼
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                             API SERVICES                                                       │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ WALLET API SVC  │    │ TRANSACTION API │    │ CONTRACT API SVC│    │  NODE API SVC   │
-│                 │    │      SVC        │    │                 │    │                 │
-│  • create()     │    │  • send()       │    │  • deploy()     │    │  • start()      │
-│  • list()       │    │  • getStatus()  │    │  • call()       │    │  • stop()       │
-│  • getBalance() │    │  • getReceipt() │    │  • write()      │    │  • getStatus()  │
-│  • fund()       │    │  • monitor()    │    │  • validate()   │    │  • restart()    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              Package Dependency Graph                          │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌─────────────────┐                                                           │
+│  │   🌐 Dashboard  │                                                           │
+│  │   (Next.js)     │                                                           │
+│  └─────────────────┘                                                           │
+│           │                                                                     │
+│           ▼                                                                     │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │ 📱 UI Primitives│    │ 🧩 UI Components│    │ 🔌 API Server   │            │
+│  │ (React Hooks)   │    │ (Web Components)│    │ (Express)       │            │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│           │                       │                       │                    │
+│           └───────────────────────┼───────────────────────┘                    │
+│                                   │                                           │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │ 📊 State Mgmt   │    │ ⛓️ Blockchain   │    │ 🏗️ Node Mgr     │            │
+│  │ (Zustand)       │    │ (EVM + Core)    │    │ (CLI + Auto)    │            │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│           │                       │                       │                    │
+│           └───────────────────────┼───────────────────────┘                    │
+│                                   │                                           │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │ 🎯 Core Package │    │ 🌐 Network      │    │ 🔧 External     │            │
+│  │ (Types & Utils) │    │ (6 Networks)    │    │ Dependencies    │            │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│           │                       │                       │                    │
+│           └───────────────────────┼───────────────────────┘                    │
+│                                   │                                           │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │ 📚 Documentation│    │ 🧪 Showcase     │    │ 🛠️ Dev Tools    │            │
+│  │ (READMEs)       │    │ (Demo App)      │    │ (Build + Test)  │            │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## 🎯 Data Flow
+## 🔗 Type Flow Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                              DATA FLOW                                                         │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   USER INPUT    │    │   CLI/API       │    │   SERVICES      │    │   BLOCKCHAIN    │
-│                 │    │                 │    │                 │    │                 │
-│  • Commands     │    │  • Parse        │    │  • Process      │    │  • Execute      │
-│  • Forms        │    │  • Validate     │    │  • Transform    │    │  • Return       │
-│  • Actions      │    │  • Route        │    │  • Normalize    │    │  • Events       │
-│  • Events       │    │  • Handle       │    │  • Validate     │    │  • Results      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │                       │
-         │                       │                       │                       │
-         ▼                       ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   RESPONSE      │    │   API RESPONSE  │    │   NORMALIZED    │    │   RAW DATA      │
-│                 │    │                 │    │                 │    │                 │
-│  • Success      │    │  • ApiResponse  │    │  • BrowserSafe  │    │  • BigInt       │
-│  • Error        │    │  • ApiError     │    │  • Stringified  │    │  • Hex          │
-│  • Status       │    │  • ResponseMeta │    │  • Formatted    │    │  • Binary       │
-│  • Data         │    │  • Metadata     │    │  • Validated    │    │  • Raw          │
-└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │                       │
-         │                       │                       │                       │
-         ▼                       ▼                       ▼                       ▼
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                            TYPE CONVERSION                                                     │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   NORMALIZE     │    │   CONVERT       │    │   VALIDATE      │    │   FORMAT        │
-│                 │    │                 │    │                 │    │                 │
-│  • Addresses    │    │  • To Browser   │    │  • Schemas      │    │  • Display      │
-│  • BigInts      │    │  • To API       │    │  • Types        │    │  • Logs         │
-│  • Hashes       │    │  • To Core      │    │  • Rules        │    │  • Errors       │
-│  • Objects      │    │  • To Blockchain│    │  • Constraints  │    │  • Responses    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              Type System & Data Flow                           │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │   🎯 Core       │    │   ⛓️ Blockchain │    │   📊 State      │            │
+│  │   Types         │    │   Types         │    │   Types         │            │
+│  │                 │    │                 │    │                 │            │
+│  │  • NetworkConfig│───►│  • WalletInfo   │───►│  • AppState     │            │
+│  │  • WalletInfo   │    │  • ContractInfo │    │  • BrowserTypes │            │
+│  │  • ContractInfo │    │  • Transaction  │    │  • UIState      │            │
+│  │  • ApiResponse  │    │  • NetworkConfig│    │  • EventTypes   │            │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│           │                       │                       │                    │
+│           ▼                       ▼                       ▼                    │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │   🔄 Normalize  │    │   🌍 Browser    │    │   📱 UI         │            │
+│  │   & Convert     │    │   Safe Types    │    │   Components    │            │
+│  │                 │    │                 │    │                 │            │
+│  │  • normalizeAddress│  │  • BrowserWallet│  │  • React Hooks  │            │
+│  │  • normalizeBigInt │  │  • BrowserContract│  │  • Web Components│          │
+│  │  • toBrowserSafe  │  │  • BrowserNetwork│  │  • Context      │            │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│           │                       │                       │                    │
+│           └───────────────────────┼───────────────────────┘                    │
+│                                   │                                           │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │   🔌 API        │    │   🏗️ Node       │    │   📚 Docs       │            │
+│  │   Types         │    │   Types         │    │   Types         │            │
+│  │                 │    │                 │    │                 │            │
+│  │  • ApiResponse  │    │  • NodeConfig   │    │  • README       │            │
+│  │  • EndpointTypes│    │  • NodeStatus   │    │  • Examples     │            │
+│  │  • RequestTypes │    │  • WorkflowTypes│    │  • Guides       │            │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## 🔗 Network Configuration
+## 🌐 Network Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                          NETWORK CONFIGURATION                                                 │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              Network Configuration                             │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │   🌐 Mainnet    │    │   🧪 Testnet    │    │   🏠 Local      │            │
+│  │                 │    │                 │    │   Development   │            │
+│  │  • Core: 2029   │    │  • Core: 2029   │    │  • Core: 2029   │            │
+│  │  • EVM: 2030    │    │  • EVM: 2030    │    │  • EVM: 2030    │            │
+│  │  • RPC: Main    │    │  • RPC: Test    │    │  • RPC: Local   │            │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│           │                       │                       │                    │
+│           └───────────────────────┼───────────────────────┘                    │
+│                                   │                                           │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │   🔗 Network    │    │   🔧 Client     │    │   📊 Status     │            │
+│  │   Manager       │    │   Factory       │    │   Monitor       │            │
+│  │                 │    │                 │    │                 │            │
+│  │  • getNetwork() │    │  • createClient()│   │  • healthCheck()│            │
+│  │  • switchNetwork│    │  • getClient()  │    │  • getStatus()  │            │
+│  │  • listNetworks │    │  • destroyClient│    │  • monitor()    │            │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│           │                       │                       │                    │
+│           └───────────────────────┼───────────────────────┘                    │
+│                                   │                                           │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │   ⛓️ Core       │    │   🔗 EVM        │    │   🔄 Unified    │            │
+│  │   Client        │    │   Client        │    │   Interface     │            │
+│  │                 │    │                 │    │                 │            │
+│  │  • CoreClient   │    │  • EvmClient    │    │  • UnifiedClient│            │
+│  │  • Core RPC     │    │  • EVM RPC      │    │  • Auto-routing │            │
+│  │  • Core Types   │    │  • EVM Types    │    │  • Type Safety  │            │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
 
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│    MAINNET      │    │    TESTNET      │    │     LOCAL       │
-│                 │    │                 │    │                 │
-│  Core: 1029     │    │  Core: 2029     │    │  Core: 2029     │
-│  EVM:  1030     │    │  EVM:  2030     │    │  EVM:  2030     │
-│  Port: 12537    │    │  Port: 12537    │    │  Port: 12537    │
-│  EVM:  8545     │    │  EVM:  8545     │    │  EVM:  8545     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   CORE CHAIN    │    │   EVM CHAIN     │    │  UNIFIED CLIENT │
-│                 │    │                 │    │                 │
-│  • cive client  │    │  • viem client  │    │  • Both clients │
-│  • Core RPC     │    │  • EVM RPC      │    │  • Auto switch  │
-│  • Core types   │    │  • EVM types    │    │  • Unified API  │
-│  • Core ops     │    │  • EVM ops      │    │  • Type safety  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+## 🚀 Development Workflow
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              Development Workflow                              │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │   🏗️ Setup      │    │   💻 Develop    │    │   🧪 Test       │            │
+│  │                 │    │                 │    │                 │            │
+│  │  • pnpm install │    │  • pnpm run dev │    │  • pnpm run test│            │
+│  │  • pnpm run build│   │  • Hot reload   │    │  • pnpm run lint│            │
+│  │  • pnpm run dev │    │  • Live updates │    │  • pnpm run check│           │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│           │                       │                       │                    │
+│           └───────────────────────┼───────────────────────┘                    │
+│                                   │                                           │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │   📦 Build      │    │   🚀 Deploy      │    │   🔄 Maintain   │            │
+│  │                 │    │                 │    │                 │            │
+│  │  • pnpm run build│   │  • pnpm run start│   │  • pnpm run clean│           │
+│  │  • Type check   │    │  • Production   │    │  • Update deps  │            │
+│  │  • Lint check   │    │  • Monitoring   │    │  • Bug fixes    │            │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│           │                       │                       │                    │
+│           └───────────────────────┼───────────────────────┘                    │
+│                                   │                                           │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │   📚 Document   │    │   🤝 Contribute │    │   🔧 Debug      │            │
+│  │                 │    │                 │    │                 │            │
+│  │  • Update README│    │  • Fork repo    │    │  • Check logs   │            │
+│  │  • Write guides │    │  • Create PR    │    │  • Use dev tools│            │
+│  │  │  • Examples  │    │  • Review code  │    │  • Monitor perf │            │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## 📊 Package Status
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                            PACKAGE STATUS                                                      │
-└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+| Package                             | Status         | Dependencies          | Size  | Features                             |
+| ----------------------------------- | -------------- | --------------------- | ----- | ------------------------------------ |
+| **@conflux-devkit/core**            | ✅ Production  | None                  | 15KB  | Types, utilities, normalization      |
+| **@conflux-devkit/blockchain**      | ✅ Production  | viem, @xcfx/node      | 45KB  | Wallet, contract, network management |
+| **@conflux-devkit/state**           | ✅ Production  | zustand, core         | 35KB  | State management, persistence        |
+| **@conflux-devkit/api-server**      | ✅ Production  | express, core         | 25KB  | RESTful APIs, real-time updates      |
+| **@conflux-devkit/ui-primitives**   | ✅ Production  | react, state          | 20KB  | React hooks, context providers       |
+| **@conflux-devkit/ui-components**   | ✅ Production  | lit, core             | 30KB  | Web Components, framework-agnostic   |
+| **@conflux-devkit/devkit-node**     | ✅ Production  | commander, blockchain | 40KB  | CLI tools, node management           |
+| **@conflux-devkit/showcase-webapp** | ✅ Production  | express, all packages | 50KB  | Demo application, examples           |
+| **@conflux-devkit/dashboard**       | ✅ Build Ready | next.js, mantine      | 200KB | Development dashboard, UI            |
 
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   @conflux-     │    │   @conflux-     │    │   @conflux-     │    │   @conflux-     │    │   @conflux-     │
-│   devkit/core   │    │   devkit/       │    │   devkit/node   │    │   devkit/       │    │   devkit/       │
-│                 │    │   blockchain    │    │                 │    │   api-server    │    │   dashboard     │
-│  ✅ Complete    │    │  ✅ Complete    │    │  ✅ Complete    │    │  🔄 Partial     │    │  🔄 Partial     │
-│                 │    │                 │    │                 │    │                 │    │                 │
-│  • 100% Done    │    │  • 100% Done    │    │  • 100% Done    │    │  • 30% Done     │    │  • 20% Done     │
-│  • All Types    │    │  • All Clients  │    │  • All Services │    │  • Basic API    │    │  • Basic UI     │
-│  • All Utils    │    │  • All Contracts│    │  • All CLI      │    │  • Basic Routes │    │  • Basic Pages  │
-│  • All Schemas  │    │  • All Wallets  │    │  • All Workflows│    │  • Basic Middleware│  • Basic Components│
-│  • All Constants│    │  • All Networks │    │  • All Lifecycle│    │  • Basic Error  │    │  • Basic Services│
-└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+## 🎯 Key Features by Package
 
-This architecture provides a comprehensive, type-safe, and maintainable foundation for Conflux blockchain development with clear separation of concerns and excellent developer experience.
+### Core Package
+
+- **Type Safety**: Comprehensive TypeScript types
+- **Utilities**: Data normalization and conversion
+- **Browser Safety**: Safe data types for web environments
+- **API Utils**: Response handling and error management
+
+### Blockchain Package
+
+- **Dual Chain**: Both Conflux Core and EVM support
+- **Wallet Management**: BIP39/BIP32 compliant wallets
+- **Contract Operations**: Complete deployment and interaction
+- **Network Management**: 6 network configurations
+
+### State Package
+
+- **Real-time Updates**: Live blockchain data synchronization
+- **Persistence**: Automatic state persistence
+- **Event System**: Event-driven architecture
+- **Service Integration**: Real blockchain service integration
+
+### API Server Package
+
+- **RESTful APIs**: Complete REST API for all operations
+- **Real-time Data**: Live blockchain data and updates
+- **Security**: Rate limiting, CORS, security headers
+- **Integration**: Direct state management integration
+
+### UI Primitives Package
+
+- **React Hooks**: Custom hooks for all functionality
+- **Context Providers**: React context for state management
+- **Performance**: Optimized with React best practices
+- **Type Safety**: Full TypeScript integration
+
+### UI Components Package
+
+- **Web Components**: Framework-agnostic components
+- **Accessibility**: WCAG compliant components
+- **Theming**: Built-in theming and customization
+- **Responsive**: Mobile-first responsive design
+
+### Node Manager Package
+
+- **CLI Tools**: Command-line interface for all operations
+- **Workflow Automation**: End-to-end development workflows
+- **Node Management**: Complete node lifecycle management
+- **Contract Deployment**: Automated deployment and management
+
+### Showcase WebApp Package
+
+- **Live Demos**: Interactive demonstrations of all features
+- **Integration Examples**: Real-world usage examples
+- **API Testing**: Live API endpoint testing
+- **Component Showcase**: All UI components in action
+
+### Dashboard Package
+
+- **Development Interface**: Complete development dashboard
+- **Real-time Monitoring**: Live system status monitoring
+- **Interactive Tools**: One-click operations and management
+- **Modern UI**: Built with Next.js and Mantine
+
+---
+
+**This architecture provides a complete, production-ready blockchain development platform for Conflux Network** 🚀

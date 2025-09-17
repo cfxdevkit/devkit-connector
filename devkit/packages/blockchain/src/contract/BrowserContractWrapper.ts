@@ -1,10 +1,10 @@
 // Browser-safe contract wrapper for blockchain package
 
 import type {
-  ContractEventFilter,
-  ContractOrchestrator,
-  ContractMethod,
   ContractEvent,
+  ContractEventFilter,
+  ContractMethod,
+  ContractOrchestrator,
 } from '@conflux-devkit/core';
 import { createContractError } from '@conflux-devkit/core';
 import type { CoreClient } from '../rpc/CoreClient';
@@ -373,14 +373,16 @@ export class BrowserContractWrapper {
       type === 'read'
         ? this.orchestrator.methods.read
         : this.orchestrator.methods.write;
-    return methods.find(method => method.name === name);
+    return methods.find((method) => method.name === name);
   }
 
   /**
    * Find event by name
    */
   private findEvent(name: string): ContractEvent | undefined {
-    return this.orchestrator.methods.events.find(event => event.name === name);
+    return this.orchestrator.methods.events.find(
+      (event) => event.name === name
+    );
   }
 
   /**

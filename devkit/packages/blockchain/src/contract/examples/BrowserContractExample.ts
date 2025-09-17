@@ -5,11 +5,10 @@ import {
   type BrowserContractWrapper,
   browserContractManager,
   type ContractEventOptions,
-  createContract,
-  createContractFromAddress,
-  createContractFromDeployment,
   type ContractReadOptions,
   type ContractWriteOptions,
+  createContract,
+  createContractFromAddress,
 } from '../index';
 
 /**
@@ -31,7 +30,7 @@ export async function completeBrowserContractWorkflow() {
   });
 
   // 4. Listen to events
-  const unsubscribe = await contract.listenToEvents('Transfer', {}, log => {
+  const unsubscribe = await contract.listenToEvents('Transfer', {}, (log) => {
     console.log('Transfer event:', log);
   });
 
@@ -279,7 +278,7 @@ export async function contractInteractionExample() {
   const unsubscribe = await contract.listenToEvents(
     'Transfer',
     eventOptions,
-    log => {
+    (log) => {
       console.log('Transfer event received:', log);
     }
   );
@@ -475,7 +474,7 @@ export function multipleContractManagementExample() {
     },
   ];
 
-  const wrappers = contracts.map(contract =>
+  const wrappers = contracts.map((contract) =>
     createContractFromAddress(
       contract.address,
       abi,
@@ -486,7 +485,7 @@ export function multipleContractManagementExample() {
 
   console.log(
     'Created multiple contracts:',
-    wrappers.map(w => w.getInfo())
+    wrappers.map((w) => w.getInfo())
   );
 
   // Get all contracts

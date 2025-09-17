@@ -118,14 +118,13 @@ export async function deployMultipleContractsExample() {
     const deployFunction = async (_config: ContractDeploymentConfig) => {
       // Mock deployment function
       return {
-        address:
-          `0x${Math.random().toString(16).substr(2, 40)}` as `0x${string}`,
+        address: '0x0000000000000000000000000000000000000000' as `0x${string}`,
         transactionHash:
-          `0x${Math.random().toString(16).substr(2, 64)}` as `0x${string}`,
-        blockNumber: BigInt(Math.floor(Math.random() * 100000)),
+          '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`,
+        blockNumber: 1n,
         blockHash:
-          `0x${Math.random().toString(16).substr(2, 64)}` as `0x${string}`,
-        gasUsed: BigInt(Math.floor(Math.random() * 1000000)),
+          '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`,
+        gasUsed: 1000000n,
         gasPrice: 20000000000n,
       };
     };

@@ -1,262 +1,570 @@
 # @conflux-devkit/api-server
 
-Express API server with services and routes for Conflux blockchain operations.
+> **RESTful API server for Conflux DevKit applications**
+
+[![npm version](https://img.shields.io/npm/v/@conflux-devkit/api-server)](https://www.npmjs.com/package/@conflux-devkit/api-server)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ## 🎯 Overview
 
-The API server package provides a modern Express-based API server with comprehensive services and routes for Conflux blockchain operations. It builds on top of the core and blockchain packages to provide a complete API interface.
+The API server provides a comprehensive RESTful API for Conflux DevKit applications. It integrates with the state management system to provide real-time blockchain data, wallet operations, contract management, and node control through HTTP endpoints.
 
-## 📦 Features
+## ✨ Features
 
-- **Express Server** - Modern API server with middleware
-- **Service Layer** - Clean separation of concerns
-- **Route Handlers** - RESTful API endpoints
-- **Error Handling** - Comprehensive error management
-- **Type Safety** - Full TypeScript integration
-- **Middleware** - CORS, helmet, rate limiting, JWT
+- **🔌 RESTful API**: Complete REST API for all DevKit operations
+- **📊 Real-time Data**: Live blockchain data and state updates
+- **💼 Wallet Management**: Wallet creation, import, and management APIs
+- **📦 Contract Operations**: Contract deployment and interaction APIs
+- **🌐 Network Management**: Multi-network support and switching
+- **🖥️ Node Control**: Node start, stop, and status management
+- **🔒 Security**: Rate limiting, CORS, and security headers
+- **📱 State Integration**: Direct integration with Zustand state store
 
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                            API SERVER PACKAGE                                  │
-└─────────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   EXPRESS       │    │    SERVICES     │    │     ROUTES      │
-│                 │    │                 │    │                 │
-│  • Server       │    │  • WalletService│    │  • WalletRoutes │
-│  • Middleware   │    │  • TransactionService│  • TransactionRoutes│
-│  • CORS         │    │  • ContractService│   │  • ContractRoutes│
-│  • Helmet       │    │  • NodeService  │    │  • NodeRoutes   │
-│  • Rate Limit   │    │  • NetworkService│   │  • NetworkRoutes│
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   MIDDLEWARE    │    │   UTILITIES     │    │   TYPES         │
-│                 │    │                 │    │                 │
-│  • Auth         │    │  • Response     │    │  • API Types    │
-│  • Validation   │    │  • Error        │    │  • Service Types│
-│  • Logging      │    │  • Validation   │    │  • Route Types  │
-│  • Security     │    │  • Helpers      │    │  • Middleware Types│
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-## 🚀 Usage
-
-### Starting the Server
+## 📦 Installation
 
 ```bash
-# Development mode
-pnpm dev
-
-# Production mode
-pnpm start
-
-# With specific port
-PORT=3001 pnpm start
+pnpm add @conflux-devkit/api-server
+# or
+npm install @conflux-devkit/api-server
+# or
+yarn add @conflux-devkit/api-server
 ```
 
-### API Endpoints
-
-#### Wallet Endpoints
-
-```bash
-# Create wallet
-POST /api/wallets
-{
-  "mode": "mnemonic",
-  "count": 1
-}
-
-# Get wallet list
-GET /api/wallets
-
-# Get wallet balance
-GET /api/wallets/:address/balance
-
-# Fund wallet
-POST /api/wallets/:address/fund
-{
-  "amount": "1000000000000000000"
-}
-```
-
-#### Transaction Endpoints
-
-```bash
-# Send transaction
-POST /api/transactions/send
-{
-  "to": "0x1234...",
-  "value": "1000000000000000000",
-  "gasLimit": 21000
-}
-
-# Get transaction status
-GET /api/transactions/:hash/status
-
-# Get transaction receipt
-GET /api/transactions/:hash/receipt
-```
-
-#### Contract Endpoints
-
-```bash
-# Deploy contract
-POST /api/contracts/deploy
-{
-  "contractName": "MyContract",
-  "constructorArgs": []
-}
-
-# Call contract method
-POST /api/contracts/:address/call
-{
-  "method": "getValue",
-  "args": []
-}
-
-# Write contract method
-POST /api/contracts/:address/write
-{
-  "method": "setValue",
-  "args": ["newValue"]
-}
-```
-
-#### Node Endpoints
-
-```bash
-# Get node status
-GET /api/node/status
-
-# Start node
-POST /api/node/start
-
-# Stop node
-POST /api/node/stop
-
-# Restart node
-POST /api/node/restart
-```
-
-### Programmatic Usage
+## 🚀 Quick Start
 
 ```typescript
-import { createServer } from '@conflux-devkit/api-server';
+import { createApiServer } from '@conflux-devkit/api-server';
 
-// Create server
-const server = createServer({
-  port: 3000,
+// Create and start API server
+const server = createApiServer({
+  port: 3001,
   cors: true,
   rateLimit: {
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
+    max: 1000, // limit each IP to 1000 requests per windowMs
   },
 });
 
-// Start server
-await server.start();
+server.start().then(() => {
+  console.log('API server running on port 3001');
+});
 ```
 
-## 📋 API Reference
+## 📚 API Reference
 
-### Services
+### Base URL
 
-- `WalletService` - Wallet management operations
-- `TransactionService` - Transaction operations
-- `ContractService` - Contract operations
-- `NodeService` - Node management operations
-- `NetworkService` - Network operations
+```
+http://localhost:3001/api
+```
 
-### Routes
+### Authentication
 
-- `WalletRoutes` - Wallet API endpoints
-- `TransactionRoutes` - Transaction API endpoints
-- `ContractRoutes` - Contract API endpoints
-- `NodeRoutes` - Node API endpoints
-- `NetworkRoutes` - Network API endpoints
+All endpoints require proper authentication. Include the API key in the request headers:
 
-### Middleware
+```http
+Authorization: Bearer YOUR_API_KEY
+```
 
-- `cors` - Cross-origin resource sharing
-- `helmet` - Security headers
-- `rateLimit` - Rate limiting
-- `jsonwebtoken` - JWT authentication
-- `express-validator` - Request validation
+### Response Format
 
-### Utilities
+All API responses follow a consistent format:
 
-- `createResponse` - Create API responses
-- `createError` - Create error responses
-- `validateRequest` - Validate request data
-- `handleError` - Error handling middleware
+```typescript
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  timestamp: string;
+  requestId: string;
+}
+```
+
+### Endpoints
+
+#### System Health
+
+```http
+GET /api/health
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "status": "healthy",
+    "timestamp": "2024-01-01T00:00:00.000Z",
+    "version": "1.0.0"
+  }
+}
+```
+
+#### Wallet Management
+
+##### Create Wallet
+
+```http
+POST /api/wallets
+Content-Type: application/json
+
+{
+  "mnemonic": "optional mnemonic phrase"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "address": "0x1234567890abcdef...",
+    "privateKey": "0x...",
+    "mnemonic": "word1 word2 word3...",
+    "balance": "0",
+    "balanceFormatted": "0.0 CFX"
+  }
+}
+```
+
+##### Import Wallet
+
+```http
+POST /api/wallets/import
+Content-Type: application/json
+
+{
+  "privateKey": "0x1234567890abcdef..."
+}
+```
+
+##### Get Wallet Info
+
+```http
+GET /api/wallets/{address}
+```
+
+##### Get All Wallets
+
+```http
+GET /api/wallets
+```
+
+##### Refresh Wallet Balance
+
+```http
+POST /api/wallets/{address}/refresh
+```
+
+##### Send Transaction
+
+```http
+POST /api/wallets/{address}/send
+Content-Type: application/json
+
+{
+  "to": "0x9876543210fedcba...",
+  "value": "1000000000000000000",
+  "privateKey": "0x..."
+}
+```
+
+#### Contract Management
+
+##### Deploy Contract
+
+```http
+POST /api/contracts
+Content-Type: application/json
+
+{
+  "name": "MyContract",
+  "bytecode": "0x608060405234801561001057600080fd5b50...",
+  "abi": [...],
+  "args": [1000000]
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "name": "MyContract",
+    "address": "0x5678901234abcdef...",
+    "transactionHash": "0x...",
+    "blockNumber": 12345,
+    "gasUsed": "1000000"
+  }
+}
+```
+
+##### Get Contract Info
+
+```http
+GET /api/contracts/{address}
+```
+
+##### Get All Contracts
+
+```http
+GET /api/contracts
+```
+
+##### Call Contract Method
+
+```http
+POST /api/contracts/{address}/call
+Content-Type: application/json
+
+{
+  "methodName": "totalSupply",
+  "args": [],
+  "privateKey": "0x..."
+}
+```
+
+##### Send Contract Transaction
+
+```http
+POST /api/contracts/{address}/send
+Content-Type: application/json
+
+{
+  "methodName": "transfer",
+  "args": ["0x9876543210fedcba...", 1000],
+  "privateKey": "0x...",
+  "value": "0"
+}
+```
+
+#### Node Management
+
+##### Get Node Status
+
+```http
+GET /api/node/status
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "running": true,
+    "chainId": "2029",
+    "evmChainId": "2030",
+    "blockNumber": "12345",
+    "peerCount": "5",
+    "uptime": "3600"
+  }
+}
+```
+
+##### Start Node
+
+```http
+POST /api/node/start
+Content-Type: application/json
+
+{
+  "chainId": 2029,
+  "evmChainId": 2030,
+  "corePort": 12537,
+  "evmPort": 8545
+}
+```
+
+##### Stop Node
+
+```http
+POST /api/node/stop
+```
+
+##### Restart Node
+
+```http
+POST /api/node/restart
+Content-Type: application/json
+
+{
+  "chainId": 2029,
+  "evmChainId": 2030
+}
+```
+
+#### Network Management
+
+##### Get Current Network
+
+```http
+GET /api/network/current
+```
+
+##### Switch Network
+
+```http
+POST /api/network/switch
+Content-Type: application/json
+
+{
+  "networkId": "2030"
+}
+```
+
+##### Get Available Networks
+
+```http
+GET /api/network/available
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "name": "Conflux Mainnet EVM",
+      "chainId": "2030",
+      "evmChainId": "2030",
+      "rpcUrl": "https://main.confluxrpc.com",
+      "isTestnet": false
+    }
+  ]
+}
+```
+
+#### State Management
+
+##### Get App State
+
+```http
+GET /api/state
+```
+
+##### Get Wallet State
+
+```http
+GET /api/state/wallets
+```
+
+##### Get Contract State
+
+```http
+GET /api/state/contracts
+```
+
+##### Get Node State
+
+```http
+GET /api/state/node
+```
+
+##### Get Network State
+
+```http
+GET /api/state/network
+```
+
+## 🧪 Examples
+
+### JavaScript/TypeScript
+
+```typescript
+// Create wallet
+const response = await fetch('http://localhost:3001/api/wallets', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: 'Bearer YOUR_API_KEY',
+  },
+  body: JSON.stringify({
+    mnemonic:
+      'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
+  }),
+});
+
+const wallet = await response.json();
+console.log('Wallet created:', wallet.data.address);
+
+// Deploy contract
+const contractResponse = await fetch('http://localhost:3001/api/contracts', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: 'Bearer YOUR_API_KEY',
+  },
+  body: JSON.stringify({
+    name: 'MyToken',
+    bytecode: '0x608060405234801561001057600080fd5b50...',
+    abi: [
+      {
+        type: 'constructor',
+        inputs: [{ name: 'initialSupply', type: 'uint256' }],
+        stateMutability: 'nonpayable',
+      },
+    ],
+    args: [1000000],
+  }),
+});
+
+const contract = await contractResponse.json();
+console.log('Contract deployed:', contract.data.address);
+```
+
+### cURL
+
+```bash
+# Create wallet
+curl -X POST http://localhost:3001/api/wallets \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{"mnemonic": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"}'
+
+# Get wallet info
+curl -X GET http://localhost:3001/api/wallets/0x1234567890abcdef... \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# Deploy contract
+curl -X POST http://localhost:3001/api/contracts \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "name": "MyToken",
+    "bytecode": "0x608060405234801561001057600080fd5b50...",
+    "abi": [{"type": "constructor", "inputs": [{"name": "initialSupply", "type": "uint256"}], "stateMutability": "nonpayable"}],
+    "args": [1000000]
+  }'
+```
+
+### Python
+
+```python
+import requests
+
+# Create wallet
+response = requests.post(
+    'http://localhost:3001/api/wallets',
+    headers={
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer YOUR_API_KEY'
+    },
+    json={
+        'mnemonic': 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+    }
+)
+
+wallet = response.json()
+print(f'Wallet created: {wallet["data"]["address"]}')
+
+# Deploy contract
+contract_response = requests.post(
+    'http://localhost:3001/api/contracts',
+    headers={
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer YOUR_API_KEY'
+    },
+    json={
+        'name': 'MyToken',
+        'bytecode': '0x608060405234801561001057600080fd5b50...',
+        'abi': [
+            {
+                'type': 'constructor',
+                'inputs': [{'name': 'initialSupply', 'type': 'uint256'}],
+                'stateMutability': 'nonpayable'
+            }
+        ],
+        'args': [1000000]
+    }
+)
+
+contract = contract_response.json()
+print(f'Contract deployed: {contract["data"]["address"]}')
+```
 
 ## 🔧 Configuration
 
 ### Server Configuration
 
 ```typescript
-import { createServer } from '@conflux-devkit/api-server';
+import { createApiServer } from '@conflux-devkit/api-server';
 
-const server = createServer({
-  port: 3000,
+const server = createApiServer({
+  port: 3001,
   host: 'localhost',
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    origin: ['http://localhost:3000', 'http://localhost:3002'],
     credentials: true,
   },
   rateLimit: {
-    windowMs: 15 * 60 * 1000,
-    max: 100,
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000, // limit each IP to 1000 requests per windowMs
+    message: 'Too many requests from this IP, please try again later.',
   },
-  jwt: {
-    secret: process.env.JWT_SECRET,
-    expiresIn: '1h',
+  helmet: {
+    contentSecurityPolicy: false,
   },
 });
 ```
 
-### Service Configuration
-
-```typescript
-import { WalletService } from '@conflux-devkit/api-server';
-
-const walletService = new WalletService({
-  defaultNetwork: 'local',
-  autoFund: true,
-  fundAmount: '1000000000000000000',
-});
-```
-
-## 🧪 Testing
+### Environment Variables
 
 ```bash
-# Run tests
-pnpm test
+# Server configuration
+PORT=3001
+HOST=localhost
+NODE_ENV=production
 
-# Run with coverage
-pnpm test:coverage
+# API configuration
+API_KEY=your-secret-api-key
+CORS_ORIGIN=http://localhost:3000,http://localhost:3002
 
-# Run specific test
-pnpm test -- --grep "WalletService"
+# Rate limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX=1000
+
+# Blockchain configuration
+CONFLUX_RPC_URL=https://main.confluxrpc.com
+CONFLUX_EVM_RPC_URL=https://main.confluxrpc.com
 ```
 
-## 📚 Examples
+## 🔗 Dependencies
 
-See the [examples](./examples/) directory for usage examples and patterns.
+- **express**: Web framework
+- **cors**: Cross-origin resource sharing
+- **helmet**: Security headers
+- **express-rate-limit**: Rate limiting
+- **@conflux-devkit/core**: Core types and utilities
+- **@conflux-devkit/state**: State management integration
+
+## 📊 Bundle Size
+
+- **Minified**: ~25KB
+- **Gzipped**: ~8KB
+- **Tree-shakeable**: Import only what you need
+
+## 🚨 Security Notes
+
+- **API Keys**: Always use secure API keys
+- **Rate Limiting**: Configure appropriate rate limits
+- **CORS**: Configure CORS properly for production
+- **Input Validation**: Validate all input parameters
+- **Error Handling**: Don't expose sensitive error information
 
 ## 🤝 Contributing
 
-1. Follow the TypeScript coding standards
-2. Add tests for new functionality
-3. Update documentation
-4. Ensure all tests pass
-5. Submit a pull request
+Contributions are welcome! Please read our [Contributing Guide](../../CONTRIBUTING.md) for details.
 
 ## 📄 License
 
 MIT License - see [LICENSE](../../LICENSE) for details.
+
+---
+
+**Part of the Conflux DevKit ecosystem** 🚀

@@ -1,7 +1,8 @@
 // Node Status Web Component
 
-import { LitElement, html, css, customElement, property, state } from 'lit';
 import type { BrowserNodeStatus } from '@conflux-devkit/core';
+import { css, html, LitElement } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 
 @customElement('conflux-node-status')
 export class NodeStatus extends LitElement {
@@ -218,7 +219,7 @@ export class NodeStatus extends LitElement {
   render() {
     const statusClass = this.getStatusClass();
     const statusText = this.getStatusText();
-    const statusColor = this.getStatusColor();
+    const _statusColor = this.getStatusColor();
 
     return html`
       <div class="card-header" @click=${this.toggleExpanded}>
@@ -231,18 +232,20 @@ export class NodeStatus extends LitElement {
       </div>
 
       <div
-        class="card-content ${this.compact ? 'compact' : ''} ${this.isExpanded
-          ? 'expanded'
-          : 'collapsed'} ${this.isLoading ? 'loading' : ''}"
+        class="card-content ${this.compact ? 'compact' : ''} ${
+          this.isExpanded ? 'expanded' : 'collapsed'
+        } ${this.isLoading ? 'loading' : ''}"
       >
         <div class="node-info">
           ${this.status ? this.renderNodeInfo() : this.renderNoStatus()}
         </div>
       </div>
 
-      ${this.showActions
-        ? html` <div class="card-actions">${this.renderActions()}</div> `
-        : ''}
+      ${
+        this.showActions
+          ? html` <div class="card-actions">${this.renderActions()}</div> `
+          : ''
+      }
     `;
   }
 
@@ -252,7 +255,9 @@ export class NodeStatus extends LitElement {
     return html`
       <div class="info-row">
         <span class="info-label">Health:</span>
-        <span class="info-value">${this.status.health || 'Unknown'}</span>
+        <span class="info-value"
+          >${(this.status as any).health || 'Unknown'}</span
+        >
       </div>
 
       <div class="info-row">

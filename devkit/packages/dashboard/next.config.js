@@ -18,6 +18,9 @@ const nextConfig = {
       '@tabler/icons-react',
     ],
   },
+  // Fix SSR issues
+  reactStrictMode: false,
+  swcMinify: true,
 };
 
 module.exports = nextConfig;

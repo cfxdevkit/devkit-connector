@@ -99,7 +99,7 @@ export class BrowserContractManager {
    * List all contracts
    */
   listContracts(): BrowserContractOrchestrator[] {
-    return Array.from(this.contracts.values()).map(wrapper =>
+    return Array.from(this.contracts.values()).map((wrapper) =>
       wrapper.toBrowserSafe()
     );
   }
@@ -166,7 +166,7 @@ export class BrowserContractManager {
           }
           if (
             filters.tags &&
-            !filters.tags.some(tag =>
+            !filters.tags.some((tag) =>
               entry.contract.metadata.tags?.includes(tag)
             )
           ) {
@@ -191,7 +191,7 @@ export class BrowserContractManager {
    */
   getContractsByCategory(category: string): BrowserContractOrchestrator[] {
     return this.listContracts().filter(
-      contract => contract.metadata.category === category
+      (contract) => contract.metadata.category === category
     );
   }
 
@@ -202,7 +202,7 @@ export class BrowserContractManager {
     chainType: 'core' | 'evm'
   ): BrowserContractOrchestrator[] {
     return this.listContracts().filter(
-      contract => contract.chainType === chainType
+      (contract) => contract.chainType === chainType
     );
   }
 
@@ -211,7 +211,7 @@ export class BrowserContractManager {
    */
   getContractsByNetwork(networkId: string): BrowserContractOrchestrator[] {
     return this.listContracts().filter(
-      contract => contract.networkId === networkId
+      (contract) => contract.networkId === networkId
     );
   }
 
@@ -219,7 +219,7 @@ export class BrowserContractManager {
    * Get active contracts
    */
   getActiveContracts(): BrowserContractOrchestrator[] {
-    return this.listContracts().filter(contract => contract.ui.isActive);
+    return this.listContracts().filter((contract) => contract.ui.isActive);
   }
 
   /**
@@ -227,7 +227,7 @@ export class BrowserContractManager {
    */
   getRecentlyUsedContracts(limit: number = 10): BrowserContractOrchestrator[] {
     return this.listContracts()
-      .filter(contract => contract.ui.lastUsed)
+      .filter((contract) => contract.ui.lastUsed)
       .sort(
         (a, b) =>
           new Date(b.ui.lastUsed || 0).getTime() -
@@ -249,15 +249,15 @@ export class BrowserContractManager {
    * Get contracts with errors
    */
   getContractsWithErrors(): BrowserContractOrchestrator[] {
-    return this.listContracts().filter(contract => contract.types.error);
+    return this.listContracts().filter((contract) => contract.types.error);
   }
 
   /**
    * Get contracts by tags
    */
   getContractsByTags(tags: string[]): BrowserContractOrchestrator[] {
-    return this.listContracts().filter(contract =>
-      tags.some(tag => contract.metadata.tags?.includes(tag))
+    return this.listContracts().filter((contract) =>
+      tags.some((tag) => contract.metadata.tags?.includes(tag))
     );
   }
 
@@ -267,8 +267,8 @@ export class BrowserContractManager {
   getStatistics(): ContractStatistics {
     const contracts = this.listContracts();
     const byChainType = {
-      evm: contracts.filter(c => c.chainType === 'evm').length,
-      core: contracts.filter(c => c.chainType === 'core').length,
+      evm: contracts.filter((c) => c.chainType === 'evm').length,
+      core: contracts.filter((c) => c.chainType === 'core').length,
     };
 
     const byCategory: Record<string, number> = {};
@@ -288,8 +288,8 @@ export class BrowserContractManager {
 
     return {
       totalContracts: contracts.length,
-      activeContracts: contracts.filter(c => c.ui.isActive).length,
-      contractsWithErrors: contracts.filter(c => c.types.error).length,
+      activeContracts: contracts.filter((c) => c.ui.isActive).length,
+      contractsWithErrors: contracts.filter((c) => c.types.error).length,
       byChainType,
       byCategory,
       byNetwork,
@@ -304,8 +304,8 @@ export class BrowserContractManager {
   getDeploymentSummary(): ContractDeploymentSummary {
     const contracts = this.listContracts();
     const byChainType = {
-      evm: contracts.filter(c => c.chainType === 'evm').length,
-      core: contracts.filter(c => c.chainType === 'core').length,
+      evm: contracts.filter((c) => c.chainType === 'evm').length,
+      core: contracts.filter((c) => c.chainType === 'core').length,
     };
 
     const byNetwork: Record<string, number> = {};
@@ -332,7 +332,7 @@ export class BrowserContractManager {
       mostUsed: contracts
         .sort((a, b) => b.ui.usageCount - a.ui.usageCount)
         .slice(0, 5),
-      withErrors: contracts.filter(c => c.types.error),
+      withErrors: contracts.filter((c) => c.types.error),
     };
   }
 
@@ -451,7 +451,7 @@ export class BrowserContractManager {
     capability: keyof BrowserContractOrchestrator['capabilities']
   ): BrowserContractOrchestrator[] {
     return this.listContracts().filter(
-      contract => contract.capabilities[capability]
+      (contract) => contract.capabilities[capability]
     );
   }
 
@@ -519,9 +519,9 @@ export class BrowserContractManager {
       contract.address,
       contract.metadata.description || '',
       contract.metadata.tags?.join(' ') || '',
-      contract.methods.read.map(m => m.name).join(' '),
-      contract.methods.write.map(m => m.name).join(' '),
-      contract.methods.events.map(e => e.name).join(' '),
+      contract.methods.read.map((m) => m.name).join(' '),
+      contract.methods.write.map((m) => m.name).join(' '),
+      contract.methods.events.map((e) => e.name).join(' '),
     ];
 
     return parts.join(' ').toLowerCase();

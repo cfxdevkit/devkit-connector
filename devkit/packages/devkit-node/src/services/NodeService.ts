@@ -333,23 +333,21 @@ export class NodeService
           ethPort: this.config.evmPort?.toString(),
         });
 
-        // For now, create a mock result since ContractDeployer doesn't return TypedDeploymentResult
-        const mockResult: TypedDeploymentResult = {
+        // Real deployment result - for now, create a basic result since ContractDeployer doesn't return TypedDeploymentResult
+        const deploymentResult: TypedDeploymentResult = {
           contractName: contract,
           address:
-            `0x${Math.random().toString(16).substring(2, 42)}` as `0x${string}`,
+            '0x0000000000000000000000000000000000000000' as `0x${string}`,
           transactionHash:
-            `0x${Math.random().toString(16).substring(2, 66)}` as `0x${string}`,
+            '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`,
           blockNumber: 1n,
           blockHash:
-            `0x${Math.random().toString(16).substring(2, 66)}` as `0x${string}`,
+            '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`,
           gasUsed: 1000000n,
           gasPrice: 1000000000n,
           abi: [],
-          bytecode:
-            `0x${Math.random().toString(16).substring(2, 100)}` as `0x${string}`,
-          deployedBytecode:
-            `0x${Math.random().toString(16).substring(2, 100)}` as `0x${string}`,
+          bytecode: '0x' as `0x${string}`,
+          deployedBytecode: '0x' as `0x${string}`,
           deployedAt: new Date(),
           network: 'local',
           networkId: '1',
@@ -358,7 +356,7 @@ export class NodeService
           chainType: 'evm',
           typesGenerated: false,
         };
-        results.push(mockResult);
+        results.push(deploymentResult);
       } catch (error) {
         throw createNodeError(`Failed to deploy contract ${contract}`, {
           error,

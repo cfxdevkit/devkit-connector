@@ -15,15 +15,19 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@conflux-devkit/core": "workspace:*",
     "@conflux-devkit/blockchain": "workspace:*",
-    "zustand": "^4.4.7",
-    "immer": "^10.0.3"
+    "@conflux-devkit/core": "workspace:*",
+    "bip32": "^4.0.0",
+    "bip39": "^3.1.0",
+    "immer": "^10.0.3",
+    "tiny-secp256k1": "^2.2.4",
+    "viem": "^2.37.6",
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.2.4",
     "@types/node": "^20.10.0",
-    "typescript": "^5.3.0",
-    "@biomejs/biome": "^2.2.4"
+    "typescript": "^5.3.0"
   },
   "peerDependencies": {
     "react": ">=18.0.0"

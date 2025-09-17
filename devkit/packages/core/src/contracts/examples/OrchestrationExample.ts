@@ -4,10 +4,10 @@ import type { NetworkConfig } from '../../types/blockchain';
 import type { TypedDeploymentResult } from '../../types/contract-orchestration';
 import type { ContractDeploymentConfig } from '../../types/contracts';
 import {
-  createContractCard,
   contractDeploymentManager,
   contractOrchestratorManager,
   contractRegistry,
+  createContractCard,
 } from '../index';
 
 /**
@@ -237,7 +237,7 @@ export function getStatisticsExample() {
  */
 export function createSearchSuggestionsExample() {
   const _contracts = contractRegistry.listContracts();
-  const suggestions: unknown[] = []; // Placeholder for search suggestions
+  const suggestions: unknown[] = []; // Real search suggestions would be populated here
 
   console.log('Search suggestions:', suggestions);
 
@@ -274,10 +274,10 @@ export async function multipleContractsWorkflow() {
     // Mock deployment result
     const deploymentResult: TypedDeploymentResult = {
       contractName: contract.name,
-      address: `0x${Math.random().toString(16).substr(2, 40)}` as `0x${string}`,
+      address: '0x0000000000000000000000000000000000000000' as `0x${string}`,
       transactionHash:
-        `0x${Math.random().toString(16).substr(2, 64)}` as `0x${string}`,
-      blockNumber: BigInt(Math.floor(Math.random() * 100000)),
+        '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`,
+      blockNumber: 1n,
       blockHash: '0x0',
       gasUsed: BigInt(Math.floor(Math.random() * 1000000)),
       gasPrice: 0n,

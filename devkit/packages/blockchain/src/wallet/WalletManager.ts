@@ -9,7 +9,8 @@ import { formatEther } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { networkManager } from '../network';
 
-const bip32 = BIP32Factory(ecc);
+// Create BIP32 instance - can be mocked in tests
+export const createBip32 = () => BIP32Factory(ecc);
 
 export class WalletManager {
   private wallets: Map<string, WalletInfo> = new Map();
@@ -62,6 +63,7 @@ export class WalletManager {
 
       // Generate seed from mnemonic
       const seed = mnemonicToSeedSync(mnemonic);
+      const bip32 = createBip32();
       const root = bip32.fromSeed(seed);
 
       // Derive wallet at index
@@ -81,6 +83,9 @@ export class WalletManager {
         address,
         privateKey,
         mnemonic,
+        balance: 0n, // Initialize with zero balance
+        balanceFormatted: '0.0 CFX',
+        isMining: false,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -158,6 +163,27 @@ export class WalletManager {
   }
 
   /**
+   * Remove wallet
+   */
+  removeWallet(address: `0x${string}`): boolean {
+    return this.wallets.delete(address);
+  }
+
+  /**
+   * Clear all wallets
+   */
+  clearWallets(): void {
+    this.wallets.clear();
+  }
+
+  /**
+   * Get wallet count
+   */
+  getWalletCount(): number {
+    return this.wallets.size;
+  }
+
+  /**
    * Update wallet balance
    */
   async updateWalletBalance(
@@ -207,12 +233,5 @@ export class WalletManager {
   private isValidMnemonic(mnemonic: string): boolean {
     const words = mnemonic.trim().split(/\s+/);
     return [12, 15, 18, 21, 24].includes(words.length);
-  }
-
-  /**
-   * Clear all wallets
-   */
-  clearWallets(): void {
-    this.wallets.clear();
   }
 }

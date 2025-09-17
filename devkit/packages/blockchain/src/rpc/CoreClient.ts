@@ -13,7 +13,7 @@ import { networkManager } from '../network';
 
 export class CoreClient implements ICoreClient {
   private networkConfig: NetworkConfig;
-
+  
   constructor(network: NetworkConfig) {
     this.networkConfig = network;
   }
@@ -109,6 +109,10 @@ export class CoreClient implements ICoreClient {
 
   async getEpochNumber(): Promise<number> {
     this.throwNotImplemented('getEpochNumber');
+  }
+
+  async getChainId(): Promise<number> {
+    this.throwNotImplemented('getChainId');
   }
 
   async estimateGas(_params: TransactionRequest): Promise<bigint> {

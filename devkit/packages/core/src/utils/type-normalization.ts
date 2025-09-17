@@ -201,8 +201,22 @@ export function createBrowserSafeObject<T extends Record<string, unknown>>(
       result[key] = value.toString();
     } else if (value === null || value === undefined) {
       result[key] = '';
+    } else if (Array.isArray(value)) {
+      result[key] = JSON.stringify(
+        value.map((item) =>
+          typeof item === 'bigint'
+            ? normalizeBigInt(item)
+            : typeof item === 'object' && item !== null
+              ? createBrowserSafeObject(item as Record<string, unknown>)
+              : String(item)
+        )
+      );
+    } else if (typeof value === 'object' && value !== null) {
+      result[key] = JSON.stringify(
+        createBrowserSafeObject(value as Record<string, unknown>)
+      );
     } else {
-      result[key] = JSON.stringify(value);
+      result[key] = String(value);
     }
   }
 

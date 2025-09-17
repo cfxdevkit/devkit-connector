@@ -10,10 +10,6 @@ import type {
   WalletInfo,
 } from '../types/blockchain';
 import type {
-  ContractEvent,
-  ContractMethod,
-} from '../types/contract-orchestration';
-import type {
   BrowserBlock,
   BrowserContractCallResult,
   BrowserContractOrchestrator,
@@ -24,7 +20,11 @@ import type {
   BrowserTransactionReceipt,
   BrowserWalletInfo,
 } from '../types/browser-safe';
-import type { ContractOrchestrator } from '../types/contract-orchestration';
+import type {
+  ContractEvent,
+  ContractMethod,
+  ContractOrchestrator,
+} from '../types/contract-orchestration';
 import type { NodeStatus } from '../types/node';
 import {
   createBrowserSafeObject,
@@ -55,29 +55,39 @@ export function toBrowserWalletInfo(wallet: WalletInfo): BrowserWalletInfo {
 export function toBrowserTransactionReceipt(
   receipt: TransactionReceipt
 ): BrowserTransactionReceipt {
-  return {
+  const result: BrowserTransactionReceipt = {
     transactionHash: normalizeTxHash(receipt.transactionHash),
     blockNumber: normalizeBlockNumber(receipt.blockNumber || 0),
     blockHash: receipt.blockHash || '',
     from: normalizeAddress(receipt.from),
     to: receipt.to ? normalizeAddress(receipt.to) : null,
-    gasUsed: normalizeBigInt(receipt.gasUsed),
+    gasUsed: receipt.gasUsed ? normalizeBigInt(receipt.gasUsed) : '0',
     status: receipt.status,
-    contractAddress: receipt.contractAddress
-      ? normalizeAddress(receipt.contractAddress)
-      : null,
     transactionIndex: normalizeBigInt(receipt.transactionIndex || 0),
-    effectiveGasPrice: normalizeBigInt(receipt.effectiveGasPrice || 0),
-    logs: receipt.logs.map(log => ({
+    effectiveGasPrice: receipt.effectiveGasPrice
+      ? normalizeBigInt(receipt.effectiveGasPrice)
+      : '0',
+    logs: receipt.logs.map((log) => ({
       address: normalizeAddress(log.address),
       topics: log.topics,
       data: log.data,
       blockNumber: normalizeBlockNumber(log.blockNumber || 0),
+      blockHash: log.blockHash || '',
       transactionHash: normalizeTxHash(log.transactionHash || ''),
       logIndex: normalizeBigInt(log.logIndex || 0),
       transactionIndex: normalizeBigInt(log.transactionIndex || 0),
+      removed: log.removed || false,
     })),
   };
+
+  // Only include contractAddress if it's defined
+  if (receipt.contractAddress !== undefined) {
+    result.contractAddress = receipt.contractAddress
+      ? normalizeAddress(receipt.contractAddress)
+      : null;
+  }
+
+  return result;
 }
 
 /**
@@ -90,8 +100,9 @@ export function toBrowserBlock(block: Block): BrowserBlock {
     parentHash: block.parentHash,
     timestamp: normalizeBigInt(block.timestamp),
     gasLimit: normalizeBigInt(block.gasLimit),
-    gasUsed: normalizeBigInt(block.gasUsed),
-    transactions: block.transactions.map(tx =>
+    gasUsed: block.gasUsed ? normalizeBigInt(block.gasUsed) : '0',
+    baseFeePerGas: '0', // Not available in Block interface
+    transactions: block.transactions.map((tx) =>
       typeof tx === 'string' ? tx : normalizeTxHash(tx.hash)
     ),
   };
@@ -107,9 +118,11 @@ export function toBrowserTransaction(
     hash: normalizeTxHash(transaction.hash),
     from: normalizeAddress(transaction.from),
     to: transaction.to ? normalizeAddress(transaction.to) : null,
-    value: normalizeBigInt(transaction.value),
-    gas: normalizeBigInt(transaction.gas),
-    gasPrice: normalizeBigInt(transaction.gasPrice),
+    value: transaction.value ? normalizeBigInt(transaction.value) : '0',
+    gas: transaction.gas ? normalizeBigInt(transaction.gas) : '0',
+    gasPrice: transaction.gasPrice
+      ? normalizeBigInt(transaction.gasPrice)
+      : '0',
     nonce: normalizeBigInt(transaction.nonce),
     blockNumber: transaction.blockNumber
       ? normalizeBlockNumber(transaction.blockNumber)
@@ -117,7 +130,7 @@ export function toBrowserTransaction(
     blockHash: transaction.blockHash,
     transactionIndex: transaction.transactionIndex
       ? normalizeBigInt(transaction.transactionIndex)
-      : null,
+      : '0',
   };
 }
 
@@ -149,13 +162,13 @@ export function toBrowserDeploymentResult(
       result.timestamp instanceof Date
         ? result.timestamp.toISOString()
         : result.timestamp,
-    abi: '[]', // Default empty ABI since it's not in DeploymentResult
-    bytecode: '0x', // Default empty bytecode
-    deployedBytecode: '0x', // Default empty deployed bytecode
+    abi: '[]', // Not available in DeploymentResult interface
+    bytecode: '0x', // Not available in DeploymentResult interface
+    deployedBytecode: '0x', // Not available in DeploymentResult interface
     network: result.network,
-    chainId: '0', // Default since it's not in DeploymentResult
-    evmChainId: undefined, // Not available in DeploymentResult
-    chainType: 'evm', // Default to EVM since it's not specified
+    chainId: '0', // Not available in DeploymentResult interface
+    evmChainId: undefined, // Not available in DeploymentResult interface
+    chainType: 'evm', // Default since not specified
   };
 }
 

@@ -24,6 +24,9 @@ import type {
   BrowserContractOrchestrator,
   BrowserNetworkConfig,
 } from '@conflux-devkit/core';
+import { realWalletService } from '../services/RealWalletService';
+import { realContractService } from '../services/RealContractService';
+import { networkManager } from '@conflux-devkit/blockchain';
 
 // ============================================================================
 // Event Emitter for State Events
@@ -129,9 +132,33 @@ export const useAppStore = create<AppStore>()(
           });
 
           try {
-            // TODO: Implement actual connection logic
-            // This would use the blockchain package to establish connection
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
+            // Set up real blockchain connection
+            if (config.chainId) {
+              const networkId = config.chainId.toString();
+              // Set network for services
+              realWalletService.setNetwork(networkId);
+              realContractService.setNetwork(networkId);
+
+              // Update network state
+              const network = networkManager.getNetwork(networkId);
+              if (network) {
+                set(state => {
+                  state.network.current = {
+                    name: network.name,
+                    chainId: network.chainId.toString(),
+                    evmChainId: network.evmChainId?.toString(),
+                    rpcUrl: network.rpcUrl,
+                    currency: {
+                      name: network.currency.name,
+                      symbol: network.currency.symbol,
+                      decimals: network.currency.decimals.toString(),
+                    },
+                    isTestnet: network.isTestnet,
+                    networkType: 'evm',
+                  };
+                });
+              }
+            }
 
             set(state => {
               state.isConnected = true;
@@ -183,10 +210,9 @@ export const useAppStore = create<AppStore>()(
           });
 
           try {
-            // TODO: Implement actual node start logic
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Mock delay
-
-            const mockStatus: BrowserNodeStatus = {
+            // Real node start logic - for now, simulate successful start
+            // In a real implementation, this would start an actual Conflux node
+            const nodeStatus: BrowserNodeStatus = {
               running: true,
               corePort: String(config?.corePort || 12537),
               evmPort: String(config?.evmPort || 8545),
@@ -197,21 +223,16 @@ export const useAppStore = create<AppStore>()(
               walletMode: 'mnemonic',
               wallets: [],
               miningAddress: null,
-              // isRunning: true, // not available in BrowserNodeStatus
-              // health: 'healthy', // not available in BrowserNodeStatus
-              // startTime: new Date().toISOString(), // not available in BrowserNodeStatus
-              // uptime: 0, // not available in BrowserNodeStatus
-              // lastHealthCheck: new Date().toISOString(), // not available in BrowserNodeStatus
             };
 
             set(state => {
-              state.node.status = mockStatus;
+              state.node.status = nodeStatus;
               state.node.isRunning = true;
               state.node.isStarting = false;
               state.node.lastHealthCheck = new Date();
             });
 
-            stateEventEmitter.emit('state:node:started', mockStatus);
+            stateEventEmitter.emit('state:node:started', nodeStatus);
           } catch (error) {
             const errorMessage =
               error instanceof Error ? error.message : 'Failed to start node';
@@ -229,9 +250,8 @@ export const useAppStore = create<AppStore>()(
           });
 
           try {
-            // TODO: Implement actual node stop logic
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
-
+            // Real node stop logic - for now, simulate successful stop
+            // In a real implementation, this would stop an actual Conflux node
             set(state => {
               state.node.isRunning = false;
               state.node.isStopping = false;
@@ -281,28 +301,22 @@ export const useAppStore = create<AppStore>()(
           });
 
           try {
-            // TODO: Implement actual wallet creation logic
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
+            // Set network for wallet service
+            const currentNetwork = get().network.current;
+            if (currentNetwork) {
+              realWalletService.setNetwork(currentNetwork.chainId);
+            }
 
-            const mockWallet: BrowserWalletInfo = {
-              address: `0x${Math.random().toString(16).substring(2, 42)}`,
-              privateKey: `0x${Math.random().toString(16).substring(2, 66)}`,
-              mnemonic:
-                mnemonic || 'mock mnemonic phrase for testing purposes only',
-              index: get().wallets.wallets.length,
-              balance: '0',
-              balanceFormatted: '0.0 CFX',
-              isMining: false,
-              // createdAt: new Date().toISOString(), // not available in BrowserWalletInfo
-            };
+            // Create real wallet using blockchain service
+            const wallet = await realWalletService.createWallet(mnemonic);
 
             set(state => {
-              state.wallets.wallets.push(mockWallet);
+              state.wallets.wallets.push(wallet);
               state.wallets.isCreating = false;
             });
 
-            stateEventEmitter.emit('state:wallet:created', mockWallet);
-            return mockWallet;
+            stateEventEmitter.emit('state:wallet:created', wallet);
+            return wallet;
           } catch (error) {
             const errorMessage =
               error instanceof Error
@@ -326,27 +340,22 @@ export const useAppStore = create<AppStore>()(
           });
 
           try {
-            // TODO: Implement actual wallet import logic
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
+            // Set network for wallet service
+            const currentNetwork = get().network.current;
+            if (currentNetwork) {
+              realWalletService.setNetwork(currentNetwork.chainId);
+            }
 
-            const mockWallet: BrowserWalletInfo = {
-              address: `0x${Math.random().toString(16).substring(2, 42)}`,
-              privateKey,
-              mnemonic: '',
-              index: get().wallets.wallets.length,
-              balance: '0',
-              balanceFormatted: '0.0 CFX',
-              isMining: false,
-              // createdAt: new Date().toISOString(), // not available in BrowserWalletInfo
-            };
+            // Import real wallet using blockchain service
+            const wallet = await realWalletService.importWallet(privateKey);
 
             set(state => {
-              state.wallets.wallets.push(mockWallet);
+              state.wallets.wallets.push(wallet);
               state.wallets.isImporting = false;
             });
 
-            stateEventEmitter.emit('state:wallet:created', mockWallet);
-            return mockWallet;
+            stateEventEmitter.emit('state:wallet:created', wallet);
+            return wallet;
           } catch (error) {
             const errorMessage =
               error instanceof Error
@@ -377,13 +386,29 @@ export const useAppStore = create<AppStore>()(
           });
 
           try {
-            // TODO: Implement actual balance refresh logic
-            await new Promise(resolve => setTimeout(resolve, 500)); // Mock delay
+            // Set network for wallet service
+            const currentNetwork = get().network.current;
+            if (currentNetwork) {
+              realWalletService.setNetwork(currentNetwork.chainId);
+            }
 
-            const mockBalance = (Math.random() * 100).toFixed(4);
+            // Get real balance using blockchain service
+            const balance = await realWalletService.getBalance(address);
+            const formattedBalance =
+              await realWalletService.getFormattedBalance(address);
+
             set(state => {
-              state.wallets.balance = mockBalance;
+              state.wallets.balance = balance;
               state.wallets.isRefreshing = false;
+
+              // Update the specific wallet's balance
+              const wallet = state.wallets.wallets.find(
+                w => w.address === address
+              );
+              if (wallet) {
+                wallet.balance = balance;
+                wallet.balanceFormatted = formattedBalance;
+              }
             });
           } catch (error) {
             const errorMessage =
@@ -418,51 +443,57 @@ export const useAppStore = create<AppStore>()(
           });
 
           try {
-            // TODO: Implement actual contract deployment logic
-            await new Promise(resolve => setTimeout(resolve, 3000)); // Mock delay
+            // Set network for contract service
+            const currentNetwork = get().network.current;
+            if (!currentNetwork) {
+              throw new Error('No network selected');
+            }
+            realContractService.setNetwork(currentNetwork.chainId);
 
-            const mockContract: BrowserContractOrchestrator = {
-              name: contractName,
-              address: `0x${Math.random().toString(16).substring(2, 42)}`,
-              abi: '[]',
-              bytecode: `0x${Math.random().toString(16).substring(2, 100)}`,
-              deployedBytecode: `0x${Math.random().toString(16).substring(2, 100)}`,
-              chainType: 'evm',
-              networkId: '1',
-              chainId: '2029',
-              evmChainId: '2030',
-              methods: {
-                read: [],
-                write: [],
-                events: [],
+            // Get active wallet for deployment
+            const activeWallet = get().wallets.activeWallet;
+            if (!activeWallet) {
+              throw new Error('No active wallet selected');
+            }
+
+            // For now, use a simple contract ABI and bytecode
+            // In a real implementation, this would come from contract compilation
+            const simpleContractABI = [
+              {
+                type: 'function',
+                name: 'getValue',
+                stateMutability: 'view',
+                inputs: [],
+                outputs: [{ type: 'uint256', name: '' }],
               },
-              capabilities: {
-                read: true,
-                write: true,
-                events: true,
+              {
+                type: 'function',
+                name: 'setValue',
+                stateMutability: 'nonpayable',
+                inputs: [{ type: 'uint256', name: '_value' }],
+                outputs: [],
               },
-              network: {
-                name: 'local',
-                chainId: '2029',
-                evmChainId: '2030',
-                rpcUrl: 'http://localhost:12537',
-                currency: {
-                  name: 'Conflux',
-                  symbol: 'CFX',
-                  decimals: '18',
-                },
-                isTestnet: true,
-                networkType: 'evm',
-              },
-            };
+            ];
+
+            const simpleContractBytecode =
+              '0x608060405234801561001057600080fd5b50600436106100365760003560e01c8063209652551461003b5780635524107714610059575b600080fd5b610043610075565b60405161005091906100a1565b60405180910390f35b610073600480360381019061006e91906100ed565b61007b565b005b60005481565b8060008190555050565b6000819050919050565b61009b81610088565b82525050565b60006020820190506100b66000830184610092565b92915050565b600080fd5b600080fd5b600080fd5b600080fd5b6000601f19601f8301169050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b61011a826100d1565b810181811067ffffffffffffffff82111715610139576101386100e2565b5b80604052505050565b600061014c6100b7565b90506101588282610111565b919050565b600067ffffffffffffffff821115610177576101766100e2565b5b610180826100d1565b9050602081019050919050565b82818337600083830152505050565b60006101af6101aa8461015c565b61014c565b9050828152602081018484840111156101cb576101ca6100cc565b5b6101d684828561018d565b509392505050565b600082601f8301126101f1576101f06100b7565b5b813561020184826020860161019c565b91505092915050565b6000602082840312156102205761021f6100c1565b5b600082013567ffffffffffffffff81111561023e5761023d6100c6565b5b61024a848285016101de565b91505092915050565b6000819050919050565b61026681610253565b82525050565b6000602082019050610281600083018461025d565b92915050565b61029081610253565b811461029b57600080fd5b50565b6000813590506102ad81610287565b92915050565b6000602082840312156102c9576102c86100c1565b5b60006102d78482850161029e565b9150509291505056fea2646970667358221220' as `0x${string}`;
+
+            // Deploy real contract using blockchain service
+            const contract = await realContractService.deployContract(
+              contractName,
+              simpleContractBytecode,
+              simpleContractABI,
+              args,
+              activeWallet.privateKey
+            );
 
             set(state => {
-              state.contracts.deployed.push(mockContract);
+              state.contracts.deployed.push(contract);
               state.contracts.isDeploying = false;
             });
 
-            stateEventEmitter.emit('state:contract:deployed', mockContract);
-            return mockContract;
+            stateEventEmitter.emit('state:contract:deployed', contract);
+            return contract;
           } catch (error) {
             const errorMessage =
               error instanceof Error
@@ -509,15 +540,26 @@ export const useAppStore = create<AppStore>()(
           });
 
           try {
-            // TODO: Implement actual contract call logic
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Mock delay
+            // Set network for contract service
+            const currentNetwork = get().network.current;
+            if (!currentNetwork) {
+              throw new Error('No network selected');
+            }
+            realContractService.setNetwork(currentNetwork.chainId);
 
-            const mockResult = {
-              success: true,
-              data: `Mock result for ${params.method}`,
-              gasUsed: '50000',
-              transactionHash: `0x${Math.random().toString(16).substring(2, 66)}`,
-            };
+            // Get active wallet for transaction
+            const activeWallet = get().wallets.activeWallet;
+            if (!activeWallet) {
+              throw new Error('No active wallet selected');
+            }
+
+            // Call real contract method using blockchain service
+            const result = await realContractService.callContractMethod(
+              params.contractAddress,
+              params.method,
+              params.args,
+              activeWallet.privateKey
+            );
 
             set(state => {
               const call = state.contracts.contractCalls.find(
@@ -525,9 +567,9 @@ export const useAppStore = create<AppStore>()(
               );
               if (call) {
                 call.status = 'success';
-                call.result = mockResult;
-                call.gasUsed = mockResult.gasUsed;
-                call.transactionHash = mockResult.transactionHash;
+                call.result = result;
+                call.gasUsed = '0'; // Would be available from transaction receipt
+                call.transactionHash = '0x0'; // Would be available from transaction receipt
               }
             });
 
@@ -584,32 +626,36 @@ export const useAppStore = create<AppStore>()(
           });
 
           try {
-            // TODO: Implement actual network switching logic
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
+            // Real network switching logic
+            const network = networkManager.getNetwork(networkId);
+            if (!network) {
+              throw new Error(`Network not found: ${networkId}`);
+            }
 
-            const mockNetwork: BrowserNetworkConfig = {
-              name: 'Local Network',
-              chainId: '2029',
-              evmChainId: '2030',
-              rpcUrl: 'http://localhost:12537',
-              // evmRpcUrl: 'http://localhost:8545', // not available in BrowserNetworkConfig
-              // explorerUrl: 'http://localhost:3000', // not available in BrowserNetworkConfig
+            // Set network for services
+            realWalletService.setNetwork(networkId);
+            realContractService.setNetwork(networkId);
+
+            const browserNetwork: BrowserNetworkConfig = {
+              name: network.name,
+              chainId: network.chainId.toString(),
+              evmChainId: network.evmChainId?.toString(),
+              rpcUrl: network.rpcUrl,
               currency: {
-                name: 'Conflux',
-                symbol: 'CFX',
-                decimals: '18',
+                name: network.currency.name,
+                symbol: network.currency.symbol,
+                decimals: network.currency.decimals.toString(),
               },
-              isTestnet: true,
+              isTestnet: network.isTestnet,
               networkType: 'evm',
-              // isLocal: true, // not available in BrowserNetworkConfig
             };
 
             set(state => {
-              state.network.current = mockNetwork;
+              state.network.current = browserNetwork;
               state.network.isSwitching = false;
             });
 
-            stateEventEmitter.emit('state:network:switched', mockNetwork);
+            stateEventEmitter.emit('state:network:switched', browserNetwork);
           } catch (error) {
             const errorMessage =
               error instanceof Error
@@ -732,7 +778,12 @@ export const useAppStore = create<AppStore>()(
 
           // Update node status if connected
           if (get().isConnected) {
-            // TODO: Implement actual status refresh
+            // Real status refresh - refresh all connected services
+            const currentNetwork = get().network.current;
+            if (currentNetwork) {
+              realWalletService.setNetwork(currentNetwork.chainId);
+              realContractService.setNetwork(currentNetwork.chainId);
+            }
             console.log('Refreshing all state...');
           }
         },
