@@ -14,11 +14,12 @@
     "clean": "pnpm -r run clean",
     "lint": "pnpm -r run lint",
     "format": "pnpm -r run format",
-    "dev": "pnpm run generate:contracts && pnpm run start:full-stack",
-    "start:full-stack": "concurrently --kill-others-on-fail \"pnpm run start:conflux-node\" \"pnpm run start:server\" \"pnpm run start:frontend\"",
+    "dev": "pnpm run start:full-stack",
+    "start:full-stack": "concurrently --kill-others-on-fail \"pnpm run start:server\" \"pnpm run start:frontend-mantine\"",
     "start:conflux-node": "cd packages/conflux-local-node && pnpm run dev",
     "start:server": "cd server && ESPACE_RPC_URL=http://localhost:8545 pnpm run dev",
     "start:frontend": "cd frontend && pnpm run dev",
+    "start:frontend-mantine": "cd frontend-mantine && pnpm run dev",
     "install:all": "pnpm install",
     "conflux-node": "pnpm run start --filter @conflux-local/node",
     "conflux-node:dev": "pnpm run dev --filter @conflux-local/node",
@@ -28,10 +29,10 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "typescript": "^5.2.2",
-    "prettier": "^3.0.0",
+    "concurrently": "^8.2.2",
     "eslint": "^8.0.0",
-    "concurrently": "^8.2.2"
+    "prettier": "^3.0.0",
+    "typescript": "^5.2.2"
   },
   "engines": {
     "node": ">=22.0.0",
@@ -47,5 +48,9 @@
     "core"
   ],
   "author": "Conflux Development Team",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@xcfx/node": "^0.6.0",
+    "cive": "^0.8.1"
+  }
 }

@@ -21,6 +21,11 @@ export class WalletRoutes {
     this.walletService = ServerWalletService.getInstance();
   }
 
+  // Set node manager reference (called from main server)
+  setNodeManager(nodeManager: any) {
+    this.walletService.setNodeManager(nodeManager);
+  }
+
   // Load server-managed wallet
   loadWallet = async (req: AuthenticatedRequest, res: Response) => {
     console.log("🔍 loadWallet called");
@@ -296,6 +301,52 @@ export class WalletRoutes {
       });
     } catch (error) {
       res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  };
+
+  // Load server wallet from node manager
+  loadWalletFromNode = async (req: AuthenticatedRequest, res: Response) => {
+    console.log("🔍 loadWalletFromNode called");
+    const userId = verifyAuth(req);
+    if (!userId) {
+      console.log("❌ Unauthorized - no userId");
+      return res.status(401).json({ success: false, error: "Unauthorized" });
+    }
+
+    console.log(`✅ Authorized userId: ${userId}`);
+
+    try {
+      // Debug: Check global node manager
+      console.log(
+        "🔍 Global node manager exists:",
+        !!(global as any).globalNodeManager
+      );
+      console.log(
+        "🔍 Local node manager exists:",
+        !!this.walletService.nodeManager
+      );
+
+      const result = await this.walletService.loadServerWalletFromNode();
+
+      if (result.success) {
+        console.log("✅ Loaded wallet from node:", result.data);
+        return res.json({
+          success: true,
+          data: result.data,
+        });
+      } else {
+        console.log("❌ Failed to load wallet from node:", result.error);
+        return res.status(400).json({
+          success: false,
+          error: result.error,
+        });
+      }
+    } catch (error) {
+      console.error("❌ Error loading wallet from node:", error);
+      return res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       });

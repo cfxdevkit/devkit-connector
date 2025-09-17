@@ -7,12 +7,14 @@ import {
   WalletOperation,
   ChainType,
 } from "../types/wallet";
+import { ConfluxNodeManager, WalletInfo } from "./conflux-node-manager";
 
 export class ServerWalletService {
   private static instance: ServerWalletService;
   private wallets: Map<string, HDNodeWallet> = new Map();
   private encryptionKey: string;
   private sessions: Map<string, any> = new Map();
+  public nodeManager: ConfluxNodeManager | null = null;
 
   private constructor() {
     // Get encryption key from environment or generate one
@@ -252,5 +254,95 @@ export class ServerWalletService {
     }
 
     return true;
+  }
+
+  /**
+   * Set the node manager instance for integration
+   */
+  setNodeManager(nodeManager: ConfluxNodeManager | null): void {
+    this.nodeManager = nodeManager;
+  }
+
+  /**
+   * Get wallets from the node manager
+   */
+  async getNodeWallets(): Promise<WalletInfo[]> {
+    let nodeManager = this.nodeManager;
+    if (!nodeManager && (global as any).globalNodeManager) {
+      nodeManager = (global as any).globalNodeManager;
+    }
+    if (!nodeManager) {
+      return [];
+    }
+    return nodeManager.getWallets();
+  }
+
+  /**
+   * Get the mining wallet from the node manager
+   */
+  async getMiningWallet(): Promise<WalletInfo | null> {
+    let nodeManager = this.nodeManager;
+    if (!nodeManager && (global as any).globalNodeManager) {
+      nodeManager = (global as any).globalNodeManager;
+    }
+    if (!nodeManager) {
+      return null;
+    }
+    return nodeManager.getMiningWallet();
+  }
+
+  /**
+   * Load server wallet from node manager
+   */
+  async loadServerWalletFromNode(): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+  }> {
+    try {
+      // Try to get node manager from global reference if not set locally
+      let nodeManager = this.nodeManager;
+      if (!nodeManager && (global as any).globalNodeManager) {
+        nodeManager = (global as any).globalNodeManager;
+      }
+
+      if (!nodeManager || !nodeManager.isRunning()) {
+        return {
+          success: false,
+          error: "Node is not running",
+        };
+      }
+
+      const wallets = await this.getNodeWallets();
+      const miningWallet = await this.getMiningWallet();
+
+      if (wallets.length === 0) {
+        return {
+          success: false,
+          error: "No wallets available from node",
+        };
+      }
+
+      // Use the first wallet as the server wallet
+      const serverWallet = wallets[0];
+
+      return {
+        success: true,
+        data: {
+          eSpaceAddress: serverWallet.espaceAddress,
+          coreAddress: serverWallet.coreAddress,
+          eSpacePrivateKey: serverWallet.espacePrivateKey,
+          corePrivateKey: serverWallet.corePrivateKey,
+          isMining: serverWallet.isMining,
+          miningWallet: miningWallet,
+          totalWallets: wallets.length,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to load server wallet from node: ${error}`,
+      };
+    }
   }
 }

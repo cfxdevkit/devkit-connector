@@ -4,9 +4,15 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import contractRoutes from "./routes/contracts";
 import { WalletRoutes } from "./routes/wallet";
+import nodeRoutes, { setGlobalNodeManager } from "./routes/node";
+import hardhatRoutes from "./routes/hardhat";
+import { ConfluxNodeManager } from "./services/conflux-node-manager";
 
 const app: Express = express();
 const PORT = process.env.PORT || 3001;
+
+// Global node manager instance
+let globalNodeManager: ConfluxNodeManager | null = null;
 
 // Middleware
 app.use(helmet());
@@ -44,8 +50,18 @@ app.use(limiter);
 // Initialize wallet routes
 const walletRoutes = new WalletRoutes();
 
+// Connect node manager to wallet service when it's created
+const connectNodeManagerToWallet = () => {
+  if (globalNodeManager) {
+    walletRoutes.setNodeManager(globalNodeManager);
+    setGlobalNodeManager(globalNodeManager);
+  }
+};
+
 // Routes
 app.use("/api/contracts", contractRoutes);
+app.use("/api/node", nodeRoutes);
+app.use("/api/hardhat", hardhatRoutes);
 
 // Delegation routes (specific routes first)
 app.post("/api/wallet/delegation", walletRoutes.createBrowserDelegation);
@@ -53,14 +69,17 @@ app.get("/api/wallet/delegation/:sessionId", walletRoutes.getDelegation);
 
 // Wallet API routes - action-based endpoints
 app.use("/api/wallet", (req, res, next) => {
-  console.log(`🔍 Wallet API request: ${req.method} ${req.path}`, req.body);
+  // Reduced logging for development
+  // console.log(`🔍 Wallet API request: ${req.method} ${req.path}`, req.body);
 
   // Handle action-based routes
   const { action } = req.body;
-  console.log(`📝 Handling action: ${action}`);
+  // console.log(`📝 Handling action: ${action}`);
   switch (action) {
     case "load_wallet":
       return walletRoutes.loadWallet(req, res);
+    case "load_wallet_from_node":
+      return walletRoutes.loadWalletFromNode(req, res);
     case "sign_transaction":
       return walletRoutes.signTransaction(req, res);
     case "sign_message":

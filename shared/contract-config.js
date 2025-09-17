@@ -1,9 +1,9 @@
 // Auto-generated contract configuration
-// Generated: 2025-09-16T17:35:11.641Z
+// Generated: 2025-09-16T23:16:19.246Z
 
 module.exports = {
   "metadata": {
-    "generated": "2025-09-16T17:35:11.641Z",
+    "generated": "2025-09-16T23:16:19.246Z",
     "version": "1.0.0",
     "sources": [
       "legacy",
@@ -776,6 +776,216 @@ module.exports = {
         "sourceName": "contracts/DelegationManager.sol",
         "bytecode": "0x608080604052346075573315605f5760008054336001600160a01b0319821681178355916001600160a01b03909116907f...",
         "deployedBytecode": "0x6080604052600436101561001257600080fd5b60003560e01c80632b293768146104805780633163827e1461043e578063..."
+      }
+    },
+    "Counter": {
+      "name": "Counter",
+      "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "network": "chain-2030",
+      "source": "ignition",
+      "abi": [
+        {
+          "inputs": [],
+          "stateMutability": "nonpayable",
+          "type": "constructor"
+        },
+        {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "internalType": "uint256",
+              "name": "newCount",
+              "type": "uint256"
+            },
+            {
+              "indexed": false,
+              "internalType": "string",
+              "name": "operation",
+              "type": "string"
+            }
+          ],
+          "name": "CountUpdated",
+          "type": "event"
+        },
+        {
+          "anonymous": false,
+          "inputs": [],
+          "name": "CounterReset",
+          "type": "event"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "value",
+              "type": "uint256"
+            }
+          ],
+          "name": "add",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256[]",
+              "name": "values",
+              "type": "uint256[]"
+            }
+          ],
+          "name": "batchAdd",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256[]",
+              "name": "values",
+              "type": "uint256[]"
+            }
+          ],
+          "name": "batchSubtract",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "count",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "value",
+              "type": "uint256"
+            }
+          ],
+          "name": "divide",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "getCount",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "getMaxCount",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "isAtMax",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "isAtZero",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "maxCount",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "value",
+              "type": "uint256"
+            }
+          ],
+          "name": "multiply",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "reset",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "value",
+              "type": "uint256"
+            }
+          ],
+          "name": "subtract",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        }
+      ],
+      "functions": 13,
+      "events": 2,
+      "metadata": {},
+      "artifact": {
+        "contractName": "Counter",
+        "sourceName": "contracts/Counter.sol",
+        "bytecode": "0x6080806040523460205760008055620f424060015561071490816100268239f35b600080fdfe6080604052600436101561...",
+        "deployedBytecode": "0x6080604052600436101561001257600080fd5b60003560e01c8063041176691461040057806306661abd14610189578063..."
       }
     }
   }
