@@ -10,6 +10,10 @@ import type {
   WalletInfo,
 } from '../types/blockchain';
 import type {
+  ContractEvent,
+  ContractMethod,
+} from '../types/contract-orchestration';
+import type {
   BrowserBlock,
   BrowserContractCallResult,
   BrowserContractOrchestrator,
@@ -64,7 +68,7 @@ export function toBrowserTransactionReceipt(
       : null,
     transactionIndex: normalizeBigInt(receipt.transactionIndex || 0),
     effectiveGasPrice: normalizeBigInt(receipt.effectiveGasPrice || 0),
-    logs: receipt.logs.map((log) => ({
+    logs: receipt.logs.map(log => ({
       address: normalizeAddress(log.address),
       topics: log.topics,
       data: log.data,
@@ -87,7 +91,7 @@ export function toBrowserBlock(block: Block): BrowserBlock {
     timestamp: normalizeBigInt(block.timestamp),
     gasLimit: normalizeBigInt(block.gasLimit),
     gasUsed: normalizeBigInt(block.gasUsed),
-    transactions: block.transactions.map((tx) =>
+    transactions: block.transactions.map(tx =>
       typeof tx === 'string' ? tx : normalizeTxHash(tx.hash)
     ),
   };
@@ -223,9 +227,9 @@ export function toBrowserContractOrchestrator(
       networkType: orchestrator.chainType,
     } as NetworkConfig),
     methods: {
-      read: orchestrator.methods.read.map((m: any) => m.name),
-      write: orchestrator.methods.write.map((m: any) => m.name),
-      events: orchestrator.methods.events.map((e: any) => e.name),
+      read: orchestrator.methods.read.map((m: ContractMethod) => m.name),
+      write: orchestrator.methods.write.map((m: ContractMethod) => m.name),
+      events: orchestrator.methods.events.map((e: ContractEvent) => e.name),
     },
     capabilities: {
       read: orchestrator.capabilities.canRead,
@@ -238,7 +242,7 @@ export function toBrowserContractOrchestrator(
 /**
  * Generic function to convert any object to browser-safe format
  */
-export function toBrowserSafe<T extends Record<string, any>>(
+export function toBrowserSafe<T extends Record<string, unknown>>(
   data: T,
   addressFields: (keyof T)[] = [],
   bigintFields: (keyof T)[] = [],

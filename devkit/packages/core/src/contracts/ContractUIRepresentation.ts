@@ -6,456 +6,598 @@ import type {
   ContractOrchestrator,
 } from '../types/contract-orchestration';
 
-export class ContractUIRepresentation {
-  /**
-   * Create UI-friendly contract card data
-   */
-  static createContractCard(contract: ContractOrchestrator): {
-    id: string;
-    title: string;
-    subtitle: string;
-    description: string;
-    address: string;
-    network: string;
-    chainType: 'core' | 'evm';
-    category: string;
-    tags: string[];
-    icon?: string;
-    color?: string;
-    status: 'active' | 'inactive' | 'error';
+/**
+ * Create UI-friendly contract card data
+ */
+export function createContractCard(contract: ContractOrchestrator): {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  address: string;
+  network: string;
+  chainType: 'core' | 'evm';
+  category: string;
+  tags: string[];
+  icon?: string;
+  color?: string;
+  status: 'active' | 'inactive' | 'error';
+  capabilities: {
+    canRead: boolean;
+    canWrite: boolean;
+    hasEvents: boolean;
+  };
+  methods: {
+    read: number;
+    write: number;
+    events: number;
+  };
+  lastActivity?: string;
+  gasEstimate?: string;
+  value?: string;
+  error?: string;
+} {
+  return {
+    id: contract.id,
+    title: contract.ui.displayName || 'Unknown Contract',
+    subtitle: contract.address,
+    description: generateContractDescription(contract),
+    address: contract.address,
+    network: contract.ui.displayName, // Using displayName as network identifier
+    chainType: contract.chainType,
+    category: categorizeContract(contract),
+    tags: generateContractTags(contract),
+    icon: getContractIcon(contract),
+    color: getContractColor(contract),
+    status: getContractStatus(contract),
     capabilities: {
-      canRead: boolean;
-      canWrite: boolean;
-      hasEvents: boolean;
-    };
-    stats: {
-      methods: number;
-      events: number;
-      usageCount: number;
-      lastUsed?: Date;
-    };
-    actions: Array<{
-      label: string;
-      type: 'read' | 'write' | 'event' | 'info';
-      method?: string;
-      description?: string;
-    }>;
-  } {
-    return {
-      id: contract.id,
-      title: contract.ui.displayName,
-      subtitle: contract.address,
-      description: contract.ui.description,
-      address: contract.address,
-      network: contract.network.name,
-      chainType: contract.chainType,
-      category: contract.ui.category,
-      tags: contract.ui.tags,
-      icon: contract.metadata.icon,
-      color: contract.metadata.color,
-      status: contract.ui.isActive
-        ? contract.types.error
-          ? 'error'
-          : 'active'
-        : 'inactive',
-      capabilities: {
-        canRead: contract.capabilities.canRead,
-        canWrite: contract.capabilities.canWrite,
-        hasEvents: contract.capabilities.hasEvents,
-      },
-      stats: {
-        methods: contract.methods.read.length + contract.methods.write.length,
-        events: contract.methods.events.length,
-        usageCount: contract.ui.usageCount,
-        lastUsed: contract.ui.lastUsed,
-      },
-      actions: ContractUIRepresentation.createContractActions(contract),
-    };
-  }
+      canRead: contract.capabilities.canRead,
+      canWrite: contract.capabilities.canWrite,
+      hasEvents: contract.capabilities.hasEvents,
+    },
+    methods: {
+      read: contract.methods.read.length,
+      write: contract.methods.write.length,
+      events: contract.methods.events.length,
+    },
+    lastActivity: contract.ui.lastUsed?.toISOString(),
+    gasEstimate: contract.deployment.gasUsed.toString(),
+    value: '0', // Not available in current interface
+    error: contract.types.error,
+  };
+}
 
-  /**
-   * Create contract actions for UI
-   */
-  private static createContractActions(contract: ContractOrchestrator): Array<{
-    label: string;
-    type: 'read' | 'write' | 'event' | 'info';
-    method?: string;
-    description?: string;
-  }> {
-    const actions: Array<{
-      label: string;
-      type: 'read' | 'write' | 'event' | 'info';
-      method?: string;
-      description?: string;
-    }> = [];
+/**
+ * Create contract interaction summary
+ */
+export function createInteractionSummary(
+  contract: ContractOrchestrator
+): ContractInteractionSummary {
+  return {
+    contractId: contract.id,
+    contractName: contract.ui.displayName,
+    totalCalls: 0, // This would be tracked in real usage
+    readCalls: 0,
+    writeCalls: 0,
+    eventLogs: 0,
+    lastInteraction: new Date(),
+    successRate: 100, // This would be calculated from actual calls
+    averageGasUsed: contract.deployment.gasUsed,
+    totalGasUsed: 0n,
+    errors: [],
+  };
+}
 
-    // Add read methods
-    for (const method of contract.methods.read.slice(0, 3)) {
-      actions.push({
-        label: method.name,
-        type: 'read',
-        method: method.name,
-        description: `Read ${method.name}`,
-      });
-    }
+/**
+ * Create contract deployment summary
+ */
+export function createDeploymentSummary(
+  contract: ContractOrchestrator
+): ContractDeploymentSummary {
+  return {
+    totalContracts: 1,
+    byChainType: {
+      evm: contract.chainType === 'evm' ? 1 : 0,
+      core: contract.chainType === 'core' ? 1 : 0,
+    },
+    byNetwork: {
+      [contract.ui.displayName]: 1,
+    },
+    byCategory: {
+      [categorizeContract(contract)]: 1,
+    },
+    recentlyDeployed: [contract],
+    mostUsed: [contract],
+    withErrors: contract.types.error ? [contract] : [],
+  };
+}
 
-    // Add write methods
-    for (const method of contract.methods.write.slice(0, 3)) {
-      actions.push({
-        label: method.name,
-        type: 'write',
-        method: method.name,
-        description: `Call ${method.name}`,
-      });
-    }
+/**
+ * Generate contract description based on capabilities and methods
+ */
+function generateContractDescription(contract: ContractOrchestrator): string {
+  const parts: string[] = [];
 
-    // Add events
-    if (contract.methods.events.length > 0) {
-      actions.push({
-        label: 'View Events',
-        type: 'event',
-        description: `View ${contract.methods.events.length} events`,
-      });
-    }
-
-    // Add info action
-    actions.push({
-      label: 'Contract Info',
-      type: 'info',
-      description: 'View contract details',
-    });
-
-    return actions;
-  }
-
-  /**
-   * Create method list for UI
-   */
-  static createMethodList(contract: ContractOrchestrator): {
-    read: Array<{
-      name: string;
-      description: string;
-      inputs: Array<{ name: string; type: string; required: boolean }>;
-      outputs: Array<{ name: string; type: string }>;
-      isView: boolean;
-      isPure: boolean;
-    }>;
-    write: Array<{
-      name: string;
-      description: string;
-      inputs: Array<{ name: string; type: string; required: boolean }>;
-      outputs: Array<{ name: string; type: string }>;
-      isPayable: boolean;
-      gasEstimate?: bigint;
-    }>;
-    events: Array<{
-      name: string;
-      description: string;
-      inputs: Array<{ name: string; type: string; indexed: boolean }>;
-      category: string;
-    }>;
-  } {
-    return {
-      read: contract.methods.read.map((method) => ({
-        name: method.name,
-        description: method.description || `Read ${method.name}`,
-        inputs: method.inputs.map((input) => ({
-          name: input.name,
-          type: input.type,
-          required: true,
-        })),
-        outputs: method.outputs.map((output) => ({
-          name: output.name,
-          type: output.type,
-        })),
-        isView: method.isView || false,
-        isPure: method.isPure || false,
-      })),
-      write: contract.methods.write.map((method) => ({
-        name: method.name,
-        description: method.description || `Call ${method.name}`,
-        inputs: method.inputs.map((input) => ({
-          name: input.name,
-          type: input.type,
-          required: true,
-        })),
-        outputs: method.outputs.map((output) => ({
-          name: output.name,
-          type: output.type,
-        })),
-        isPayable: method.isPayable || false,
-        gasEstimate: method.gasEstimate,
-      })),
-      events: contract.methods.events.map((event) => ({
-        name: event.name,
-        description: event.description || `Event ${event.name}`,
-        inputs: event.inputs.map((input) => ({
-          name: input.name,
-          type: input.type,
-          indexed: input.indexed || false,
-        })),
-        category: event.category || 'custom',
-      })),
-    };
-  }
-
-  /**
-   * Create deployment summary for UI
-   */
-  static createDeploymentSummaryUI(summary: ContractDeploymentSummary): {
-    totalContracts: number;
-    byChainType: { evm: number; core: number };
-    byNetwork: Array<{ network: string; count: number }>;
-    byCategory: Array<{ category: string; count: number }>;
-    recentlyDeployed: Array<{
-      name: string;
-      address: string;
-      network: string;
-      deployedAt: Date;
-    }>;
-    mostUsed: Array<{
-      name: string;
-      address: string;
-      usageCount: number;
-    }>;
-    withErrors: Array<{
-      name: string;
-      address: string;
-      error: string;
-    }>;
-  } {
-    return {
-      totalContracts: summary.totalContracts,
-      byChainType: summary.byChainType,
-      byNetwork: Object.entries(summary.byNetwork).map(([network, count]) => ({
-        network,
-        count,
-      })),
-      byCategory: Object.entries(summary.byCategory).map(
-        ([category, count]) => ({
-          category,
-          count,
-        })
-      ),
-      recentlyDeployed: summary.recentlyDeployed.map((contract) => ({
-        name: contract.name,
-        address: contract.address,
-        network: contract.network.name,
-        deployedAt: contract.deployment.deployedAt,
-      })),
-      mostUsed: summary.mostUsed.map((contract) => ({
-        name: contract.name,
-        address: contract.address,
-        usageCount: contract.ui.usageCount,
-      })),
-      withErrors: summary.withErrors.map((contract) => ({
-        name: contract.name,
-        address: contract.address,
-        error: contract.types.error || 'Unknown error',
-      })),
-    };
-  }
-
-  /**
-   * Create interaction summary for UI
-   */
-  static createInteractionSummaryUI(summary: ContractInteractionSummary): {
-    contractName: string;
-    totalCalls: number;
-    readCalls: number;
-    writeCalls: number;
-    eventLogs: number;
-    successRate: number;
-    averageGasUsed: string;
-    totalGasUsed: string;
-    lastInteraction: Date;
-    errors: Array<{
-      methodName: string;
-      error: string;
-      count: number;
-      lastOccurred: Date;
-    }>;
-  } {
-    return {
-      contractName: summary.contractName,
-      totalCalls: summary.totalCalls,
-      readCalls: summary.readCalls,
-      writeCalls: summary.writeCalls,
-      eventLogs: summary.eventLogs,
-      successRate: Math.round(summary.successRate * 100) / 100,
-      averageGasUsed: ContractUIRepresentation.formatGas(
-        summary.averageGasUsed
-      ),
-      totalGasUsed: ContractUIRepresentation.formatGas(summary.totalGasUsed),
-      lastInteraction: summary.lastInteraction,
-      errors: summary.errors,
-    };
-  }
-
-  /**
-   * Create contract dashboard data
-   */
-  static createContractDashboard(contracts: ContractOrchestrator[]): {
-    overview: {
-      totalContracts: number;
-      activeContracts: number;
-      contractsWithErrors: number;
-      totalInteractions: number;
-    };
-    byChainType: { evm: number; core: number };
-    byCategory: Array<{ category: string; count: number; percentage: number }>;
-    byNetwork: Array<{ network: string; count: number; percentage: number }>;
-    recentActivity: Array<{
-      contractName: string;
-      action: string;
-      timestamp: Date;
-      success: boolean;
-    }>;
-    topContracts: Array<{
-      name: string;
-      address: string;
-      usageCount: number;
-      successRate: number;
-    }>;
-  } {
-    const totalContracts = contracts.length;
-    const activeContracts = contracts.filter((c) => c.ui.isActive).length;
-    const contractsWithErrors = contracts.filter((c) => c.types.error).length;
-
-    // Calculate by chain type
-    const byChainType = {
-      evm: contracts.filter((c) => c.chainType === 'evm').length,
-      core: contracts.filter((c) => c.chainType === 'core').length,
-    };
-
-    // Calculate by category
-    const categoryCounts: Record<string, number> = {};
-    for (const contract of contracts) {
-      const category = contract.metadata.category || 'custom';
-      categoryCounts[category] = (categoryCounts[category] || 0) + 1;
-    }
-    const byCategory = Object.entries(categoryCounts).map(
-      ([category, count]) => ({
-        category,
-        count,
-        percentage: Math.round((count / totalContracts) * 100),
-      })
+  if (contract.capabilities.canRead) {
+    parts.push(
+      `${contract.methods.read.length} read method${
+        contract.methods.read.length !== 1 ? 's' : ''
+      }`
     );
-
-    // Calculate by network
-    const networkCounts: Record<string, number> = {};
-    for (const contract of contracts) {
-      networkCounts[contract.networkId] =
-        (networkCounts[contract.networkId] || 0) + 1;
-    }
-    const byNetwork = Object.entries(networkCounts).map(([network, count]) => ({
-      network,
-      count,
-      percentage: Math.round((count / totalContracts) * 100),
-    }));
-
-    // Mock recent activity (would come from actual interaction logs)
-    const recentActivity: Array<{
-      contractName: string;
-      action: string;
-      timestamp: Date;
-      success: boolean;
-    }> = [];
-
-    // Top contracts by usage
-    const topContracts = contracts
-      .sort((a, b) => b.ui.usageCount - a.ui.usageCount)
-      .slice(0, 5)
-      .map((contract) => ({
-        name: contract.name,
-        address: contract.address,
-        usageCount: contract.ui.usageCount,
-        successRate: 100, // Would calculate from actual data
-      }));
-
-    return {
-      overview: {
-        totalContracts,
-        activeContracts,
-        contractsWithErrors,
-        totalInteractions: contracts.reduce(
-          (sum, c) => sum + c.ui.usageCount,
-          0
-        ),
-      },
-      byChainType,
-      byCategory,
-      byNetwork,
-      recentActivity,
-      topContracts,
-    };
   }
 
-  /**
-   * Format gas amount for display
-   */
-  private static formatGas(gas: bigint): string {
-    if (gas === 0n) return '0';
-    if (gas < 1000n) return gas.toString();
-    if (gas < 1000000n) return `${(Number(gas) / 1000).toFixed(1)}K`;
-    if (gas < 1000000000n) return `${(Number(gas) / 1000000).toFixed(1)}M`;
-    return `${(Number(gas) / 1000000000).toFixed(1)}B`;
+  if (contract.capabilities.canWrite) {
+    parts.push(
+      `${contract.methods.write.length} write method${
+        contract.methods.write.length !== 1 ? 's' : ''
+      }`
+    );
   }
 
-  /**
-   * Create contract search suggestions
-   */
-  static createSearchSuggestions(contracts: ContractOrchestrator[]): Array<{
-    type: 'contract' | 'method' | 'event';
+  if (contract.capabilities.hasEvents) {
+    parts.push(
+      `${contract.methods.events.length} event${
+        contract.methods.events.length !== 1 ? 's' : ''
+      }`
+    );
+  }
+
+  const capabilities = [];
+  if (contract.capabilities.isUpgradeable) capabilities.push('upgradeable');
+  if (contract.capabilities.isPausable) capabilities.push('pausable');
+  if (contract.capabilities.isOwnable) capabilities.push('ownable');
+
+  if (capabilities.length > 0) {
+    parts.push(`Features: ${capabilities.join(', ')}`);
+  }
+
+  return parts.join(' • ') || 'Smart contract deployed on Conflux network';
+}
+
+/**
+ * Categorize contract based on name and capabilities
+ */
+function categorizeContract(contract: ContractOrchestrator): string {
+  const name = contract.ui.displayName?.toLowerCase() || '';
+
+  if (
+    name.includes('token') ||
+    name.includes('erc20') ||
+    name.includes('erc721') ||
+    name.includes('erc1155')
+  ) {
+    return 'Token';
+  }
+  if (name.includes('nft')) {
+    return 'NFT';
+  }
+  if (name.includes('swap') || name.includes('dex')) {
+    return 'DeFi';
+  }
+  if (name.includes('governance') || name.includes('dao')) {
+    return 'Governance';
+  }
+  if (name.includes('vault') || name.includes('lending')) {
+    return 'DeFi';
+  }
+  if (name.includes('marketplace')) {
+    return 'Marketplace';
+  }
+  if (name.includes('game') || name.includes('gaming')) {
+    return 'Gaming';
+  }
+
+  return 'Smart Contract';
+}
+
+/**
+ * Generate tags for contract
+ */
+function generateContractTags(contract: ContractOrchestrator): string[] {
+  const tags: string[] = [];
+
+  // Network tags
+  tags.push(contract.ui.displayName);
+  tags.push(contract.chainType.toUpperCase());
+
+  // Capability tags
+  if (contract.capabilities.canRead) tags.push('Read');
+  if (contract.capabilities.canWrite) tags.push('Write');
+  if (contract.capabilities.hasEvents) tags.push('Events');
+  if (contract.capabilities.isUpgradeable) tags.push('Upgradeable');
+  if (contract.capabilities.isPausable) tags.push('Pausable');
+  if (contract.capabilities.isOwnable) tags.push('Ownable');
+
+  // Method count tags
+  if (contract.methods.read.length > 5) tags.push('Read-Heavy');
+  if (contract.methods.write.length > 5) tags.push('Write-Heavy');
+  if (contract.methods.events.length > 3) tags.push('Event-Rich');
+
+  return tags;
+}
+
+/**
+ * Get contract icon based on category
+ */
+function getContractIcon(contract: ContractOrchestrator): string {
+  const category = categorizeContract(contract);
+
+  switch (category) {
+    case 'Token':
+      return '🪙';
+    case 'NFT':
+      return '🖼️';
+    case 'DeFi':
+      return '💱';
+    case 'Governance':
+      return '🏛️';
+    case 'Marketplace':
+      return '🛒';
+    case 'Gaming':
+      return '🎮';
+    default:
+      return '📄';
+  }
+}
+
+/**
+ * Get contract color based on category
+ */
+function getContractColor(contract: ContractOrchestrator): string {
+  const category = categorizeContract(contract);
+
+  switch (category) {
+    case 'Token':
+      return '#f59e0b'; // amber
+    case 'NFT':
+      return '#8b5cf6'; // violet
+    case 'DeFi':
+      return '#10b981'; // emerald
+    case 'Governance':
+      return '#3b82f6'; // blue
+    case 'Marketplace':
+      return '#f97316'; // orange
+    case 'Gaming':
+      return '#ec4899'; // pink
+    default:
+      return '#6b7280'; // gray
+  }
+}
+
+/**
+ * Get contract status
+ */
+function getContractStatus(
+  contract: ContractOrchestrator
+): 'active' | 'inactive' | 'error' {
+  if (contract.types.error) return 'error';
+  if (contract.capabilities.canRead || contract.capabilities.canWrite)
+    return 'active';
+  return 'inactive';
+}
+
+/**
+ * Generate verification URL for contract
+ */
+function _generateVerificationUrl(contract: ContractOrchestrator): string {
+  const baseUrl = getExplorerUrl(contract);
+  return `${baseUrl}/address/${contract.address}#code`;
+}
+
+/**
+ * Get explorer URL for network
+ */
+function getExplorerUrl(contract: ContractOrchestrator): string {
+  switch (contract.ui.displayName) {
+    case 'mainnet':
+      return 'https://confluxscan.net';
+    case 'testnet':
+      return 'https://testnet.confluxscan.net';
+    case 'local':
+      return 'http://localhost:12537/explorer';
+    default:
+      return 'https://confluxscan.net';
+  }
+}
+
+/**
+ * Create contract method card data
+ */
+export function createMethodCard(method: {
+  name: string;
+  type: string;
+  stateMutability?: string;
+  inputs: unknown[];
+  outputs: unknown[];
+}): {
+  name: string;
+  type: string;
+  category: 'read' | 'write' | 'event' | 'constructor';
+  inputs: number;
+  outputs: number;
+  isPayable: boolean;
+  isView: boolean;
+  isPure: boolean;
+  description: string;
+  icon: string;
+  color: string;
+} {
+  const category =
+    method.type === 'function'
+      ? method.stateMutability === 'view' || method.stateMutability === 'pure'
+        ? 'read'
+        : 'write'
+      : (method.type as 'event' | 'constructor');
+
+  return {
+    name: method.name,
+    type: method.type,
+    category,
+    inputs: method.inputs.length,
+    outputs: method.outputs.length,
+    isPayable: method.stateMutability === 'payable',
+    isView: method.stateMutability === 'view',
+    isPure: method.stateMutability === 'pure',
+    description: generateMethodDescription(method),
+    icon: getMethodIcon(category),
+    color: getMethodColor(category),
+  };
+}
+
+/**
+ * Generate method description
+ */
+function generateMethodDescription(method: {
+  name: string;
+  type: string;
+  stateMutability?: string;
+  inputs: unknown[];
+  outputs: unknown[];
+}): string {
+  const parts: string[] = [];
+
+  if (method.inputs.length > 0) {
+    parts.push(
+      `${method.inputs.length} parameter${method.inputs.length !== 1 ? 's' : ''}`
+    );
+  }
+
+  if (method.outputs.length > 0) {
+    parts.push(
+      `${method.outputs.length} return value${
+        method.outputs.length !== 1 ? 's' : ''
+      }`
+    );
+  }
+
+  if (method.stateMutability) {
+    parts.push(method.stateMutability);
+  }
+
+  return parts.join(' • ') || 'Contract method';
+}
+
+/**
+ * Get method icon
+ */
+function getMethodIcon(category: string): string {
+  switch (category) {
+    case 'read':
+      return '👁️';
+    case 'write':
+      return '✏️';
+    case 'event':
+      return '📡';
+    case 'constructor':
+      return '🏗️';
+    default:
+      return '⚙️';
+  }
+}
+
+/**
+ * Get method color
+ */
+function getMethodColor(category: string): string {
+  switch (category) {
+    case 'read':
+      return '#3b82f6'; // blue
+    case 'write':
+      return '#ef4444'; // red
+    case 'event':
+      return '#10b981'; // emerald
+    case 'constructor':
+      return '#8b5cf6'; // violet
+    default:
+      return '#6b7280'; // gray
+  }
+}
+
+/**
+ * Create contract event card data
+ */
+export function createEventCard(event: { name: string; inputs: unknown[] }): {
+  name: string;
+  inputs: number;
+  description: string;
+  icon: string;
+  color: string;
+} {
+  return {
+    name: event.name,
+    inputs: event.inputs.length,
+    description: generateEventDescription(event),
+    icon: '📡',
+    color: '#10b981', // emerald
+  };
+}
+
+/**
+ * Generate event description
+ */
+function generateEventDescription(event: {
+  name: string;
+  inputs: unknown[];
+}): string {
+  if (event.inputs.length === 0) {
+    return 'No parameters';
+  }
+  return `${event.inputs.length} parameter${
+    event.inputs.length !== 1 ? 's' : ''
+  }`;
+}
+
+/**
+ * Create contract interaction form data
+ */
+export function createInteractionForm(contract: ContractOrchestrator): {
+  contractAddress: string;
+  contractName: string;
+  methods: Array<{
     name: string;
-    contractName: string;
-    description: string;
-    category: string;
-  }> {
-    const suggestions: Array<{
-      type: 'contract' | 'method' | 'event';
+    type: 'read' | 'write';
+    inputs: Array<{
       name: string;
-      contractName: string;
-      description: string;
-      category: string;
-    }> = [];
+      type: string;
+      required: boolean;
+    }>;
+    outputs: Array<{
+      name: string;
+      type: string;
+    }>;
+  }>;
+  events: Array<{
+    name: string;
+    inputs: Array<{
+      name: string;
+      type: string;
+      indexed: boolean;
+    }>;
+  }>;
+} {
+  return {
+    contractAddress: contract.address,
+    contractName: contract.ui.displayName,
+    methods: [
+      ...contract.methods.read.map(m => ({
+        name: m.name,
+        type: 'read' as const,
+        inputs: m.inputs.map(input => ({
+          name: input.name || 'unnamed',
+          type: input.type,
+          required: true,
+        })),
+        outputs: m.outputs.map(output => ({
+          name: output.name || 'unnamed',
+          type: output.type,
+        })),
+      })),
+      ...contract.methods.write.map(m => ({
+        name: m.name,
+        type: 'write' as const,
+        inputs: m.inputs.map(input => ({
+          name: input.name || 'unnamed',
+          type: input.type,
+          required: true,
+        })),
+        outputs: m.outputs.map(output => ({
+          name: output.name || 'unnamed',
+          type: output.type,
+        })),
+      })),
+    ],
+    events: contract.methods.events.map(e => ({
+      name: e.name,
+      inputs: e.inputs.map(input => ({
+        name: input.name || 'unnamed',
+        type: input.type,
+        indexed: input.indexed || false,
+      })),
+    })),
+  };
+}
 
-    for (const contract of contracts) {
-      // Add contract suggestions
-      suggestions.push({
-        type: 'contract',
-        name: contract.name,
-        contractName: contract.name,
-        description: contract.ui.description,
-        category: contract.ui.category,
-      });
+/**
+ * Create contract analytics data
+ */
+export function createAnalyticsData(contract: ContractOrchestrator): {
+  contractAddress: string;
+  contractName: string;
+  totalMethods: number;
+  readMethods: number;
+  writeMethods: number;
+  events: number;
+  capabilities: string[];
+  complexity: 'low' | 'medium' | 'high';
+  gasEstimate: string;
+  bytecodeSize: number;
+  abiSize: number;
+} {
+  const totalMethods =
+    contract.methods.read.length + contract.methods.write.length;
+  const capabilities = [];
 
-      // Add method suggestions
-      for (const method of [
-        ...contract.methods.read,
-        ...contract.methods.write,
-      ]) {
-        suggestions.push({
-          type: 'method',
-          name: method.name,
-          contractName: contract.name,
-          description: `${method.name} method in ${contract.name}`,
-          category: method.category || 'method',
-        });
-      }
+  if (contract.capabilities.canRead) capabilities.push('Read');
+  if (contract.capabilities.canWrite) capabilities.push('Write');
+  if (contract.capabilities.hasEvents) capabilities.push('Events');
+  if (contract.capabilities.isUpgradeable) capabilities.push('Upgradeable');
+  if (contract.capabilities.isPausable) capabilities.push('Pausable');
+  if (contract.capabilities.isOwnable) capabilities.push('Ownable');
 
-      // Add event suggestions
-      for (const event of contract.methods.events) {
-        suggestions.push({
-          type: 'event',
-          name: event.name,
-          contractName: contract.name,
-          description: `${event.name} event in ${contract.name}`,
-          category: event.category || 'event',
-        });
-      }
-    }
+  let complexity: 'low' | 'medium' | 'high' = 'low';
+  if (totalMethods > 20) complexity = 'high';
+  else if (totalMethods > 10) complexity = 'medium';
 
-    return suggestions;
+  return {
+    contractAddress: contract.address,
+    contractName: contract.ui.displayName,
+    totalMethods,
+    readMethods: contract.methods.read.length,
+    writeMethods: contract.methods.write.length,
+    events: contract.methods.events.length,
+    capabilities,
+    complexity,
+    gasEstimate: contract.deployment.gasUsed.toString(),
+    bytecodeSize: contract.bytecode.length,
+    abiSize: contract.abi.length,
+  };
+}
+
+/**
+ * Create contract suggestions for improvement
+ */
+export function createContractSuggestions(
+  contract: ContractOrchestrator
+): string[] {
+  const suggestions: string[] = [];
+
+  if (!contract.capabilities.canRead && !contract.capabilities.canWrite) {
+    suggestions.push(
+      'Consider adding read or write methods to make the contract functional'
+    );
   }
+
+  if (contract.methods.read.length === 0 && contract.capabilities.canWrite) {
+    suggestions.push('Add view functions to allow reading contract state');
+  }
+
+  if (contract.methods.events.length === 0) {
+    suggestions.push('Consider adding events for better off-chain monitoring');
+  }
+
+  if (!contract.capabilities.isOwnable && contract.methods.write.length > 0) {
+    suggestions.push('Consider adding access control for write methods');
+  }
+
+  if (contract.methods.write.length > 0 && !contract.capabilities.isPausable) {
+    suggestions.push(
+      'Consider adding pausable functionality for emergency situations'
+    );
+  }
+
+  if (contract.bytecode.length > 100000) {
+    suggestions.push('Consider optimizing bytecode size for gas efficiency');
+  }
+
+  return suggestions;
 }

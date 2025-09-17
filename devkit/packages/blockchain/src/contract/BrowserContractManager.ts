@@ -105,6 +105,26 @@ export class BrowserContractManager {
   }
 
   /**
+   * Get all contracts (alias for listContracts)
+   */
+  getAllContracts(): BrowserContractOrchestrator[] {
+    return this.listContracts();
+  }
+
+  /**
+   * Remove contract by address
+   */
+  removeContract(address: string): boolean {
+    const wrapper = this.getContractByAddress(address);
+    if (wrapper) {
+      this.contracts.delete(wrapper.toBrowserSafe().id);
+      this.registry.delete(address);
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Search contracts
    */
   searchContracts(
@@ -210,8 +230,8 @@ export class BrowserContractManager {
       .filter(contract => contract.ui.lastUsed)
       .sort(
         (a, b) =>
-          new Date(b.ui.lastUsed!).getTime() -
-          new Date(a.ui.lastUsed!).getTime()
+          new Date(b.ui.lastUsed || 0).getTime() -
+          new Date(a.ui.lastUsed || 0).getTime()
       )
       .slice(0, limit);
   }

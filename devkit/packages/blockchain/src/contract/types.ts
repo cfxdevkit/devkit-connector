@@ -1,5 +1,7 @@
 // Browser-safe contract types for blockchain package
 
+import type { AbiItem } from '@conflux-devkit/core';
+
 // Browser-safe contract method call parameters
 export interface BrowserContractMethodCall {
   methodName: string;
@@ -72,7 +74,7 @@ export interface BrowserContractOrchestrator {
   };
 
   // Contract interface
-  abi: any[];
+  abi: AbiItem[];
   bytecode: string;
   deployedBytecode: string;
 

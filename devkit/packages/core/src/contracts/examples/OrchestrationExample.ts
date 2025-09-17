@@ -4,7 +4,7 @@ import type { NetworkConfig } from '../../types/blockchain';
 import type { TypedDeploymentResult } from '../../types/contract-orchestration';
 import type { ContractDeploymentConfig } from '../../types/contracts';
 import {
-  ContractUIRepresentation,
+  createContractCard,
   contractDeploymentManager,
   contractOrchestratorManager,
   contractRegistry,
@@ -35,17 +35,16 @@ export async function completeContractWorkflow() {
   contractRegistry.registerContract(orchestrator);
 
   // 4. Create UI representation
-  const contractCard =
-    ContractUIRepresentation.createContractCard(orchestrator);
-  const methodList = ContractUIRepresentation.createMethodList(orchestrator);
+  const contractCard = createContractCard(orchestrator);
+  // const methodList = createMethodList(orchestrator); // Not implemented yet
 
   console.log('Contract Card:', contractCard);
-  console.log('Method List:', methodList);
+  // console.log('Method List:', methodList);
 
   return {
     orchestrator,
     contractCard,
-    methodList,
+    // methodList,
   };
 }
 
@@ -152,17 +151,16 @@ export function interactionTrackingExample() {
  * Example: Create dashboard data
  */
 export function createDashboardExample() {
-  const contracts = contractRegistry.listContracts();
-  const dashboard = ContractUIRepresentation.createContractDashboard(contracts);
+  const _contracts = contractRegistry.listContracts();
+  // const dashboard = createContractDashboard(contracts); // Not implemented yet
 
-  console.log('Dashboard data:', dashboard);
+  // console.log('Dashboard data:', dashboard);
 
   // Get deployment summary
-  const deploymentSummary = contractRegistry.getDeploymentSummary();
-  const summaryUI =
-    ContractUIRepresentation.createDeploymentSummaryUI(deploymentSummary);
+  const _deploymentSummary = contractRegistry.getDeploymentSummary();
+  // const summaryUI = createDeploymentSummaryUI(deploymentSummary); // Not implemented yet
 
-  console.log('Deployment summary UI:', summaryUI);
+  // console.log('Deployment summary UI:', summaryUI);
 }
 
 /**
@@ -238,16 +236,21 @@ export function getStatisticsExample() {
  * Example: Create search suggestions
  */
 export function createSearchSuggestionsExample() {
-  const contracts = contractRegistry.listContracts();
-  const suggestions =
-    ContractUIRepresentation.createSearchSuggestions(contracts);
+  const _contracts = contractRegistry.listContracts();
+  const suggestions: unknown[] = []; // Placeholder for search suggestions
 
   console.log('Search suggestions:', suggestions);
 
   // Filter suggestions by type
-  const contractSuggestions = suggestions.filter((s) => s.type === 'contract');
-  const methodSuggestions = suggestions.filter((s) => s.type === 'method');
-  const eventSuggestions = suggestions.filter((s) => s.type === 'event');
+  const contractSuggestions = suggestions.filter(
+    (s: unknown) => (s as { type: string }).type === 'contract'
+  );
+  const methodSuggestions = suggestions.filter(
+    (s: unknown) => (s as { type: string }).type === 'method'
+  );
+  const eventSuggestions = suggestions.filter(
+    (s: unknown) => (s as { type: string }).type === 'event'
+  );
 
   console.log('Contract suggestions:', contractSuggestions);
   console.log('Method suggestions:', methodSuggestions);
@@ -313,12 +316,11 @@ export async function multipleContractsWorkflow() {
   }
 
   // Create dashboard
-  const dashboard =
-    ContractUIRepresentation.createContractDashboard(orchestrators);
-  console.log('Multi-contract dashboard:', dashboard);
+  // const dashboard = createContractDashboard(orchestrators); // Not implemented yet
+  // console.log('Multi-contract dashboard:', dashboard);
 
   return {
     orchestrators,
-    dashboard,
+    // dashboard,
   };
 }

@@ -4,18 +4,15 @@ import type { NetworkConfig } from '../types/blockchain';
 import type {
   ContractDeploymentSummary,
   ContractEvent,
-  ContractEventFilter,
-  ContractEventLog,
   ContractInteractionSummary,
   ContractMetadata,
   ContractMethod,
-  ContractMethodCall,
-  ContractMethodResult,
   ContractOrchestrator,
   ContractRegistryEntry,
   ContractValidationResult,
   TypedDeploymentResult,
 } from '../types/contract-orchestration';
+import type { AbiItem } from '../types/blockchain';
 import { createContractError } from '../types/errors';
 
 export class ContractOrchestratorManager {
@@ -69,8 +66,8 @@ export class ContractOrchestratorManager {
         deployedBytecode: deploymentResult.deployedBytecode,
 
         methods: {
-          read: methods.filter((m) => m.category === 'read'),
-          write: methods.filter((m) => m.category === 'write'),
+          read: methods.filter(m => m.category === 'read'),
+          write: methods.filter(m => m.category === 'write'),
           events: events,
           constructor: null, // Constructor info not currently used
         },
@@ -126,7 +123,7 @@ export class ContractOrchestratorManager {
   /**
    * Extract contract interface from ABI
    */
-  private extractContractInterface(abi: any[]): {
+  private extractContractInterface(abi: AbiItem[]): {
     methods: ContractMethod[];
     events: ContractEvent[];
     constructor: ContractMethod | null;
@@ -138,9 +135,13 @@ export class ContractOrchestratorManager {
     for (const item of abi) {
       if (item.type === 'function') {
         const method: ContractMethod = {
-          name: item.name,
+          name: item.name || 'unnamed',
           type: 'function',
-          stateMutability: item.stateMutability,
+          stateMutability: (item.stateMutability || 'nonpayable') as
+            | 'pure'
+            | 'view'
+            | 'nonpayable'
+            | 'payable',
           inputs: item.inputs || [],
           outputs: item.outputs || [],
           category: this.categorizeMethod(item),
@@ -151,8 +152,13 @@ export class ContractOrchestratorManager {
         methods.push(method);
       } else if (item.type === 'event') {
         const event: ContractEvent = {
-          name: item.name,
-          inputs: item.inputs || [],
+          name: item.name || 'unnamed',
+          inputs: (item.inputs || []).map(input => ({
+            name: input.name || 'unnamed',
+            type: input.type,
+            indexed: input.indexed || false,
+            internalType: input.internalType,
+          })),
           anonymous: item.anonymous || false,
           category: this.categorizeEvent(item),
         };
@@ -161,7 +167,11 @@ export class ContractOrchestratorManager {
         contractConstructor = {
           name: 'constructor',
           type: 'constructor',
-          stateMutability: item.stateMutability || 'nonpayable',
+          stateMutability: (item.stateMutability || 'nonpayable') as
+            | 'pure'
+            | 'view'
+            | 'nonpayable'
+            | 'payable',
           inputs: item.inputs || [],
           outputs: [],
           category: 'constructor',
@@ -176,7 +186,7 @@ export class ContractOrchestratorManager {
    * Categorize method based on name and state mutability
    */
   private categorizeMethod(
-    item: any
+    item: AbiItem
   ): 'read' | 'write' | 'event' | 'constructor' {
     if (item.stateMutability === 'view' || item.stateMutability === 'pure') {
       return 'read';
@@ -188,9 +198,9 @@ export class ContractOrchestratorManager {
    * Categorize event based on name
    */
   private categorizeEvent(
-    item: any
+    item: AbiItem
   ): 'transfer' | 'mint' | 'burn' | 'approval' | 'custom' {
-    const name = item.name.toLowerCase();
+    const name = (item.name || '').toLowerCase();
     if (name.includes('transfer')) return 'transfer';
     if (name.includes('mint')) return 'mint';
     if (name.includes('burn')) return 'burn';
@@ -203,32 +213,32 @@ export class ContractOrchestratorManager {
    * Assess contract capabilities
    */
   private assessContractCapabilities(
-    abi: any[]
+    abi: AbiItem[]
   ): ContractOrchestrator['capabilities'] {
     const hasRead = abi.some(
-      (item) =>
+      item =>
         item.type === 'function' &&
         (item.stateMutability === 'view' || item.stateMutability === 'pure')
     );
     const hasWrite = abi.some(
-      (item) =>
+      item =>
         item.type === 'function' &&
         (item.stateMutability === 'nonpayable' ||
           item.stateMutability === 'payable')
     );
-    const hasReceive = abi.some((item) => item.type === 'receive');
-    const hasFallback = abi.some((item) => item.type === 'fallback');
-    const hasEvents = abi.some((item) => item.type === 'event');
+    const hasReceive = abi.some(item => item.type === 'receive');
+    const hasFallback = abi.some(item => item.type === 'fallback');
+    const hasEvents = abi.some(item => item.type === 'event');
 
     // Check for common patterns
     const hasOwnable = abi.some(
-      (item) => item.name === 'owner' || item.name === 'transferOwnership'
+      item => item.name === 'owner' || item.name === 'transferOwnership'
     );
     const hasPausable = abi.some(
-      (item) => item.name === 'pause' || item.name === 'unpause'
+      item => item.name === 'pause' || item.name === 'unpause'
     );
     const hasUpgradeable = abi.some(
-      (item) => item.name === 'upgrade' || item.name === 'implementation'
+      item => item.name === 'upgrade' || item.name === 'implementation'
     );
 
     return {
@@ -271,9 +281,9 @@ export class ContractOrchestratorManager {
       contract.address,
       contract.metadata.description || '',
       contract.metadata.tags?.join(' ') || '',
-      contract.methods.read.map((m) => m.name).join(' '),
-      contract.methods.write.map((m) => m.name).join(' '),
-      contract.methods.events.map((e) => e.name).join(' '),
+      contract.methods.read.map(m => m.name).join(' '),
+      contract.methods.write.map(m => m.name).join(' '),
+      contract.methods.events.map(e => e.name).join(' '),
     ];
 
     return parts.join(' ').toLowerCase();
@@ -328,7 +338,7 @@ export class ContractOrchestratorManager {
    */
   filterContractsByCategory(category: string): ContractOrchestrator[] {
     return this.listContracts().filter(
-      (contract) => contract.metadata.category === category
+      contract => contract.metadata.category === category
     );
   }
 
@@ -339,7 +349,7 @@ export class ContractOrchestratorManager {
     chainType: 'core' | 'evm'
   ): ContractOrchestrator[] {
     return this.listContracts().filter(
-      (contract) => contract.chainType === chainType
+      contract => contract.chainType === chainType
     );
   }
 
@@ -349,8 +359,8 @@ export class ContractOrchestratorManager {
   getDeploymentSummary(): ContractDeploymentSummary {
     const contracts = this.listContracts();
     const byChainType = {
-      evm: contracts.filter((c) => c.chainType === 'evm').length,
-      core: contracts.filter((c) => c.chainType === 'core').length,
+      evm: contracts.filter(c => c.chainType === 'evm').length,
+      core: contracts.filter(c => c.chainType === 'core').length,
     };
 
     const byNetwork: Record<string, number> = {};
@@ -377,7 +387,7 @@ export class ContractOrchestratorManager {
       mostUsed: contracts
         .sort((a, b) => b.ui.usageCount - a.ui.usageCount)
         .slice(0, 5),
-      withErrors: contracts.filter((c) => c.types.error),
+      withErrors: contracts.filter(c => c.types.error),
     };
   }
 
@@ -461,7 +471,7 @@ export class ContractOrchestratorManager {
   recordInteraction(
     contractId: string,
     methodName: string,
-    success: boolean,
+    _success: boolean,
     gasUsed?: bigint
   ): void {
     const contract = this.contracts.get(contractId);
@@ -494,7 +504,7 @@ export class ContractOrchestratorManager {
 
     // Categorize call
     const method = [...contract.methods.read, ...contract.methods.write].find(
-      (m) => m.name === methodName
+      m => m.name === methodName
     );
     if (method?.category === 'read') {
       summary.readCalls++;

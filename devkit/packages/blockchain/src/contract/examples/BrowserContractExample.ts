@@ -5,7 +5,9 @@ import {
   type BrowserContractWrapper,
   browserContractManager,
   type ContractEventOptions,
-  ContractFactory,
+  createContract,
+  createContractFromAddress,
+  createContractFromDeployment,
   type ContractReadOptions,
   type ContractWriteOptions,
 } from '../index';
@@ -171,7 +173,7 @@ async function createContractFromOrchestrator(): Promise<BrowserContractWrapper>
     networkType: 'evm',
   };
 
-  return ContractFactory.createContract(orchestrator, networkConfig);
+  return createContract(orchestrator, networkConfig);
 }
 
 /**
@@ -217,7 +219,7 @@ export function createContractFromAddressExample() {
     networkType: 'evm',
   };
 
-  const contract = ContractFactory.createContractFromAddress(
+  const contract = createContractFromAddress(
     address,
     abi,
     networkConfig,
@@ -474,7 +476,7 @@ export function multipleContractManagementExample() {
   ];
 
   const wrappers = contracts.map(contract =>
-    ContractFactory.createContractFromAddress(
+    createContractFromAddress(
       contract.address,
       abi,
       networkConfig,

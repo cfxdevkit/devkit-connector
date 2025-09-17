@@ -1,37 +1,36 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "lib": ["ES2022"],
     "outDir": "./dist",
-    "rootDir": "./",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "composite": true,
-    "incremental": true,
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "rootDir": "./"
   },
   "references": [
     {
-      "path": "./packages/devkit-node"
+      "path": "./packages/core"
     },
     {
-      "path": "./packages/server"
+      "path": "./packages/blockchain"
+    },
+    {
+      "path": "./packages/state"
+    },
+    {
+      "path": "./packages/api-server"
+    },
+    {
+      "path": "./packages/node"
     },
     {
       "path": "./packages/dashboard"
     },
     {
-      "path": "./packages/utility"
+      "path": "./packages/ui-primitives"
+    },
+    {
+      "path": "./packages/ui-components"
+    },
+    {
+      "path": "./packages/showcase-webapp"
     }
   ],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]

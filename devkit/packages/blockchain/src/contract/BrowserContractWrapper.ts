@@ -3,12 +3,16 @@
 import type {
   ContractEventFilter,
   ContractOrchestrator,
+  ContractMethod,
+  ContractEvent,
 } from '@conflux-devkit/core';
 import { createContractError } from '@conflux-devkit/core';
 import type { CoreClient } from '../rpc/CoreClient';
 import type { EvmClient } from '../rpc/EvmClient';
 import type {
+  BrowserContractEvent,
   BrowserContractEventLog,
+  BrowserContractMethod,
   BrowserContractMethodResult,
   BrowserContractOrchestrator,
   ContractEventOptions,
@@ -105,7 +109,9 @@ export class BrowserContractWrapper {
   /**
    * Convert method to browser-safe format
    */
-  private convertMethodToBrowser(method: any): any {
+  private convertMethodToBrowser(
+    method: ContractMethod
+  ): BrowserContractMethod {
     return {
       ...method,
       gasEstimate: method.gasEstimate?.toString(),
@@ -115,7 +121,7 @@ export class BrowserContractWrapper {
   /**
    * Convert event to browser-safe format
    */
-  private convertEventToBrowser(event: any): any {
+  private convertEventToBrowser(event: ContractEvent): BrowserContractEvent {
     return event;
   }
 
@@ -359,7 +365,10 @@ export class BrowserContractWrapper {
   /**
    * Find method by name and type
    */
-  private findMethod(name: string, type: 'read' | 'write'): any {
+  private findMethod(
+    name: string,
+    type: 'read' | 'write'
+  ): ContractMethod | undefined {
     const methods =
       type === 'read'
         ? this.orchestrator.methods.read
@@ -370,7 +379,7 @@ export class BrowserContractWrapper {
   /**
    * Find event by name
    */
-  private findEvent(name: string): any {
+  private findEvent(name: string): ContractEvent | undefined {
     return this.orchestrator.methods.events.find(event => event.name === name);
   }
 
@@ -406,7 +415,7 @@ export class BrowserContractWrapper {
     address: string;
     chainType: 'core' | 'evm';
     networkId: string;
-    capabilities: any; // Simplified for mock implementation
+    capabilities: Record<string, boolean>; // Simplified for mock implementation
     methods: {
       read: number;
       write: number;

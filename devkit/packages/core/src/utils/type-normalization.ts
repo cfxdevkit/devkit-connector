@@ -178,7 +178,7 @@ export function normalizeBlockNumber(
 /**
  * Create a browser-safe object from blockchain data
  */
-export function createBrowserSafeObject<T extends Record<string, any>>(
+export function createBrowserSafeObject<T extends Record<string, unknown>>(
   data: T,
   addressFields: (keyof T)[] = [],
   bigintFields: (keyof T)[] = [],
@@ -190,7 +190,7 @@ export function createBrowserSafeObject<T extends Record<string, any>>(
     if (addressFields.includes(key as keyof T)) {
       result[key] = normalizeAddress(value as UnifiedAddress);
     } else if (bigintFields.includes(key as keyof T)) {
-      result[key] = normalizeBigInt(value);
+      result[key] = normalizeBigInt(value as string | number | bigint);
     } else if (hashFields.includes(key as keyof T)) {
       result[key] = normalizeTxHash(value as string);
     } else if (typeof value === 'bigint') {

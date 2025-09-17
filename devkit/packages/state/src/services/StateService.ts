@@ -1,7 +1,11 @@
 // State service for managing Conflux DevKit state and providing API integration
 
 import { EventEmitter } from 'events';
-import { useAppStore, getStateEventEmitter, selectors } from '../stores/appStore';
+import {
+  useAppStore,
+  getStateEventEmitter,
+  selectors,
+} from '../stores/appStore';
 import type {
   IStateService,
   AppStore,
@@ -45,7 +49,10 @@ export class StateService implements IStateService {
     return this.store;
   }
 
-  subscribe<T>(selector: (state: AppStore) => T, callback: (value: T) => void): () => void {
+  subscribe<T>(
+    selector: (state: AppStore) => T,
+    callback: (value: T) => void
+  ): () => void {
     return useAppStore.subscribe(selector, callback);
   }
 
@@ -53,11 +60,17 @@ export class StateService implements IStateService {
   // Event Management
   // ========================================================================
 
-  on<K extends keyof StateEvents>(event: K, callback: (...args: StateEvents[K]) => void): void {
+  on<K extends keyof StateEvents>(
+    event: K,
+    callback: (...args: StateEvents[K]) => void
+  ): void {
     this.eventEmitter.on(event, callback as (...args: any[]) => void);
   }
 
-  off<K extends keyof StateEvents>(event: K, callback: (...args: StateEvents[K]) => void): void {
+  off<K extends keyof StateEvents>(
+    event: K,
+    callback: (...args: StateEvents[K]) => void
+  ): void {
     this.eventEmitter.off(event, callback as (...args: any[]) => void);
   }
 
@@ -98,13 +111,13 @@ export class StateService implements IStateService {
     }
 
     this.config = { ...this.config, ...config };
-    
+
     // Set up auto-refresh intervals
     this.setupAutoRefresh();
-    
+
     // Set up event listeners
     this.setupEventListeners();
-    
+
     this.isInitialized = true;
     console.log('StateService initialized');
   }
@@ -185,7 +198,7 @@ export class StateService implements IStateService {
     });
 
     // Node events
-    this.on('state:node:started', (status) => {
+    this.on('state:node:started', status => {
       console.log('State: Node started', status);
       this.addNotification({
         type: 'success',
@@ -204,7 +217,7 @@ export class StateService implements IStateService {
     });
 
     // Wallet events
-    this.on('state:wallet:created', (wallet) => {
+    this.on('state:wallet:created', wallet => {
       console.log('State: Wallet created', wallet.address);
       this.addNotification({
         type: 'success',
@@ -213,30 +226,30 @@ export class StateService implements IStateService {
       });
     });
 
-    this.on('state:wallet:selected', (wallet) => {
+    this.on('state:wallet:selected', wallet => {
       console.log('State: Wallet selected', wallet.address);
     });
 
     // Contract events
-    this.on('state:contract:deployed', (contract) => {
+    this.on('state:contract:deployed', contract => {
       console.log('State: Contract deployed', contract.address);
       this.addNotification({
         type: 'success',
         title: 'Contract Deployed',
-        message: `${contract.contractName} deployed at ${contract.address.slice(0, 10)}...`,
+        message: `${contract.name} deployed at ${contract.address.slice(0, 10)}...`,
       });
     });
 
-    this.on('state:contract:called', (call) => {
+    this.on('state:contract:called', call => {
       console.log('State: Contract called', call.method);
     });
 
-    this.on('state:contract:event', (event) => {
+    this.on('state:contract:event', event => {
       console.log('State: Contract event', event.eventName);
     });
 
     // Network events
-    this.on('state:network:switched', (network) => {
+    this.on('state:network:switched', network => {
       console.log('State: Network switched', network.name);
       this.addNotification({
         type: 'info',
@@ -256,7 +269,7 @@ export class StateService implements IStateService {
     });
 
     // Notification events
-    this.on('state:notification', (notification) => {
+    this.on('state:notification', notification => {
       console.log('State: Notification', notification.title);
     });
   }
@@ -329,7 +342,10 @@ export class StateService implements IStateService {
   }
 
   // Contract management
-  async deployContract(contractName: string, args?: unknown[]): Promise<BrowserContractOrchestrator> {
+  async deployContract(
+    contractName: string,
+    args?: unknown[]
+  ): Promise<BrowserContractOrchestrator> {
     return this.store.deployContract(contractName, args);
   }
 
@@ -337,7 +353,9 @@ export class StateService implements IStateService {
     this.store.selectContract(address);
   }
 
-  async callContractMethod(params: ContractCallParams): Promise<ContractCallState> {
+  async callContractMethod(
+    params: ContractCallParams
+  ): Promise<ContractCallState> {
     return this.store.callContractMethod(params);
   }
 
@@ -363,7 +381,9 @@ export class StateService implements IStateService {
     this.store.setActiveTab(tab);
   }
 
-  addNotification(notification: Omit<NotificationState, 'id' | 'timestamp'>): void {
+  addNotification(
+    notification: Omit<NotificationState, 'id' | 'timestamp'>
+  ): void {
     this.store.addNotification(notification);
   }
 
@@ -473,19 +493,26 @@ export class StateService implements IStateService {
   }
 
   getContractDataForAPI(contractAddress: string) {
-    const contract = this.store.contracts.deployed.find(c => c.address === contractAddress);
+    const contract = this.store.contracts.deployed.find(
+      c => c.address === contractAddress
+    );
     if (!contract) {
       return null;
     }
 
-    const calls = this.store.contracts.contractCalls.filter(c => c.contractAddress === contractAddress);
-    const events = this.store.contracts.events.filter(e => e.contractAddress === contractAddress);
+    const calls = this.store.contracts.contractCalls.filter(
+      c => c.contractAddress === contractAddress
+    );
+    const events = this.store.contracts.events.filter(
+      e => e.contractAddress === contractAddress
+    );
 
     return {
       contract,
       calls,
       events,
-      isActive: this.store.contracts.activeContract?.address === contractAddress,
+      isActive:
+        this.store.contracts.activeContract?.address === contractAddress,
     };
   }
 
@@ -509,7 +536,9 @@ export class StateService implements IStateService {
 
 let stateServiceInstance: StateService | null = null;
 
-export const getStateService = (config?: Partial<StoreConfig>): StateService => {
+export const getStateService = (
+  config?: Partial<StoreConfig>
+): StateService => {
   if (!stateServiceInstance) {
     stateServiceInstance = new StateService(config);
   }

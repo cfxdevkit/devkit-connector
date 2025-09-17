@@ -2,11 +2,9 @@
 
 import type {
   CoreClient,
-  CoreTransactionRequest,
   EvmClient,
   NetworkConfig,
   ReadContractParams,
-  SendTransactionParams,
   TransactionRequest,
   UnifiedClient,
   WalletInfo,
@@ -78,11 +76,11 @@ export class UnifiedWalletManager implements UnifiedWalletInterface {
   ) {}
 
   async generateWallet(
-    mnemonic: string,
-    index: number,
+    _mnemonic: string,
+    _index: number,
     network: NetworkConfig
   ): Promise<WalletInfo> {
-    const client = this.getClient(network);
+    const _client = this.getClient(network);
     // Implementation will be provided by the blockchain package
     throw new Error(
       'generateWallet not implemented - requires blockchain package'
@@ -90,10 +88,10 @@ export class UnifiedWalletManager implements UnifiedWalletInterface {
   }
 
   async createWalletFromPrivateKey(
-    privateKey: `0x${string}`,
+    _privateKey: `0x${string}`,
     network: NetworkConfig
   ): Promise<WalletInfo> {
-    const client = this.getClient(network);
+    const _client = this.getClient(network);
     // Implementation will be provided by the blockchain package
     throw new Error(
       'createWalletFromPrivateKey not implemented - requires blockchain package'
@@ -122,17 +120,17 @@ export class UnifiedWalletManager implements UnifiedWalletInterface {
   }
 
   async fundWallet(
-    wallet: WalletInfo,
-    amount: bigint,
-    network: NetworkConfig
+    _wallet: WalletInfo,
+    _amount: bigint,
+    _network: NetworkConfig
   ): Promise<void> {
     // This would require a funded account to send from
     throw new Error('fundWallet not implemented - requires funded account');
   }
 
   async setMiningWallet(
-    wallet: WalletInfo,
-    network: NetworkConfig
+    _wallet: WalletInfo,
+    _network: NetworkConfig
   ): Promise<void> {
     // This would require node management capabilities
     throw new Error(
@@ -141,7 +139,7 @@ export class UnifiedWalletManager implements UnifiedWalletInterface {
   }
 
   async sendTransaction(
-    wallet: WalletInfo,
+    _wallet: WalletInfo,
     transaction: TransactionRequest,
     network: NetworkConfig
   ): Promise<`0x${string}`> {
@@ -150,9 +148,9 @@ export class UnifiedWalletManager implements UnifiedWalletInterface {
   }
 
   async signMessage(
-    wallet: WalletInfo,
-    message: string,
-    network: NetworkConfig
+    _wallet: WalletInfo,
+    _message: string,
+    _network: NetworkConfig
   ): Promise<`0x${string}`> {
     // This would require wallet client implementation
     throw new Error('signMessage not implemented - requires wallet client');
@@ -167,7 +165,7 @@ export class UnifiedWalletManager implements UnifiedWalletInterface {
   }
 
   async writeContract(
-    wallet: WalletInfo,
+    _wallet: WalletInfo,
     params: WriteContractParams,
     network: NetworkConfig
   ): Promise<`0x${string}`> {

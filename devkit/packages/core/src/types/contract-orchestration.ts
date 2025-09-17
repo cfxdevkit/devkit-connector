@@ -22,7 +22,7 @@ export interface TypedDeploymentResult {
   chainType: 'core' | 'evm';
   typesGenerated: boolean;
   typeGenerationError?: string;
-  generatedContract?: any;
+  generatedContract?: Record<string, unknown>;
 }
 
 // Contract method information

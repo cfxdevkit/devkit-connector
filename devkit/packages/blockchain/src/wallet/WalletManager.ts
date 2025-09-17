@@ -198,7 +198,7 @@ export class WalletManager {
    * Get mining wallet
    */
   getMiningWallet(): WalletInfo | undefined {
-    return Array.from(this.wallets.values()).find(wallet => wallet.isMining);
+    return Array.from(this.wallets.values()).find((wallet) => wallet.isMining);
   }
 
   /**

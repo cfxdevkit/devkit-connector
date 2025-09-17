@@ -260,7 +260,7 @@ export function buildWalletListResponse(
   const browserWallets = wallets.map(toBrowserWalletInfo);
 
   return createBlockchainApiResponse(
-    browserWallets.map(wallet => ({
+    browserWallets.map((wallet) => ({
       index: wallet.index,
       address: wallet.address,
       balance: wallet.balance,
@@ -456,7 +456,7 @@ export function buildBlockListResponse(
   network?: string,
   chainId?: number
 ): BlockListApiResponse {
-  const browserBlocks = blocks.map(block => ({
+  const browserBlocks = blocks.map((block) => ({
     number: block.number?.toString() || '0',
     hash: block.hash || '',
     timestamp: block.timestamp.toString(),
@@ -513,7 +513,7 @@ export function buildEventFilterResponse(
   network?: string,
   chainId?: number
 ): EventFilterApiResponse {
-  const browserLogs = logs.map(log => ({
+  const browserLogs = logs.map((log) => ({
     address: log.address,
     topics: log.topics,
     data: log.data,

@@ -20,7 +20,7 @@ build/
 *.swp
 *.swo
 *~
-
+.turbo
 # OS files
 .DS_Store
 Thumbs.db

@@ -84,11 +84,13 @@ export async function networkUsageExample() {
     // Generate a test wallet
     const testMnemonic =
       'test test test test test test test test test test test junk';
-    const wallet = await walletManager.generateWallet(
-      testMnemonic,
-      0,
-      networkManager.getLocalNetwork('evm')!
-    );
+    const network =
+      networkManager.getLocalNetwork('evm') ||
+      networkManager.getMainnetNetwork('evm');
+    if (!network) {
+      throw new Error('No EVM network available');
+    }
+    const wallet = await walletManager.generateWallet(testMnemonic, 0, network);
     console.log(`🔑 Generated wallet: ${wallet.address}`);
   } catch (error) {
     console.error('❌ Wallet Manager error:', error);

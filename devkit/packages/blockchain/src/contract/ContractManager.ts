@@ -12,6 +12,7 @@ import { createContractError, createNetworkError } from '@conflux-devkit/core';
 
 export class ContractManager {
   private evmClient: EvmClient | null = null;
+  private coreClient: CoreClient | null = null;
   private contracts: Map<string, ContractInfo> = new Map();
 
   constructor(evmClient?: EvmClient, coreClient?: CoreClient) {

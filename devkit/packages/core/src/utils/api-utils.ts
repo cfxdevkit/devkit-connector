@@ -197,7 +197,7 @@ export function isApiResponse<T>(
     typeof response === 'object' &&
     response !== null &&
     'success' in response &&
-    typeof (response as any).success === 'boolean'
+    typeof (response as Record<string, unknown>).success === 'boolean'
   );
 }
 

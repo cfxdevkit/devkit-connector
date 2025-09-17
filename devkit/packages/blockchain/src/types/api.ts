@@ -285,14 +285,17 @@ export interface BlockchainApiError extends ApiError {
 }
 
 // Utility types for API responses
-export type ApiResponseData<T> =
-  T extends BlockchainApiResponse<infer U> ? U : never;
+export type ApiResponseData<T> = T extends BlockchainApiResponse<infer U>
+  ? U
+  : never;
 
-export type ApiResponseSuccess<T> =
-  T extends BlockchainApiResponse<infer U> ? U & { success: true } : never;
+export type ApiResponseSuccess<T> = T extends BlockchainApiResponse<infer U>
+  ? U & { success: true }
+  : never;
 
-export type ApiResponseError<T> =
-  T extends BlockchainApiResponse<infer _U> ? BlockchainApiError : never;
+export type ApiResponseError<T> = T extends BlockchainApiResponse<infer _U>
+  ? BlockchainApiError
+  : never;
 
 // Type guards
 export function isBlockchainApiResponse<T>(

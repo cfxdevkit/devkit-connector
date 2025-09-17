@@ -20,6 +20,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { networkManager } from '../network';
 
 export class EvmClient implements IEvmClient {
+  private networkConfig: NetworkConfig;
   private client: ReturnType<typeof createPublicClient>;
   private walletClient: ReturnType<typeof createWalletClient> | null = null;
 
