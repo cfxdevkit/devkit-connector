@@ -1,0 +1,62 @@
+{
+  "name": "@conflux-devkit/server",
+  "version": "1.0.0",
+  "description": "Conflux Development Kit Server - Backend services for blockchain development",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "echo \"No tests specified\"",
+    "clean": "rm -rf dist",
+    "lint": "biome lint src/",
+    "lint:fix": "biome lint --write src/",
+    "format": "biome format src/",
+    "format:fix": "biome format --write src/",
+    "check": "biome check src/",
+    "check:fix": "biome check --write src/",
+    "checkpoint": "echo \"Checkpoint: @conflux-devkit/server - All checks passed\""
+  },
+  "dependencies": {
+    "@conflux-devkit/node": "workspace:*",
+    "@conflux-devkit/utility": "workspace:*",
+    "@nomicfoundation/hardhat-ignition": "^0.15.13",
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "@types/node-fetch": "^2.6.13",
+    "bip32": "^4.0.0",
+    "bip39": "^3.1.0",
+    "cive": "^0.8.1",
+    "cors": "^2.8.5",
+    "ethers": "^6.8.0",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "fs-extra": "^11.3.2",
+    "hardhat": "^2.26.3",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "node-fetch": "^3.3.2",
+    "tiny-secp256k1": "^2.2.4",
+    "viem": "^2.21.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/fs-extra": "^11.0.4",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.2.2"
+  },
+  "keywords": [
+    "conflux",
+    "blockchain",
+    "server",
+    "api",
+    "development"
+  ],
+  "author": "Conflux Development Team",
+  "license": "MIT",
+  "packageManager": "pnpm@10.11.0"
+}

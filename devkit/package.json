@@ -1,0 +1,64 @@
+{
+  "name": "conflux-devkit",
+  "version": "1.0.0",
+  "description": "Conflux Development Kit - Professional monorepo for blockchain development",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "clean": "turbo run clean",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "format": "turbo run format",
+    "format:fix": "turbo run format:fix",
+    "check": "turbo run check",
+    "check:fix": "turbo run check:fix",
+    "dev": "turbo run dev",
+    "checkpoint": "node scripts/checkpoint.js",
+    "start:full-stack": "concurrently --kill-others-on-fail \"turbo run dev --filter=@conflux-devkit/server\" \"turbo run dev --filter=@conflux-devkit/dashboard\"",
+    "start:devkit-node": "turbo run dev --filter=@conflux-devkit/node",
+    "start:server": "turbo run dev --filter=@conflux-devkit/server",
+    "start:dashboard": "turbo run dev --filter=@conflux-devkit/dashboard",
+    "install:all": "pnpm install",
+    "devkit-node": "turbo run start --filter=@conflux-devkit/node",
+    "devkit-node:dev": "turbo run dev --filter=@conflux-devkit/node",
+    "generate:contracts": "node scripts/generate-contract-config.cjs",
+    "contracts:sync": "pnpm run generate:contracts",
+    "postinstall": "pnpm run generate:contracts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.4",
+    "@types/node": "^20.0.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.57.0",
+    "prettier": "^3.0.0",
+    "turbo": "^2.5.6",
+    "typescript": "^5.2.2"
+  },
+  "packageManager": "pnpm@10.11.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "keywords": [
+    "conflux",
+    "blockchain",
+    "development",
+    "monorepo",
+    "devkit",
+    "node",
+    "evm",
+    "core"
+  ],
+  "author": "Conflux Development Team",
+  "license": "MIT",
+  "dependencies": {
+    "@xcfx/node": "^0.6.0",
+    "cive": "^0.8.1"
+  }
+}

@@ -1,0 +1,170 @@
+{
+  "folders": [
+    {
+      "name": "Conflux DevKit",
+      "path": ".",
+    },
+    {
+      "name": "DevKit Node",
+      "path": "./packages/devkit-node",
+    },
+    {
+      "name": "Server",
+      "path": "./packages/server",
+    },
+    {
+      "name": "Dashboard",
+      "path": "./packages/dashboard",
+    },
+    {
+      "name": "Utility",
+      "path": "./packages/utility",
+    },
+  ],
+  "settings": {
+    "typescript.preferences.includePackageJsonAutoImports": "on",
+    "typescript.suggest.autoImports": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.biome": "explicit",
+    },
+    "editor.defaultFormatter": "biomejs.biome",
+    "biome.lspBin": "biome",
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.next": true,
+      "**/coverage": true,
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.next": true,
+      "**/coverage": true,
+      "**/pnpm-lock.yaml": true,
+    },
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode.vscode-typescript-next",
+      "biomejs.biome",
+      "bradlc.vscode-tailwindcss",
+      "ms-vscode.vscode-json",
+      "redhat.vscode-yaml",
+      "ms-vscode.vscode-node-azure-pack",
+      "ms-vscode.vscode-node-debug2",
+      "ms-vscode.vscode-node-debug",
+      "ms-vscode.vscode-node-azure-pack",
+    ],
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Install Dependencies",
+        "type": "shell",
+        "command": "pnpm install",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared",
+        },
+      },
+      {
+        "label": "Build All",
+        "type": "shell",
+        "command": "pnpm run build",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared",
+        },
+      },
+      {
+        "label": "Start Full Stack",
+        "type": "shell",
+        "command": "pnpm run dev",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared",
+        },
+        "isBackground": true,
+      },
+      {
+        "label": "Start DevKit Node",
+        "type": "shell",
+        "command": "pnpm run start:devkit-node",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared",
+        },
+        "isBackground": true,
+      },
+      {
+        "label": "Start Server",
+        "type": "shell",
+        "command": "pnpm run start:server",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared",
+        },
+        "isBackground": true,
+      },
+      {
+        "label": "Start Dashboard",
+        "type": "shell",
+        "command": "pnpm run start:dashboard",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared",
+        },
+        "isBackground": true,
+      },
+    ],
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Debug DevKit Node",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/packages/devkit-node/src/index.ts",
+        "cwd": "${workspaceFolder}/packages/devkit-node",
+        "runtimeArgs": ["-r", "ts-node/register"],
+        "env": {
+          "NODE_ENV": "development",
+        },
+      },
+      {
+        "name": "Debug Server",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/packages/server/src/index.ts",
+        "cwd": "${workspaceFolder}/packages/server",
+        "runtimeArgs": ["-r", "ts-node/register"],
+        "env": {
+          "NODE_ENV": "development",
+          "ESPACE_RPC_URL": "http://localhost:8545",
+        },
+      },
+    ],
+  },
+}

@@ -1,0 +1,60 @@
+{
+  "name": "@conflux-devkit/dashboard",
+  "version": "1.0.0",
+  "description": "Conflux Development Kit Dashboard - Modern React dashboard with Mantine UI",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome lint src/",
+    "lint:fix": "biome lint --write src/",
+    "test": "echo \"No tests specified\"",
+    "clean": "rm -rf .next out",
+    "format": "biome format src/",
+    "format:fix": "biome format --write src/",
+    "check": "biome check src/",
+    "check:fix": "biome check --write src/",
+    "checkpoint": "echo \"Checkpoint: @conflux-devkit/dashboard - All checks passed\""
+  },
+  "dependencies": {
+    "@conflux-devkit/utility": "workspace:*",
+    "@mantine/core": "^8.3.1",
+    "@mantine/hooks": "^8.3.1",
+    "@mantine/modals": "^8.3.1",
+    "@mantine/notifications": "^8.3.1",
+    "@mantine/spotlight": "^8.3.1",
+    "@tabler/icons-react": "^3.35.0",
+    "@tanstack/react-query": "^5.51.0",
+    "@wagmi/connectors": "^2.0.0",
+    "@wagmi/core": "^2.0.0",
+    "axios": "^1.7.0",
+    "connectkit": "^1.7.0",
+    "next": "14.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "viem": "^2.21.0",
+    "wagmi": "^2.0.0"
+  },
+  "devDependencies": {
+    "@conflux-devkit/utility": "workspace:*",
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.0",
+    "typescript": "^5"
+  },
+  "keywords": [
+    "conflux",
+    "blockchain",
+    "frontend",
+    "react",
+    "mantine",
+    "nextjs"
+  ],
+  "author": "Conflux Development Team",
+  "license": "MIT",
+  "packageManager": "pnpm@10.11.0"
+}

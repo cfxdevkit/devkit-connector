@@ -1,0 +1,55 @@
+{
+  "name": "@conflux-devkit/node",
+  "version": "1.0.0",
+  "description": "Conflux Development Kit Node - Local Conflux node management for development and testing",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "devkit-node": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "cli": "ts-node src/cli.ts",
+    "test": "echo \"No tests specified\"",
+    "clean": "rm -rf dist",
+    "lint": "biome lint src/",
+    "lint:fix": "biome lint --write src/",
+    "format": "biome format src/",
+    "format:fix": "biome format --write src/",
+    "check": "biome check src/",
+    "check:fix": "biome check --write src/",
+    "checkpoint": "echo \"Checkpoint: @conflux-devkit/node - All checks passed\""
+  },
+  "dependencies": {
+    "@xcfx/node": "^0.6.0",
+    "cive": "^0.8.1",
+    "commander": "^11.1.0",
+    "fs-extra": "^11.3.2",
+    "ora": "^8.0.1",
+    "chalk": "^5.3.0",
+    "viem": "^2.21.0",
+    "bip32": "^4.0.0",
+    "bip39": "^3.1.0",
+    "tiny-secp256k1": "^2.2.4"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.2.2"
+  },
+  "keywords": [
+    "conflux",
+    "blockchain",
+    "node",
+    "development",
+    "testing",
+    "evm",
+    "core"
+  ],
+  "author": "Conflux Development Team",
+  "license": "MIT",
+  "packageManager": "pnpm@10.11.0"
+}

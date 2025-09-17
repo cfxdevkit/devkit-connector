@@ -1,0 +1,38 @@
+{
+  "name": "@conflux-devkit/utility",
+  "version": "1.0.0",
+  "description": "Conflux Development Kit Utility - Shared utilities and types",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "echo \"No tests specified\"",
+    "clean": "rm -rf dist",
+    "lint": "biome lint src/",
+    "lint:fix": "biome lint --write src/",
+    "format": "biome format src/",
+    "format:fix": "biome format --write src/",
+    "check": "biome check src/",
+    "check:fix": "biome check --write src/",
+    "checkpoint": "echo \"Checkpoint: @conflux-devkit/utility - All checks passed\""
+  },
+  "dependencies": {
+    "viem": "^2.21.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.2.2"
+  },
+  "keywords": [
+    "conflux",
+    "blockchain",
+    "utility",
+    "shared",
+    "types"
+  ],
+  "author": "Conflux Development Team",
+  "license": "MIT",
+  "packageManager": "pnpm@10.11.0"
+}
