@@ -1,21 +1,21 @@
 // Contract orchestrator for simplified contract management and UI visualization
 
+import type { NetworkConfig } from '../types/blockchain';
 import type {
-  ContractOrchestrator,
-  ContractMethod,
+  ContractDeploymentSummary,
   ContractEvent,
-  ContractMetadata,
-  ContractRegistryEntry,
-  ContractMethodCall,
-  ContractMethodResult,
   ContractEventFilter,
   ContractEventLog,
   ContractInteractionSummary,
-  ContractDeploymentSummary,
+  ContractMetadata,
+  ContractMethod,
+  ContractMethodCall,
+  ContractMethodResult,
+  ContractOrchestrator,
+  ContractRegistryEntry,
   ContractValidationResult,
   TypedDeploymentResult,
 } from '../types/contract-orchestration';
-import type { NetworkConfig } from '../types/blockchain';
 import { createContractError } from '../types/errors';
 
 export class ContractOrchestratorManager {
@@ -69,8 +69,8 @@ export class ContractOrchestratorManager {
         deployedBytecode: deploymentResult.deployedBytecode,
 
         methods: {
-          read: methods.filter(m => m.category === 'read'),
-          write: methods.filter(m => m.category === 'write'),
+          read: methods.filter((m) => m.category === 'read'),
+          write: methods.filter((m) => m.category === 'write'),
           events: events,
           constructor: null, // Constructor info not currently used
         },
@@ -206,29 +206,29 @@ export class ContractOrchestratorManager {
     abi: any[]
   ): ContractOrchestrator['capabilities'] {
     const hasRead = abi.some(
-      item =>
+      (item) =>
         item.type === 'function' &&
         (item.stateMutability === 'view' || item.stateMutability === 'pure')
     );
     const hasWrite = abi.some(
-      item =>
+      (item) =>
         item.type === 'function' &&
         (item.stateMutability === 'nonpayable' ||
           item.stateMutability === 'payable')
     );
-    const hasReceive = abi.some(item => item.type === 'receive');
-    const hasFallback = abi.some(item => item.type === 'fallback');
-    const hasEvents = abi.some(item => item.type === 'event');
+    const hasReceive = abi.some((item) => item.type === 'receive');
+    const hasFallback = abi.some((item) => item.type === 'fallback');
+    const hasEvents = abi.some((item) => item.type === 'event');
 
     // Check for common patterns
     const hasOwnable = abi.some(
-      item => item.name === 'owner' || item.name === 'transferOwnership'
+      (item) => item.name === 'owner' || item.name === 'transferOwnership'
     );
     const hasPausable = abi.some(
-      item => item.name === 'pause' || item.name === 'unpause'
+      (item) => item.name === 'pause' || item.name === 'unpause'
     );
     const hasUpgradeable = abi.some(
-      item => item.name === 'upgrade' || item.name === 'implementation'
+      (item) => item.name === 'upgrade' || item.name === 'implementation'
     );
 
     return {
@@ -271,9 +271,9 @@ export class ContractOrchestratorManager {
       contract.address,
       contract.metadata.description || '',
       contract.metadata.tags?.join(' ') || '',
-      contract.methods.read.map(m => m.name).join(' '),
-      contract.methods.write.map(m => m.name).join(' '),
-      contract.methods.events.map(e => e.name).join(' '),
+      contract.methods.read.map((m) => m.name).join(' '),
+      contract.methods.write.map((m) => m.name).join(' '),
+      contract.methods.events.map((e) => e.name).join(' '),
     ];
 
     return parts.join(' ').toLowerCase();
@@ -328,7 +328,7 @@ export class ContractOrchestratorManager {
    */
   filterContractsByCategory(category: string): ContractOrchestrator[] {
     return this.listContracts().filter(
-      contract => contract.metadata.category === category
+      (contract) => contract.metadata.category === category
     );
   }
 
@@ -339,7 +339,7 @@ export class ContractOrchestratorManager {
     chainType: 'core' | 'evm'
   ): ContractOrchestrator[] {
     return this.listContracts().filter(
-      contract => contract.chainType === chainType
+      (contract) => contract.chainType === chainType
     );
   }
 
@@ -349,8 +349,8 @@ export class ContractOrchestratorManager {
   getDeploymentSummary(): ContractDeploymentSummary {
     const contracts = this.listContracts();
     const byChainType = {
-      evm: contracts.filter(c => c.chainType === 'evm').length,
-      core: contracts.filter(c => c.chainType === 'core').length,
+      evm: contracts.filter((c) => c.chainType === 'evm').length,
+      core: contracts.filter((c) => c.chainType === 'core').length,
     };
 
     const byNetwork: Record<string, number> = {};
@@ -377,7 +377,7 @@ export class ContractOrchestratorManager {
       mostUsed: contracts
         .sort((a, b) => b.ui.usageCount - a.ui.usageCount)
         .slice(0, 5),
-      withErrors: contracts.filter(c => c.types.error),
+      withErrors: contracts.filter((c) => c.types.error),
     };
   }
 
@@ -494,7 +494,7 @@ export class ContractOrchestratorManager {
 
     // Categorize call
     const method = [...contract.methods.read, ...contract.methods.write].find(
-      m => m.name === methodName
+      (m) => m.name === methodName
     );
     if (method?.category === 'read') {
       summary.readCalls++;

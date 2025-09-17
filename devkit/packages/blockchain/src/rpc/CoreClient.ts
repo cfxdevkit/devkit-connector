@@ -1,21 +1,17 @@
 // Mock Core RPC client implementation - Core functionality disabled for development
 
 import type {
-  CoreClient as ICoreClient,
-  CoreTransactionRequest,
-  NetworkConfig,
   Block,
-  TransactionReceipt,
-  Log,
+  CoreClient as ICoreClient,
+  NetworkConfig,
   ReadContractParams,
-  WriteContractParams,
+  TransactionReceipt,
   TransactionRequest,
+  WriteContractParams,
 } from '@conflux-devkit/core';
 import { networkManager } from '../network';
 
 export class CoreClient implements ICoreClient {
-  private networkConfig: NetworkConfig;
-
   constructor(network: NetworkConfig) {
     this.networkConfig = network;
   }
@@ -62,7 +58,7 @@ export class CoreClient implements ICoreClient {
   }
 
   // Mock implementations that throw graceful errors
-  async getBalance(params: { address: `0x${string}` }): Promise<bigint> {
+  async getBalance(_params: { address: `0x${string}` }): Promise<bigint> {
     this.throwNotImplemented('getBalance');
   }
 
@@ -71,22 +67,22 @@ export class CoreClient implements ICoreClient {
   }
 
   async getBlock(
-    params: { blockNumber: bigint } | { blockTag: 'latest' }
+    _params: { blockNumber: bigint } | { blockTag: 'latest' }
   ): Promise<Block> {
     this.throwNotImplemented('getBlock');
   }
 
-  async getTransactionReceipt(params: {
+  async getTransactionReceipt(_params: {
     hash: `0x${string}`;
   }): Promise<TransactionReceipt | null> {
     this.throwNotImplemented('getTransactionReceipt');
   }
 
-  async sendTransaction(params: TransactionRequest): Promise<`0x${string}`> {
+  async sendTransaction(_params: TransactionRequest): Promise<`0x${string}`> {
     this.throwNotImplemented('sendTransaction');
   }
 
-  async call(params: {
+  async call(_params: {
     to: `0x${string}`;
     data: `0x${string}`;
   }): Promise<`0x${string}`> {
@@ -101,11 +97,11 @@ export class CoreClient implements ICoreClient {
     this.throwNotImplemented('getGasPrice');
   }
 
-  async readContract(params: ReadContractParams): Promise<unknown> {
+  async readContract(_params: ReadContractParams): Promise<unknown> {
     this.throwNotImplemented('readContract');
   }
 
-  async writeContract(params: WriteContractParams): Promise<`0x${string}`> {
+  async writeContract(_params: WriteContractParams): Promise<`0x${string}`> {
     this.throwNotImplemented('writeContract');
   }
 
@@ -113,7 +109,7 @@ export class CoreClient implements ICoreClient {
     this.throwNotImplemented('getEpochNumber');
   }
 
-  async estimateGas(params: TransactionRequest): Promise<bigint> {
+  async estimateGas(_params: TransactionRequest): Promise<bigint> {
     this.throwNotImplemented('estimateGas');
   }
 }

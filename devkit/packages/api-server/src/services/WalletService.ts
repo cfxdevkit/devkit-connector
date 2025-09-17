@@ -1,7 +1,7 @@
 // Wallet service
 
 import { WalletManager, WalletOperations } from '@conflux-devkit/blockchain';
-import type { WalletInfo, NetworkConfig } from '@conflux-devkit/core';
+import type { NetworkConfig, WalletInfo } from '@conflux-devkit/core';
 import { createWalletError } from '@conflux-devkit/core';
 
 export class WalletService {
@@ -61,7 +61,7 @@ export class WalletService {
       return await this.walletManager.generateWallet(mnemonic, index, network);
     } catch (error) {
       throw createWalletError('Failed to create wallet', {
-        mnemonic: mnemonic.substring(0, 10) + '...',
+        mnemonic: `${mnemonic.substring(0, 10)}...`,
         index,
         error: error instanceof Error ? error.message : 'Unknown error',
       });

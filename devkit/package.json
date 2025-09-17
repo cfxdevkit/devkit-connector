@@ -23,6 +23,8 @@
     "start:devkit-node": "turbo run dev --filter=@conflux-devkit/node",
     "start:api-server": "turbo run dev --filter=@conflux-devkit/api-server",
     "start:dashboard": "turbo run dev --filter=@conflux-devkit/dashboard",
+    "start:showcase": "turbo run dev --filter=@conflux-devkit/showcase-webapp",
+    "start:ui-ecosystem": "concurrently --kill-others-on-fail \"turbo run dev --filter=@conflux-devkit/api-server\" \"turbo run dev --filter=@conflux-devkit/showcase-webapp\"",
     "install:all": "pnpm install",
     "devkit-node": "turbo run start --filter=@conflux-devkit/node",
     "devkit-node:dev": "turbo run dev --filter=@conflux-devkit/node",

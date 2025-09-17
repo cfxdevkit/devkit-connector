@@ -2,12 +2,12 @@
 
 import type {
   ContractDeploymentConfig,
-  TypedDeploymentResult,
   NetworkConfig,
+  TypedDeploymentResult,
 } from '@conflux-devkit/core';
-import { EvmClient } from '../rpc/EvmClient';
-import { CoreClient } from '../rpc/CoreClient';
 import { createContractError } from '@conflux-devkit/core';
+import type { CoreClient } from '../rpc/CoreClient';
+import { EvmClient } from '../rpc/EvmClient';
 
 export class ContractDeployer {
   private evmClient: EvmClient | null = null;
@@ -93,8 +93,8 @@ export class ContractDeployer {
    */
   async deployCoreContract(
     config: ContractDeploymentConfig,
-    networkConfig: NetworkConfig,
-    privateKey: `0x${string}`
+    _networkConfig: NetworkConfig,
+    _privateKey: `0x${string}`
   ): Promise<TypedDeploymentResult> {
     if (!this.coreClient) {
       throw createContractError('Core client not initialized', {
@@ -135,7 +135,7 @@ export class ContractDeployer {
    */
   async estimateDeploymentGas(
     config: ContractDeploymentConfig,
-    networkConfig: NetworkConfig
+    _networkConfig: NetworkConfig
   ): Promise<bigint> {
     if (config.chainType === 'evm' && this.evmClient) {
       return await this.evmClient.estimateGas({

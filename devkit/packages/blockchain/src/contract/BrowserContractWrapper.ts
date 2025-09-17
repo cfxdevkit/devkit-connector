@@ -1,28 +1,23 @@
 // Browser-safe contract wrapper for blockchain package
 
 import type {
-  ContractOrchestrator,
-  ContractMethodCall,
-  ContractMethodResult,
   ContractEventFilter,
-  ContractEventLog,
+  ContractOrchestrator,
 } from '@conflux-devkit/core';
-import type {
-  BrowserContractOrchestrator,
-  BrowserContractMethodCall,
-  BrowserContractMethodResult,
-  BrowserContractEventFilter,
-  BrowserContractEventLog,
-  ContractInteractionOptions,
-  ContractReadOptions,
-  ContractWriteOptions,
-  ContractEventOptions,
-  ContractValidationResult,
-  ContractInteractionSummary,
-} from './types';
-import { EvmClient } from '../rpc/EvmClient';
-import { CoreClient } from '../rpc/CoreClient';
 import { createContractError } from '@conflux-devkit/core';
+import type { CoreClient } from '../rpc/CoreClient';
+import type { EvmClient } from '../rpc/EvmClient';
+import type {
+  BrowserContractEventLog,
+  BrowserContractMethodResult,
+  BrowserContractOrchestrator,
+  ContractEventOptions,
+  ContractInteractionOptions,
+  ContractInteractionSummary,
+  ContractReadOptions,
+  ContractValidationResult,
+  ContractWriteOptions,
+} from './types';
 
 export class BrowserContractWrapper {
   private orchestrator: ContractOrchestrator;
@@ -130,7 +125,7 @@ export class BrowserContractWrapper {
   async readMethod(
     methodName: string,
     parameters: Record<string, unknown> = {},
-    options: ContractReadOptions = {}
+    _options: ContractReadOptions = {}
   ): Promise<BrowserContractMethodResult> {
     try {
       const method = this.findMethod(methodName, 'read');
@@ -219,7 +214,7 @@ export class BrowserContractWrapper {
   async listenToEvents(
     eventName: string,
     options: ContractEventOptions = {},
-    callback: (log: BrowserContractEventLog) => void
+    _callback: (log: BrowserContractEventLog) => void
   ): Promise<() => void> {
     try {
       const event = this.findEvent(eventName);
@@ -227,10 +222,10 @@ export class BrowserContractWrapper {
         throw createContractError('Event not found', { eventName });
       }
 
-      const client = this.getClient();
+      const _client = this.getClient();
 
       // Convert browser options to core format
-      const filter: ContractEventFilter = {
+      const _filter: ContractEventFilter = {
         eventName,
         fromBlock: options.fromBlock ? BigInt(options.fromBlock) : undefined,
         toBlock: options.toBlock ? BigInt(options.toBlock) : undefined,
@@ -276,7 +271,7 @@ export class BrowserContractWrapper {
    */
   async estimateGas(
     methodName: string,
-    parameters: Record<string, unknown> = {},
+    _parameters: Record<string, unknown> = {},
     options: ContractInteractionOptions = {}
   ): Promise<string> {
     try {
@@ -397,7 +392,7 @@ export class BrowserContractWrapper {
   /**
    * Record interaction
    */
-  private recordInteraction(methodName: string, success: boolean): void {
+  private recordInteraction(_methodName: string, _success: boolean): void {
     this.interactionCount++;
     this.orchestrator.ui.usageCount++;
     this.orchestrator.ui.lastUsed = new Date();

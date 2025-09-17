@@ -1,6 +1,6 @@
 // Blockchain-specific API types with full normalization
 
-import type { ApiResponse, ApiError, ResponseMeta } from '@conflux-devkit/core';
+import type { ApiError, ApiResponse, ResponseMeta } from '@conflux-devkit/core';
 
 // Blockchain-aware response wrapper
 export interface BlockchainApiResponse<T = unknown> extends ApiResponse<T> {
@@ -292,7 +292,7 @@ export type ApiResponseSuccess<T> =
   T extends BlockchainApiResponse<infer U> ? U & { success: true } : never;
 
 export type ApiResponseError<T> =
-  T extends BlockchainApiResponse<infer U> ? BlockchainApiError : never;
+  T extends BlockchainApiResponse<infer _U> ? BlockchainApiError : never;
 
 // Type guards
 export function isBlockchainApiResponse<T>(

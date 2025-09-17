@@ -6,7 +6,7 @@ import { createApiResponse } from '../../utils/response';
 const router: Router = Router();
 
 // Basic health check
-router.get('/', (req, res) => {
+router.get('/', (_req, res) => {
   res.json(
     createApiResponse({
       status: 'healthy',
@@ -19,7 +19,7 @@ router.get('/', (req, res) => {
 });
 
 // Detailed health check
-router.get('/detailed', async (req, res) => {
+router.get('/detailed', async (_req, res) => {
   try {
     // This would check various system components
     const health = {

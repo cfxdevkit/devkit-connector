@@ -6,12 +6,6 @@ import type { NodeConfig, NodeStatus } from '@conflux-devkit/core';
 import { createNodeError } from '@conflux-devkit/core';
 
 export class NodeService {
-  // private nodeManager: NodeManager;
-
-  constructor() {
-    // this.nodeManager = new NodeManager();
-  }
-
   /**
    * Get node status
    */

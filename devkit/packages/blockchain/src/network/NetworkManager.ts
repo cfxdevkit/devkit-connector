@@ -2,10 +2,9 @@
 // Centralized network configuration using core package's 6 Conflux network states
 
 import {
-  getNetworkConfig,
+  getAllNetworks,
   getCoreNetworks,
   getEvmNetworks,
-  getAllNetworks,
   type NetworkConfig,
 } from '@conflux-devkit/core';
 

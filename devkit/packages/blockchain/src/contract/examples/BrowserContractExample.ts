@@ -1,16 +1,14 @@
 // Example of browser-safe contract usage
 
+import type { ContractOrchestrator, NetworkConfig } from '@conflux-devkit/core';
 import {
-  ContractFactory,
-  browserContractManager,
   type BrowserContractWrapper,
-  type BrowserContractMethodCall,
-  type BrowserContractMethodResult,
+  browserContractManager,
+  type ContractEventOptions,
+  ContractFactory,
   type ContractReadOptions,
   type ContractWriteOptions,
-  type ContractEventOptions,
 } from '../index';
-import type { ContractOrchestrator, NetworkConfig } from '@conflux-devkit/core';
 
 /**
  * Example: Complete browser contract workflow

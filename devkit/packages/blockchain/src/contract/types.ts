@@ -1,15 +1,5 @@
 // Browser-safe contract types for blockchain package
 
-import type {
-  ContractOrchestrator,
-  ContractMethod,
-  ContractEvent,
-  ContractMethodCall,
-  ContractMethodResult,
-  ContractEventFilter,
-  ContractEventLog,
-} from '@conflux-devkit/core';
-
 // Browser-safe contract method call parameters
 export interface BrowserContractMethodCall {
   methodName: string;

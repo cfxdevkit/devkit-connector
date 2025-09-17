@@ -1,18 +1,18 @@
 // Browser-safe contract manager for blockchain package
 
 import type { ContractOrchestrator } from '@conflux-devkit/core';
+import { createContractError } from '@conflux-devkit/core';
+import type { CoreClient } from '../rpc/CoreClient';
+import type { EvmClient } from '../rpc/EvmClient';
+import { BrowserContractWrapper } from './BrowserContractWrapper';
 import type {
   BrowserContractOrchestrator,
   BrowserContractRegistryEntry,
-  ContractSearchResult,
-  ContractStatistics,
   ContractDeploymentSummary,
   ContractInteractionSummary,
+  ContractSearchResult,
+  ContractStatistics,
 } from './types';
-import { BrowserContractWrapper } from './BrowserContractWrapper';
-import { EvmClient } from '../rpc/EvmClient';
-import { CoreClient } from '../rpc/CoreClient';
-import { createContractError } from '@conflux-devkit/core';
 
 export class BrowserContractManager {
   private contracts: Map<string, BrowserContractWrapper> = new Map();
@@ -368,9 +368,9 @@ export class BrowserContractManager {
    */
   recordInteraction(
     contractId: string,
-    methodName: string,
-    success: boolean,
-    gasUsed?: string
+    _methodName: string,
+    _success: boolean,
+    _gasUsed?: string
   ): void {
     const wrapper = this.contracts.get(contractId);
     if (!wrapper) return;
@@ -398,7 +398,7 @@ export class BrowserContractManager {
    */
   findContract(partialId: string): BrowserContractWrapper | undefined {
     // Try exact match first
-    let wrapper = this.contracts.get(partialId);
+    const wrapper = this.contracts.get(partialId);
     if (wrapper) return wrapper;
 
     // Try partial match on ID

@@ -8,7 +8,7 @@ const router: Router = Router();
 const walletService = new WalletService();
 
 // Get all wallets
-router.get('/', async (req, res) => {
+router.get('/', async (_req, res) => {
   try {
     const wallets = await walletService.getAllWallets();
     res.json(createApiResponse(wallets));

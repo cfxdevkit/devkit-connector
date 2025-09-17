@@ -1,0 +1,41 @@
+{
+  "name": "@conflux-devkit/state",
+  "version": "1.0.0",
+  "description": "State management layer for Conflux DevKit with Zustand stores and live contract state",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "check": "biome check src/",
+    "check:fix": "biome check --write src/",
+    "format": "biome format --write src/",
+    "lint": "biome lint src/",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@conflux-devkit/core": "workspace:*",
+    "@conflux-devkit/blockchain": "workspace:*",
+    "zustand": "^4.4.7",
+    "immer": "^10.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0",
+    "@biomejs/biome": "^2.2.4"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0"
+  },
+  "keywords": [
+    "conflux",
+    "blockchain",
+    "state-management",
+    "zustand",
+    "react",
+    "devkit"
+  ],
+  "author": "Conflux DevKit Team",
+  "license": "MIT"
+}

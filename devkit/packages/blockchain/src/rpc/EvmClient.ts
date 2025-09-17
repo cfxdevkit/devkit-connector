@@ -1,34 +1,27 @@
 // Functional EVM RPC client implementation using viem
 
+import type {
+  Block,
+  EvmClient as IEvmClient,
+  NetworkConfig,
+  ReadContractParams,
+  TransactionReceipt,
+  TransactionRequest,
+  WriteContractParams,
+} from '@conflux-devkit/core';
+import { normalizeAddress } from '@conflux-devkit/core';
 import {
+  type Address,
   createPublicClient,
   createWalletClient,
   http,
-  type Address,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import type {
-  EvmClient as IEvmClient,
-  NetworkConfig,
-  Block,
-  TransactionReceipt,
-  ReadContractParams,
-  WriteContractParams,
-  SendTransactionParams,
-  TransactionRequest,
-} from '@conflux-devkit/core';
 import { networkManager } from '../network';
-import {
-  normalizeAddress,
-  normalizeBigInt,
-  normalizeTxHash,
-  normalizeBlockNumber,
-} from '@conflux-devkit/core';
 
 export class EvmClient implements IEvmClient {
   private client: ReturnType<typeof createPublicClient>;
   private walletClient: ReturnType<typeof createWalletClient> | null = null;
-  private networkConfig: NetworkConfig;
 
   constructor(network: NetworkConfig, privateKey?: `0x${string}`) {
     this.networkConfig = network;
@@ -144,7 +137,7 @@ export class EvmClient implements IEvmClient {
     };
   }
 
-  async sendTransaction(params: TransactionRequest): Promise<`0x${string}`> {
+  async sendTransaction(_params: TransactionRequest): Promise<`0x${string}`> {
     if (!this.walletClient) {
       throw new Error('Wallet client not initialized - private key required');
     }
@@ -183,7 +176,7 @@ export class EvmClient implements IEvmClient {
     });
   }
 
-  async writeContract(params: WriteContractParams): Promise<`0x${string}`> {
+  async writeContract(_params: WriteContractParams): Promise<`0x${string}`> {
     // Simplified implementation
     throw new Error(
       'writeContract not implemented - use viem directly for now'

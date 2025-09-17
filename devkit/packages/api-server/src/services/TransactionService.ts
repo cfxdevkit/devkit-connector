@@ -2,10 +2,10 @@
 
 import { TransactionManager } from '@conflux-devkit/blockchain';
 import type {
+  NetworkConfig,
+  TransactionReceipt,
   TransactionRequest,
   TransactionResponse,
-  TransactionReceipt,
-  NetworkConfig,
 } from '@conflux-devkit/core';
 import { createNetworkError } from '@conflux-devkit/core';
 

@@ -8,7 +8,7 @@ const router: Router = Router();
 const contractService = new ContractService();
 
 // Get all contracts
-router.get('/', async (req, res) => {
+router.get('/', async (_req, res) => {
   try {
     const contracts = await contractService.getAllContracts();
     res.json(createApiResponse(contracts));

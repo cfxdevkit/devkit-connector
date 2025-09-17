@@ -1,14 +1,14 @@
 // Transaction management for blockchain operations
 
 import type {
+  CoreClient,
+  EvmClient,
+  NetworkConfig,
+  TransactionReceipt,
   TransactionRequest,
   TransactionResponse,
-  TransactionReceipt,
-  EvmClient,
-  CoreClient,
-  NetworkConfig,
 } from '@conflux-devkit/core';
-import { createNetworkError, createWalletError } from '@conflux-devkit/core';
+import { createNetworkError } from '@conflux-devkit/core';
 
 export class TransactionManager {
   private evmClient: EvmClient | null = null;
@@ -24,7 +24,7 @@ export class TransactionManager {
    */
   async sendEvmTransaction(
     transaction: TransactionRequest,
-    network: NetworkConfig
+    _network: NetworkConfig
   ): Promise<`0x${string}`> {
     try {
       if (!this.evmClient) {
@@ -53,7 +53,7 @@ export class TransactionManager {
    */
   async sendCoreTransaction(
     transaction: TransactionRequest,
-    network: NetworkConfig
+    _network: NetworkConfig
   ): Promise<`0x${string}`> {
     try {
       if (!this.coreClient) {
@@ -83,7 +83,7 @@ export class TransactionManager {
    */
   async waitForTransactionReceipt(
     hash: `0x${string}`,
-    network: NetworkConfig
+    _network: NetworkConfig
   ): Promise<TransactionReceipt> {
     try {
       if (!this.evmClient) {
@@ -136,7 +136,7 @@ export class TransactionManager {
    */
   async estimateGas(
     transaction: TransactionRequest,
-    network: NetworkConfig
+    _network: NetworkConfig
   ): Promise<bigint> {
     try {
       if (!this.evmClient) {
@@ -161,7 +161,7 @@ export class TransactionManager {
   /**
    * Get gas price
    */
-  async getGasPrice(network: NetworkConfig): Promise<bigint> {
+  async getGasPrice(_network: NetworkConfig): Promise<bigint> {
     try {
       if (!this.evmClient) {
         throw createNetworkError('EVM client not initialized');

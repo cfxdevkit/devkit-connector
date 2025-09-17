@@ -8,7 +8,7 @@ const router: Router = Router();
 const nodeService = new NodeService();
 
 // Get node status
-router.get('/status', async (req, res) => {
+router.get('/status', async (_req, res) => {
   try {
     const status = await nodeService.getNodeStatus();
     res.json(createApiResponse(status));
@@ -43,7 +43,7 @@ router.post('/start', async (req, res) => {
 });
 
 // Stop node
-router.post('/stop', async (req, res) => {
+router.post('/stop', async (_req, res) => {
   try {
     await nodeService.stopNode();
     res.json(createApiResponse({ message: 'Node stopped successfully' }));
@@ -78,7 +78,7 @@ router.post('/restart', async (req, res) => {
 });
 
 // Get node configuration
-router.get('/config', async (req, res) => {
+router.get('/config', async (_req, res) => {
   try {
     const config = await nodeService.getNodeConfig();
     res.json(createApiResponse(config));

@@ -1,17 +1,12 @@
 // Wallet management for blockchain operations
 
-import { generateMnemonic, mnemonicToSeedSync } from 'bip39';
-import { BIP32Factory } from 'bip32';
-import * as ecc from 'tiny-secp256k1';
-import {
-  createPublicClient,
-  createWalletClient,
-  http,
-  formatEther,
-} from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
-import type { WalletInfo, NetworkConfig } from '@conflux-devkit/core';
+import type { NetworkConfig, WalletInfo } from '@conflux-devkit/core';
 import { createWalletError } from '@conflux-devkit/core';
+import { BIP32Factory } from 'bip32';
+import { mnemonicToSeedSync } from 'bip39';
+import * as ecc from 'tiny-secp256k1';
+import { formatEther } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 import { networkManager } from '../network';
 
 const bip32 = BIP32Factory(ecc);
@@ -57,7 +52,7 @@ export class WalletManager {
   async generateWallet(
     mnemonic: string,
     index: number = 0,
-    network: NetworkConfig
+    _network: NetworkConfig
   ): Promise<WalletInfo> {
     try {
       // Validate mnemonic
@@ -94,7 +89,7 @@ export class WalletManager {
       return wallet;
     } catch (error) {
       throw createWalletError('Failed to generate wallet', {
-        mnemonic: mnemonic.substring(0, 10) + '...',
+        mnemonic: `${mnemonic.substring(0, 10)}...`,
         index,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
@@ -142,7 +137,7 @@ export class WalletManager {
       return wallet;
     } catch (error) {
       throw createWalletError('Failed to create wallet from private key', {
-        privateKey: privateKey.substring(0, 10) + '...',
+        privateKey: `${privateKey.substring(0, 10)}...`,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
@@ -168,7 +163,7 @@ export class WalletManager {
   async updateWalletBalance(
     address: `0x${string}`,
     balance: bigint,
-    network: NetworkConfig
+    _network: NetworkConfig
   ): Promise<void> {
     const wallet = this.wallets.get(address);
     if (!wallet) {

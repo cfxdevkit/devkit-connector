@@ -2,9 +2,9 @@
 
 import { ContractManager } from '@conflux-devkit/blockchain';
 import type {
-  ContractInfo,
-  ContractCallResult,
   AbiItem,
+  ContractCallResult,
+  ContractInfo,
   NetworkConfig,
 } from '@conflux-devkit/core';
 import { createContractError } from '@conflux-devkit/core';

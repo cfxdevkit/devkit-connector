@@ -1,18 +1,17 @@
 // Contract management for blockchain operations
 
 import type {
-  ContractInfo,
-  ContractCallResult,
-  EvmClient,
-  CoreClient,
-  NetworkConfig,
   AbiItem,
+  ContractCallResult,
+  ContractInfo,
+  CoreClient,
+  EvmClient,
+  NetworkConfig,
 } from '@conflux-devkit/core';
 import { createContractError, createNetworkError } from '@conflux-devkit/core';
 
 export class ContractManager {
   private evmClient: EvmClient | null = null;
-  private coreClient: CoreClient | null = null;
   private contracts: Map<string, ContractInfo> = new Map();
 
   constructor(evmClient?: EvmClient, coreClient?: CoreClient) {
@@ -25,10 +24,10 @@ export class ContractManager {
    */
   async deployContract(
     bytecode: `0x${string}`,
-    abi: AbiItem[],
+    _abi: AbiItem[],
     name: string,
     network: NetworkConfig,
-    constructorArgs: unknown[] = []
+    _constructorArgs: unknown[] = []
   ): Promise<ContractInfo> {
     try {
       if (!this.evmClient) {
@@ -59,7 +58,7 @@ export class ContractManager {
     abi: AbiItem[],
     functionName: string,
     args: unknown[] = [],
-    network: NetworkConfig
+    _network: NetworkConfig
   ): Promise<ContractCallResult> {
     try {
       if (!this.evmClient) {
@@ -94,7 +93,7 @@ export class ContractManager {
     functionName: string,
     args: unknown[] = [],
     value: bigint = 0n,
-    network: NetworkConfig
+    _network: NetworkConfig
   ): Promise<`0x${string}`> {
     try {
       if (!this.evmClient) {

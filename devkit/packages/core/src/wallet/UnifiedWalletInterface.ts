@@ -1,16 +1,16 @@
 // Unified wallet interface that routes to correct implementation based on network type
 
 import type {
-  WalletInfo,
-  NetworkConfig,
-  TransactionRequest,
-  ReadContractParams,
-  WriteContractParams,
-  SendTransactionParams,
-  CoreTransactionRequest,
-  UnifiedClient,
-  EvmClient,
   CoreClient,
+  CoreTransactionRequest,
+  EvmClient,
+  NetworkConfig,
+  ReadContractParams,
+  SendTransactionParams,
+  TransactionRequest,
+  UnifiedClient,
+  WalletInfo,
+  WriteContractParams,
 } from '../types/blockchain';
 
 export interface UnifiedWalletInterface {

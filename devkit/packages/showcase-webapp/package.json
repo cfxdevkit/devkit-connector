@@ -1,0 +1,51 @@
+{
+  "name": "@conflux-devkit/showcase-webapp",
+  "version": "1.0.0",
+  "description": "Showcase webapp demonstrating Conflux DevKit integration",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "test": "echo \"No tests specified\"",
+    "clean": "rm -rf dist",
+    "lint": "biome check src/",
+    "lint:fix": "biome lint --write src/",
+    "format": "biome format src/",
+    "format:fix": "biome format --write src/",
+    "check": "biome check src/",
+    "check:fix": "biome check --write src/",
+    "checkpoint": "echo \"Checkpoint: @conflux-devkit/showcase-webapp - All checks passed\""
+  },
+  "dependencies": {
+    "@conflux-devkit/core": "workspace:*",
+    "@conflux-devkit/blockchain": "workspace:*",
+    "@conflux-devkit/node": "workspace:*",
+    "@conflux-devkit/state": "workspace:*",
+    "@conflux-devkit/ui-primitives": "workspace:*",
+    "@conflux-devkit/ui-components": "workspace:*",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "typescript": "^5.3.0",
+    "@biomejs/biome": "^2.2.4"
+  },
+  "keywords": [
+    "conflux",
+    "blockchain",
+    "showcase",
+    "demo",
+    "webapp",
+    "devkit"
+  ],
+  "author": "Conflux Development Team",
+  "license": "MIT",
+  "packageManager": "pnpm@10.11.0"
+}

@@ -1,25 +1,18 @@
 // Wallet-specific operations
 
-import {
-  createPublicClient,
-  createWalletClient,
-  http,
-  formatEther,
-  parseEther,
-} from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
 import type {
-  WalletInfo,
+  CoreClient,
+  EvmClient,
   NetworkConfig,
   TransactionRequest,
-  EvmClient,
-  CoreClient,
+  WalletInfo,
 } from '@conflux-devkit/core';
-import { createWalletError, createNetworkError } from '@conflux-devkit/core';
+import { createNetworkError, createWalletError } from '@conflux-devkit/core';
+import { parseEther } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 
 export class WalletOperations {
   private evmClient: EvmClient | null = null;
-  private coreClient: CoreClient | null = null;
 
   constructor(evmClient?: EvmClient, coreClient?: CoreClient) {
     this.evmClient = evmClient || null;
@@ -39,8 +32,8 @@ export class WalletOperations {
         throw createNetworkError('EVM client not initialized');
       }
 
-      const account = privateKeyToAccount(wallet.privateKey);
-      const value = parseEther(amount);
+      const _account = privateKeyToAccount(wallet.privateKey);
+      const _value = parseEther(amount);
 
       // This is a simplified implementation
       // In a real scenario, you'd need to have a funded account to send from
@@ -66,7 +59,7 @@ export class WalletOperations {
    */
   async getWalletBalance(
     wallet: WalletInfo,
-    network: NetworkConfig
+    _network: NetworkConfig
   ): Promise<bigint> {
     try {
       if (!this.evmClient) {
@@ -91,14 +84,14 @@ export class WalletOperations {
   async sendTransaction(
     wallet: WalletInfo,
     transaction: TransactionRequest,
-    network: NetworkConfig
+    _network: NetworkConfig
   ): Promise<`0x${string}`> {
     try {
       if (!this.evmClient) {
         throw createNetworkError('EVM client not initialized');
       }
 
-      const account = privateKeyToAccount(wallet.privateKey);
+      const _account = privateKeyToAccount(wallet.privateKey);
 
       const hash = await this.evmClient.sendTransaction({
         to: transaction.to,
@@ -124,15 +117,15 @@ export class WalletOperations {
   async signMessage(
     wallet: WalletInfo,
     message: string,
-    network: NetworkConfig
+    _network: NetworkConfig
   ): Promise<`0x${string}`> {
     try {
-      const account = privateKeyToAccount(wallet.privateKey);
+      const _account = privateKeyToAccount(wallet.privateKey);
 
       // This would require a wallet client implementation
       throw createWalletError('Message signing not implemented', {
         wallet: wallet.address,
-        message: message.substring(0, 20) + '...',
+        message: `${message.substring(0, 20)}...`,
       });
     } catch (error) {
       throw createWalletError('Failed to sign message', {

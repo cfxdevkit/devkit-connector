@@ -1,15 +1,15 @@
 // Express server setup
 
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import { createInternalError } from '@conflux-devkit/core';
-import { walletRoutes } from './routes/wallet';
-import { transactionRoutes } from './routes/transaction';
+import cors from 'cors';
+import express from 'express';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 import { contractRoutes } from './routes/contract';
-import { nodeRoutes } from './routes/node';
 import { healthRoutes } from './routes/health';
+import { nodeRoutes } from './routes/node';
+import { transactionRoutes } from './routes/transaction';
+import { walletRoutes } from './routes/wallet';
 
 export class ApiServer {
   private app: express.Application;
@@ -53,7 +53,7 @@ export class ApiServer {
     this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
     // Request logging
-    this.app.use((req, res, next) => {
+    this.app.use((req, _res, next) => {
       console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
       next();
     });
@@ -73,7 +73,7 @@ export class ApiServer {
     this.app.use('/api/node', nodeRoutes);
 
     // Root route
-    this.app.get('/', (req, res) => {
+    this.app.get('/', (_req, res) => {
       res.json({
         message: 'Conflux DevKit API Server',
         version: '1.0.0',
@@ -104,7 +104,7 @@ export class ApiServer {
         error: Error,
         req: express.Request,
         res: express.Response,
-        next: express.NextFunction
+        _next: express.NextFunction
       ) => {
         console.error('API Error:', error);
 

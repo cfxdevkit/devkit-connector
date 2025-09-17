@@ -2,8 +2,8 @@
 // Demonstrates how to use the centralized 6 Conflux network states
 
 import { networkManager } from '../network';
-import { EvmClient } from '../rpc/EvmClient';
 import { CoreClient } from '../rpc/CoreClient';
+import { EvmClient } from '../rpc/EvmClient';
 import { WalletManager } from '../wallet/WalletManager';
 
 /**
@@ -44,10 +44,10 @@ export async function networkUsageExample() {
     const evmLocal = EvmClient.createLocal();
     console.log('✅ EVM Local client created');
 
-    const evmTestnet = EvmClient.createTestnet();
+    const _evmTestnet = EvmClient.createTestnet();
     console.log('✅ EVM Testnet client created');
 
-    const evmMainnet = EvmClient.createMainnet();
+    const _evmMainnet = EvmClient.createMainnet();
     console.log('✅ EVM Mainnet client created');
 
     // Test basic functionality
@@ -62,10 +62,10 @@ export async function networkUsageExample() {
     const coreLocal = CoreClient.createLocal();
     console.log('✅ Core Local client created');
 
-    const coreTestnet = CoreClient.createTestnet();
+    const _coreTestnet = CoreClient.createTestnet();
     console.log('✅ Core Testnet client created');
 
-    const coreMainnet = CoreClient.createMainnet();
+    const _coreMainnet = CoreClient.createMainnet();
     console.log('✅ Core Mainnet client created');
 
     // Test basic functionality

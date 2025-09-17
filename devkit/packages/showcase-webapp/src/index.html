@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conflux DevKit Showcase</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 40px;
+        color: white;
+      }
+
+      .header h1 {
+        font-size: 3rem;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+      }
+
+      .showcase-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+      }
+
+      .showcase-card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
+      }
+
+      .showcase-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      }
+
+      .showcase-card h2 {
+        color: #4a5568;
+        margin-bottom: 15px;
+        font-size: 1.5rem;
+      }
+
+      .showcase-card p {
+        color: #718096;
+        margin-bottom: 20px;
+        line-height: 1.6;
+      }
+
+      .demo-area {
+        border: 2px dashed #e2e8f0;
+        border-radius: 8px;
+        padding: 20px;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f7fafc;
+      }
+
+      .demo-placeholder {
+        text-align: center;
+        color: #a0aec0;
+      }
+
+      .demo-placeholder h3 {
+        margin-bottom: 10px;
+        color: #4a5568;
+      }
+
+      .demo-placeholder p {
+        font-size: 0.9rem;
+      }
+
+      .features {
+        background: white;
+        border-radius: 12px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        margin-bottom: 40px;
+      }
+
+      .features h2 {
+        text-align: center;
+        color: #4a5568;
+        margin-bottom: 30px;
+        font-size: 2rem;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+      }
+
+      .feature {
+        text-align: center;
+      }
+
+      .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+      }
+
+      .feature h3 {
+        color: #4a5568;
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+      }
+
+      .feature p {
+        color: #718096;
+        line-height: 1.6;
+      }
+
+      .integration-examples {
+        background: white;
+        border-radius: 12px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .integration-examples h2 {
+        text-align: center;
+        color: #4a5568;
+        margin-bottom: 30px;
+        font-size: 2rem;
+      }
+
+      .code-example {
+        background: #2d3748;
+        color: #e2e8f0;
+        padding: 20px;
+        border-radius: 8px;
+        font-family: 'Monaco', 'Menlo', monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        overflow-x: auto;
+        margin: 20px 0;
+      }
+
+      .code-example .comment {
+        color: #68d391;
+      }
+
+      .code-example .keyword {
+        color: #f687b3;
+      }
+
+      .code-example .string {
+        color: #fbb6ce;
+      }
+
+      .footer {
+        text-align: center;
+        color: white;
+        margin-top: 40px;
+        padding: 20px;
+      }
+
+      .footer a {
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .footer a:hover {
+        text-decoration: underline;
+      }
+
+      .status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+
+      .status-online {
+        background: #10b981;
+        animation: pulse 2s infinite;
+      }
+
+      .status-offline {
+        background: #ef4444;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        background: #3b82f6;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: background 0.3s ease;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .btn:hover {
+        background: #2563eb;
+      }
+
+      .btn.secondary {
+        background: #6b7280;
+      }
+
+      .btn.secondary:hover {
+        background: #4b5563;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🚀 Conflux DevKit Showcase</h1>
+        <p>Complete UI Ecosystem Demonstration</p>
+        <div style="margin-top: 20px">
+          <span class="status-indicator status-online"></span>
+          <span>API Server: <span id="api-status">Connecting...</span></span>
+        </div>
+      </div>
+
+      <div class="showcase-grid">
+        <div class="showcase-card">
+          <h2>📦 React Primitives</h2>
+          <p>
+            React hooks and context providers for seamless state management and
+            data access.
+          </p>
+          <div class="demo-area">
+            <div class="demo-placeholder">
+              <h3>React Components</h3>
+              <p>Contract, Wallet, and Node management hooks</p>
+              <button class="btn" onclick="loadReactDemo()">Load Demo</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="showcase-card">
+          <h2>🧩 Vanilla Components</h2>
+          <p>
+            Framework-agnostic web components that work with any frontend
+            framework.
+          </p>
+          <div class="demo-area">
+            <div class="demo-placeholder">
+              <h3>Web Components</h3>
+              <p>Custom elements for blockchain interactions</p>
+              <button class="btn" onclick="loadVanillaDemo()">Load Demo</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="showcase-card">
+          <h2>🔗 API Integration</h2>
+          <p>
+            Orchestrated API server with comprehensive endpoints for all
+            blockchain operations.
+          </p>
+          <div class="demo-area">
+            <div class="demo-placeholder">
+              <h3>API Endpoints</h3>
+              <p>RESTful API with real-time updates</p>
+              <button class="btn" onclick="loadApiDemo()">Load Demo</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="showcase-card">
+          <h2>📊 State Management</h2>
+          <p>
+            Zustand-based state management with persistence and real-time
+            synchronization.
+          </p>
+          <div class="demo-area">
+            <div class="demo-placeholder">
+              <h3>State Store</h3>
+              <p>Global state with automatic persistence</p>
+              <button class="btn" onclick="loadStateDemo()">Load Demo</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="features">
+        <h2>✨ Key Features</h2>
+        <div class="features-grid">
+          <div class="feature">
+            <div class="feature-icon">⚡</div>
+            <h3>Real-time Updates</h3>
+            <p>Live data synchronization across all components and services</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">🔒</div>
+            <h3>Type Safety</h3>
+            <p>Full TypeScript support with comprehensive type definitions</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">🎨</div>
+            <h3>Customizable UI</h3>
+            <p>Flexible theming and styling options for any design system</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">🚀</div>
+            <h3>High Performance</h3>
+            <p>
+              Optimized for speed with efficient state management and rendering
+            </p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">🔧</div>
+            <h3>Easy Integration</h3>
+            <p>Simple setup and configuration for any project</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">📱</div>
+            <h3>Responsive Design</h3>
+            <p>Mobile-first approach with adaptive layouts</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="integration-examples">
+        <h2>💻 Integration Examples</h2>
+
+        <h3 style="color: #4a5568; margin: 30px 0 15px 0">React Integration</h3>
+        <div class="code-example">
+          <span class="comment">// Install the packages</span>
+          npm install @conflux-devkit/ui-primitives @conflux-devkit/state
+
+          <span class="comment">// Use in your React app</span>
+          <span class="keyword">import</span> { UIProvider, useContracts,
+          useWallets } <span class="keyword">from</span>
+          <span class="string">'@conflux-devkit/ui-primitives'</span>;
+
+          <span class="keyword">function</span>
+          <span class="keyword">App</span>() {
+          <span class="keyword">return</span> ( &lt;UIProvider&gt; &lt;Dashboard
+          /&gt; &lt;/UIProvider&gt; ); }
+
+          <span class="keyword">function</span>
+          <span class="keyword">Dashboard</span>() {
+          <span class="keyword">const</span> { contracts, deployContract } =
+          <span class="keyword">useContracts</span>();
+          <span class="keyword">const</span> { wallets, createWallet } =
+          <span class="keyword">useWallets</span>();
+
+          <span class="keyword">return</span> ( &lt;div&gt; &lt;h1&gt;My Conflux
+          App&lt;/h1&gt; &lt;p&gt;Contracts: {contracts.length}&lt;/p&gt;
+          &lt;p&gt;Wallets: {wallets.length}&lt;/p&gt; &lt;/div&gt; ); }
+        </div>
+
+        <h3 style="color: #4a5568; margin: 30px 0 15px 0">
+          Vanilla Web Components
+        </h3>
+        <div class="code-example">
+          <span class="comment">// Include the web components</span>
+          &lt;script <span class="keyword">type</span>=<span class="string"
+            >"module"</span
+          >
+          <span class="keyword">src</span>=<span class="string"
+            >"@conflux-devkit/ui-components"</span
+          >&gt;&lt;/script&gt;
+
+          <span class="comment">// Use in your HTML</span>
+          &lt;conflux-contract-card
+          <span class="keyword">contract</span
+          >='{"name":"MyContract","address":"0x123..."}'
+          <span class="keyword">active</span>
+          <span class="keyword">show-actions</span>&gt;
+          &lt;/conflux-contract-card&gt; &lt;conflux-wallet-card
+          <span class="keyword">wallet</span
+          >='{"address":"0x456...","balance":"1000000000000000000"}'
+          <span class="keyword">active</span>&gt; &lt;/conflux-wallet-card&gt;
+          &lt;conflux-node-status
+          <span class="keyword">status</span
+          >='{"running":true,"health":"healthy"}'
+          <span class="keyword">show-actions</span>&gt;
+          &lt;/conflux-node-status&gt;
+        </div>
+
+        <h3 style="color: #4a5568; margin: 30px 0 15px 0">
+          API Server Integration
+        </h3>
+        <div class="code-example">
+          <span class="comment">// Start the orchestrated API server</span>
+          npm run dev:orchestrated
+
+          <span class="comment">// Use the API endpoints</span>
+          <span class="keyword">const</span> response =
+          <span class="keyword">await</span> fetch(<span class="string"
+            >'http://localhost:3001/api/contracts'</span
+          >); <span class="keyword">const</span> contracts =
+          <span class="keyword">await</span> response.json();
+
+          <span class="keyword">const</span> walletResponse =
+          <span class="keyword">await</span> fetch(<span class="string"
+            >'http://localhost:3001/api/wallets'</span
+          >); <span class="keyword">const</span> wallets =
+          <span class="keyword">await</span> walletResponse.json();
+
+          <span class="keyword">const</span> nodeResponse =
+          <span class="keyword">await</span> fetch(<span class="string"
+            >'http://localhost:3001/api/node/status'</span
+          >); <span class="keyword">const</span> nodeStatus =
+          <span class="keyword">await</span> nodeResponse.json();
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>Built with ❤️ by the Conflux Development Team</p>
+        <p>
+          <a href="https://github.com/conflux-devkit" target="_blank">GitHub</a>
+          |
+          <a href="https://docs.conflux-devkit.com" target="_blank"
+            >Documentation</a
+          >
+          |
+          <a href="https://discord.gg/conflux" target="_blank">Discord</a>
+        </p>
+      </div>
+    </div>
+
+    <script type="module">
+      // Check API server status
+      async function checkApiStatus() {
+        try {
+          const response = await fetch('http://localhost:3001/api/health');
+          if (response.ok) {
+            document.getElementById('api-status').textContent = 'Online';
+            document.querySelector('.status-indicator').className =
+              'status-indicator status-online';
+          } else {
+            throw new Error('API not responding');
+          }
+        } catch (error) {
+          document.getElementById('api-status').textContent = 'Offline';
+          document.querySelector('.status-indicator').className =
+            'status-indicator status-offline';
+        }
+      }
+
+      // Check status on load and every 30 seconds
+      checkApiStatus();
+      setInterval(checkApiStatus, 30000);
+
+      // Demo functions
+      window.loadReactDemo = function () {
+        alert(
+          'React Demo: This would load a React component demonstration with hooks and context providers.'
+        );
+      };
+
+      window.loadVanillaDemo = function () {
+        alert(
+          'Vanilla Demo: This would load web components demonstrating contract cards, wallet cards, and node status.'
+        );
+      };
+
+      window.loadApiDemo = function () {
+        alert(
+          'API Demo: This would show live API calls to the orchestrated server with real-time data.'
+        );
+      };
+
+      window.loadStateDemo = function () {
+        alert(
+          'State Demo: This would demonstrate the Zustand store with persistence and real-time updates.'
+        );
+      };
+    </script>
+  </body>
+</html>

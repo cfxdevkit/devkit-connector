@@ -1,12 +1,12 @@
 // RPC client management
 
 import type {
-  EvmClient as IEvmClient,
   CoreClient as ICoreClient,
+  EvmClient as IEvmClient,
   NetworkConfig,
 } from '@conflux-devkit/core';
-import { EvmClient } from './EvmClient';
 import { CoreClient } from './CoreClient';
+import { EvmClient } from './EvmClient';
 
 export class RpcManager {
   private evmClient: IEvmClient | null = null;

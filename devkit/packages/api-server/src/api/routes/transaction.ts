@@ -94,7 +94,7 @@ router.post('/estimate-gas', async (req, res) => {
 });
 
 // Get gas price
-router.get('/gas-price', async (req, res) => {
+router.get('/gas-price', async (_req, res) => {
   try {
     const gasPrice = await transactionService.getGasPrice();
     res.json(createApiResponse({ gasPrice: gasPrice.toString() }));

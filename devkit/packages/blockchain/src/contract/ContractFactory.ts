@@ -1,11 +1,11 @@
 // Contract factory for creating browser-safe contract instances
 
 import type { ContractOrchestrator, NetworkConfig } from '@conflux-devkit/core';
-import type { BrowserContractWrapper } from './BrowserContractWrapper';
-import { EvmClient } from '../rpc/EvmClient';
-import { CoreClient } from '../rpc/CoreClient';
-import { browserContractManager } from './BrowserContractManager';
 import { createContractError } from '@conflux-devkit/core';
+import { CoreClient } from '../rpc/CoreClient';
+import { EvmClient } from '../rpc/EvmClient';
+import { browserContractManager } from './BrowserContractManager';
+import type { BrowserContractWrapper } from './BrowserContractWrapper';
 
 export class ContractFactory {
   /**
@@ -124,10 +124,14 @@ export class ContractFactory {
       };
 
       // Extract methods and events from ABI
-      this.extractContractInterface(orchestrator, abi);
+      ContractFactory.extractContractInterface(orchestrator, abi);
 
       // Create contract wrapper
-      return this.createContract(orchestrator, networkConfig, privateKey);
+      return ContractFactory.createContract(
+        orchestrator,
+        networkConfig,
+        privateKey
+      );
     } catch (error) {
       throw createContractError('Failed to create contract from address', {
         address,
@@ -149,7 +153,7 @@ export class ContractFactory {
 
     for (const orchestrator of orchestrators) {
       try {
-        const wrapper = this.createContract(
+        const wrapper = ContractFactory.createContract(
           orchestrator,
           networkConfig,
           privateKey
@@ -179,7 +183,7 @@ export class ContractFactory {
         throw new Error('Missing required fields: address and abi');
       }
 
-      return this.createContractFromAddress(
+      return ContractFactory.createContractFromAddress(
         data.address,
         data.abi,
         networkConfig,
@@ -202,7 +206,7 @@ export class ContractFactory {
   ): void {
     const methods: any[] = [];
     const events: any[] = [];
-    let constructor: any = null;
+    let contractConstructor: any = null;
 
     for (const item of abi) {
       if (item.type === 'function') {
@@ -212,7 +216,7 @@ export class ContractFactory {
           stateMutability: item.stateMutability,
           inputs: item.inputs || [],
           outputs: item.outputs || [],
-          category: this.categorizeMethod(item),
+          category: ContractFactory.categorizeMethod(item),
           isPayable: item.stateMutability === 'payable',
           isView: item.stateMutability === 'view',
           isPure: item.stateMutability === 'pure',
@@ -223,11 +227,11 @@ export class ContractFactory {
           name: item.name,
           inputs: item.inputs || [],
           anonymous: item.anonymous || false,
-          category: this.categorizeEvent(item),
+          category: ContractFactory.categorizeEvent(item),
         };
         events.push(event);
       } else if (item.type === 'constructor') {
-        constructor = {
+        contractConstructor = {
           name: 'constructor',
           type: 'constructor',
           stateMutability: item.stateMutability || 'nonpayable',
@@ -247,7 +251,7 @@ export class ContractFactory {
       read: readMethods,
       write: writeMethods,
       events: events,
-      constructor: constructor,
+      constructor: contractConstructor,
     };
 
     // Update capabilities
