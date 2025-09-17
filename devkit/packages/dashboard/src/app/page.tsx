@@ -277,7 +277,7 @@ export default function DashboardPage() {
     }
   };
 
-  const completedSteps = checklistSteps.filter((step) => step.completed).length;
+  const completedSteps = checklistSteps.filter(step => step.completed).length;
   const totalSteps = checklistSteps.length;
 
   return (

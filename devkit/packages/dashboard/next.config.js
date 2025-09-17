@@ -10,7 +10,13 @@ const nextConfig = {
   output: 'standalone',
   trailingSlash: true,
   experimental: {
-    optimizePackageImports: ['@mantine/core', '@mantine/hooks', '@mantine/modals', '@mantine/notifications', '@tabler/icons-react'],
+    optimizePackageImports: [
+      '@mantine/core',
+      '@mantine/hooks',
+      '@mantine/modals',
+      '@mantine/notifications',
+      '@tabler/icons-react',
+    ],
   },
 };
 
