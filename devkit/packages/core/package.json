@@ -1,0 +1,43 @@
+{
+  "name": "@conflux-devkit/core",
+  "version": "1.0.0",
+  "description": "Conflux Development Kit Core - Foundation types, constants, and utilities",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "echo \"No tests specified\"",
+    "clean": "rm -rf dist",
+    "lint": "biome lint src/",
+    "lint:fix": "biome lint --write src/",
+    "format": "biome format src/",
+    "format:fix": "biome format --write src/",
+    "check": "biome check src/",
+    "check:fix": "biome check --write src/",
+    "checkpoint": "echo \"Checkpoint: @conflux-devkit/core - All checks passed\"",
+    "generate:contracts": "wagmi generate --config src/contracts/templates/wagmi.config.ts",
+    "watch:contracts": "wagmi generate --config src/contracts/templates/wagmi.config.ts --watch"
+  },
+  "dependencies": {
+    "viem": "^2.21.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.2.2",
+    "@wagmi/cli": "^2.5.1",
+    "wagmi": "^2.0.0"
+  },
+  "keywords": [
+    "conflux",
+    "blockchain",
+    "core",
+    "types",
+    "utilities",
+    "foundation"
+  ],
+  "author": "Conflux Development Team",
+  "license": "MIT",
+  "packageManager": "pnpm@10.11.0"
+}

@@ -1,6 +1,7 @@
 import { formatEther } from 'viem';
 import { mnemonicToAccount, privateKeyToAccount } from 'viem/accounts';
 import type { NodeConfig, WalletInfo } from './types.js';
+import type { EvmClient } from '@conflux-devkit/blockchain';
 
 export class WalletManager {
   private wallets: WalletInfo[] = [];
@@ -8,7 +9,7 @@ export class WalletManager {
   private privateKey?: string;
   private walletMode: 'mnemonic' | 'privatekey' = 'mnemonic';
   private coreClient?: unknown; // cive client
-  private evmClient?: unknown; // viem client
+  private evmClient?: EvmClient; // viem client
 
   constructor(config: NodeConfig) {
     this.walletMode = config.walletMode || 'mnemonic';
@@ -53,13 +54,13 @@ export class WalletManager {
       // Get the private key from the HD key
       const hdKey = account.getHdKey();
       const privateKey = `0x${Array.from(hdKey.privateKey || [])
-        .map((b) => b.toString(16).padStart(2, '0'))
+        .map(b => b.toString(16).padStart(2, '0'))
         .join('')}`;
 
       const walletInfo: WalletInfo = {
         index: i,
         address: account.address,
-        privateKey,
+        privateKey: privateKey as `0x${string}`,
         isMining: i === 0, // First wallet is mining destination
       };
 
@@ -90,7 +91,7 @@ export class WalletManager {
     const walletInfo: WalletInfo = {
       index: 0,
       address: account.address,
-      privateKey: this.privateKey,
+      privateKey: this.privateKey as `0x${string}`,
       isMining: true, // Single wallet is mining destination
     };
 
@@ -122,19 +123,20 @@ export class WalletManager {
         const miningWallet = this.wallets[0];
 
         // Check if mining wallet has balance
-        const miningBalance = await (this.evmClient as any).getBalance({
+        const miningBalance = await this.evmClient!.getBalance({
           address: miningWallet.address,
         });
 
         if (miningBalance > 0n) {
           console.log(
-            `✅ Mining wallet ${
-              miningWallet.address
-            } has ${miningBalance.toString()} wei`
+            `✅ Mining wallet ${{
+              address: miningWallet.address,
+            }} has ${miningBalance.toString()} wei`
           );
 
           // Update mining wallet balance
-          miningWallet.balance = formatEther(miningBalance);
+          miningWallet.balance = miningBalance;
+          miningWallet.balanceFormatted = formatEther(miningBalance);
 
           // If we have multiple wallets, distribute some funds
           if (this.wallets.length > 1) {
@@ -159,15 +161,14 @@ export class WalletManager {
                 });
 
                 // Wait for transaction to be mined
-                await (this.evmClient as any).waitForTransactionReceipt({
-                  hash: txHash,
-                });
+                await this.evmClient!.getTransactionReceipt({ hash: txHash });
 
                 // Update wallet balance
-                const balance = await (this.evmClient as any).getBalance({
+                const balance = await this.evmClient!.getBalance({
                   address: wallet.address,
                 });
-                wallet.balance = formatEther(balance);
+                wallet.balance = balance;
+                wallet.balanceFormatted = formatEther(balance);
 
                 console.log(
                   `✅ Funded wallet ${wallet.address} with ${formatEther(
@@ -194,7 +195,7 @@ export class WalletManager {
   /**
    * Set clients for wallet operations
    */
-  setClients(coreClient: unknown, evmClient: unknown): void {
+  setClients(coreClient: unknown, evmClient: EvmClient): void {
     this.coreClient = coreClient;
     this.evmClient = evmClient;
   }
@@ -225,7 +226,7 @@ export class WalletManager {
    */
   getWalletByAddress(address: string): WalletInfo | undefined {
     return this.wallets.find(
-      (w) => w.address.toLowerCase() === address.toLowerCase()
+      w => w.address.toLowerCase() === address.toLowerCase()
     );
   }
 
@@ -269,13 +270,13 @@ export class WalletManager {
     // Get the private key from the HD key
     const hdKey = account.getHdKey();
     const privateKey = `0x${Array.from(hdKey.privateKey || [])
-      .map((b) => b.toString(16).padStart(2, '0'))
+      .map(b => b.toString(16).padStart(2, '0'))
       .join('')}`;
 
     const walletInfo: WalletInfo = {
       index,
       address: account.address,
-      privateKey,
+      privateKey: privateKey as `0x${string}`,
       isMining: false,
     };
 

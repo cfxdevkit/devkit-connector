@@ -5,15 +5,10 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import fs from 'fs-extra';
 import { ConfluxNode } from './ConfluxNode.js';
-import {
-  callContractMethod,
-  deployContract,
-  getBlockInfo,
-  runCompleteDeploymentFlow,
-  sendTransaction,
-} from './ConfluxOperations.js';
+import { deployContract } from './ConfluxOperations.js';
 import { ContractDeployer } from './ContractDeployer.js';
 import { NodeManager } from './NodeManager.js';
+import type { WalletInfo } from './types.js';
 import { TestRunner } from './TestRunner.js';
 
 const program = new Command();
@@ -48,7 +43,7 @@ program
     'Number of wallets to generate (mnemonic mode)',
     '10'
   )
-  .action(async (options) => {
+  .action(async options => {
     try {
       console.log(chalk.blue('🚀 Starting Conflux node...'));
       await nodeManager.start({
@@ -104,7 +99,7 @@ program
     'Number of wallets to generate (mnemonic mode)',
     '10'
   )
-  .action(async (options) => {
+  .action(async options => {
     try {
       console.log(chalk.blue('🔧 Starting development environment...'));
       await nodeManager.startDev({
@@ -134,7 +129,7 @@ program
   )
   .option('-p, --port <port>', 'RPC port for Core space', '12537')
   .option('-e, --eth-port <port>', 'RPC port for EVM space', '8545')
-  .action(async (options) => {
+  .action(async options => {
     try {
       console.log(chalk.blue('📦 Deploying contracts...'));
       await contractDeployer.deploy({
@@ -160,7 +155,7 @@ program
   )
   .option('-p, --port <port>', 'RPC port for Core space', '12537')
   .option('-e, --eth-port <port>', 'RPC port for EVM space', '8545')
-  .action(async (options) => {
+  .action(async options => {
     try {
       console.log(chalk.blue('🧪 Running contract tests...'));
       await testRunner.runTests({
@@ -202,12 +197,14 @@ program
   .command('wallets')
   .description('Show wallet information')
   .option('-f, --format <format>', 'Output format (table|json)', 'table')
-  .action(async (options) => {
+  .action(async options => {
     try {
       const status = await nodeManager.getStatus();
 
       if (!status.wallets || status.wallets.length === 0) {
-        console.log(chalk.yellow('⚠️  No wallets found. Start the node first.'));
+        console.log(
+          chalk.yellow('⚠️  No wallets found. Start the node first.')
+        );
         return;
       }
 
@@ -237,7 +234,7 @@ program
       console.log('');
 
       console.log(chalk.blue('📋 Wallets:'));
-      status.wallets.forEach((wallet, index) => {
+      status.wallets.forEach((wallet: WalletInfo, index: number) => {
         const isMining = wallet.isMining ? ' ⛏️' : '';
         const balance = wallet.balance ? ` (${wallet.balance} CFX)` : '';
         console.log(
@@ -274,7 +271,7 @@ program
   .option('-e, --evm-port <port>', 'EVM RPC port', '8545')
   .option('-i, --interval <ms>', 'Block interval in ms', '1000')
   .option('-o, --output <file>', 'Output file for results')
-  .action(async (options) => {
+  .action(async options => {
     try {
       if (!options.script) {
         console.error(chalk.red('❌ Script file is required'));
@@ -351,7 +348,7 @@ program
   .option('-p, --core-port <port>', 'Core RPC port', '12537')
   .option('-e, --evm-port <port>', 'EVM RPC port', '8545')
   .option('-o, --output <file>', 'Output file for deployment info')
-  .action(async (options) => {
+  .action(async options => {
     try {
       const contractPath = path.resolve(options.contract);
       if (!(await fs.pathExists(contractPath))) {

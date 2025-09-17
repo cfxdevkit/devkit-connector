@@ -48,7 +48,7 @@ export class ContractDeployer {
     await this.saveDeploymentResults(results);
 
     console.log(chalk.blue('\n📊 Deployment Summary:'));
-    results.forEach((result) => {
+    results.forEach(result => {
       console.log(chalk.blue(`  ${result.network}: ${result.address}`));
     });
   }
@@ -133,12 +133,14 @@ export class ContractDeployer {
     const txHash = hash;
 
     return {
+      id: `espace-${txHash}`,
       network: 'espace',
       contract: 'SimpleDelegationEspace',
-      address,
-      txHash,
-      gasUsed: '0',
-      timestamp: new Date().toISOString(),
+      address: address as `0x${string}`,
+      txHash: txHash as `0x${string}`,
+      gasUsed: 0n,
+      timestamp: new Date(),
+      isMock: false,
     };
   }
 
@@ -210,12 +212,14 @@ export class ContractDeployer {
     );
 
     return {
+      id: `core-${mockTxHash}`,
       network: 'core',
       contract: 'SimpleDelegationCore',
-      address: mockAddress,
-      txHash: mockTxHash,
-      gasUsed: '0',
-      timestamp: new Date().toISOString(),
+      address: mockAddress as `0x${string}`,
+      txHash: mockTxHash as `0x${string}`,
+      gasUsed: 0n,
+      timestamp: new Date(),
+      isMock: true,
     };
   }
 

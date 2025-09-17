@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Start only the Server
+# Start only the API Server
 
-echo "🖥️ Starting Conflux DevKit Server..."
+echo "🖥️ Starting Conflux DevKit API Server..."
 
-cd packages/server
+cd packages/api-server
 pnpm run dev

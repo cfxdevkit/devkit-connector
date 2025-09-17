@@ -5,8 +5,7 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "packages/*",
-    "apps/*"
+    "packages/*"
   ],
   "scripts": {
     "build": "turbo run build",
@@ -20,9 +19,9 @@
     "check:fix": "turbo run check:fix",
     "dev": "turbo run dev",
     "checkpoint": "node scripts/checkpoint.js",
-    "start:full-stack": "concurrently --kill-others-on-fail \"turbo run dev --filter=@conflux-devkit/server\" \"turbo run dev --filter=@conflux-devkit/dashboard\"",
+    "start:full-stack": "concurrently --kill-others-on-fail \"turbo run dev --filter=@conflux-devkit/api-server\" \"turbo run dev --filter=@conflux-devkit/dashboard\"",
     "start:devkit-node": "turbo run dev --filter=@conflux-devkit/node",
-    "start:server": "turbo run dev --filter=@conflux-devkit/server",
+    "start:api-server": "turbo run dev --filter=@conflux-devkit/api-server",
     "start:dashboard": "turbo run dev --filter=@conflux-devkit/dashboard",
     "install:all": "pnpm install",
     "devkit-node": "turbo run start --filter=@conflux-devkit/node",

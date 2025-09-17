@@ -1,326 +1,302 @@
 # Conflux DevKit
 
-A professional monorepo for Conflux blockchain development, built with modern tools and best practices.
+A comprehensive TypeScript monorepo for Conflux blockchain development with unified node management, API services, and dashboard interfaces.
 
-## 🏗️ Architecture
-
-The DevKit is organized as a professional monorepo with clear separation of concerns:
+## 🏗️ Architecture Overview
 
 ```
-conflux-devkit/
-├── packages/
-│   ├── devkit-node/          # Conflux node management (@conflux-devkit/node)
-│   ├── server/               # Backend services (@conflux-devkit/server)
-│   ├── dashboard/            # React dashboard with Mantine UI (@conflux-devkit/dashboard)
-│   └── utility/              # Shared utilities and types (@conflux-devkit/utility)
-├── apps/                     # Example applications
-├── shared/                   # Shared configuration and contracts
-└── scripts/                  # Build and deployment scripts
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                CONFLUX DEVKIT                                  │
+│                              Monorepo Architecture                             │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   @conflux-     │    │   @conflux-     │    │   @conflux-     │    │   @conflux-     │
+│   devkit/core   │    │   devkit/       │    │   devkit/node   │    │   devkit/       │
+│                 │    │   blockchain    │    │                 │    │   api-server    │
+│  • Types        │◄───┤                 │◄───┤                 │◄───┤                 │
+│  • Constants    │    │  • RPC Clients  │    │  • Node Mgmt    │    │  • Express API  │
+│  • Schemas      │    │  • Contracts    │    │  • Workflows    │    │  • Services     │
+│  • Utils        │    │  • Wallets      │    │  • CLI Tools    │    │  • Routes       │
+│  • Validation   │    │  • Networks     │    │  • Lifecycle    │    │  • Middleware   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │                       │
+         │                       │                       │                       │
+         ▼                       ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   @conflux-     │    │   @conflux-     │    │   @conflux-     │    │   @conflux-     │
+│   devkit/       │    │   devkit/       │    │   devkit/       │    │   devkit/       │
+│   dashboard     │    │   devkit-       │    │   devkit-       │    │   devkit-       │
+│                 │    │   node          │    │   node          │    │   node          │
+│  • Next.js UI   │    │                 │    │                 │    │                 │
+│  • Mantine UI   │    │  • ConfluxNode  │    │  • NodeService  │    │  • UnifiedCLI   │
+│  • Components   │    │  • WalletMgr    │    │  • Workflows    │    │  • Commands     │
+│  • Services     │    │  • ContractDep  │    │  • Lifecycle    │    │  • Helpers      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
+
+## 📦 Package Structure
+
+### Core Packages
+
+| Package                        | Status      | Description                                        | Dependencies     |
+| ------------------------------ | ----------- | -------------------------------------------------- | ---------------- |
+| **@conflux-devkit/core**       | ✅ Complete | Core types, constants, schemas, and utilities      | None             |
+| **@conflux-devkit/blockchain** | ✅ Complete | Blockchain operations, RPC clients, contracts      | core             |
+| **@conflux-devkit/node**       | ✅ Complete | Unified node management and workflow orchestration | core, blockchain |
+| **@conflux-devkit/api-server** | 🔄 Partial  | Express API server with services and routes        | core, blockchain |
+| **@conflux-devkit/dashboard**  | 🔄 Partial  | Next.js dashboard with Mantine UI                  | core, blockchain |
 
 ## 🚀 Quick Start
-
-### Prerequisites
-
-- Node.js 22+
-- pnpm 8+
-- Git
 
 ### Installation
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd conflux-devkit
-
 # Install dependencies
 pnpm install
 
 # Build all packages
 pnpm run build
 
-# Start the full development stack
+# Start development
 pnpm run dev
 ```
 
-## 📦 Packages
-
-### @conflux-devkit/node
-
-Local Conflux node management for development and testing.
-
-**Features:**
-
-- Easy setup and configuration
-- Dual space support (Core and EVM/eSpace)
-- Ephemeral execution for testing
-- Contract deployment tools
-- Wallet management (mnemonic and private key modes)
-- CLI interface
-- TypeScript support
-- Silent mode for CI/CD
-
-**Usage:**
+### Node Management
 
 ```bash
-# Start a local node
-pnpm run start:devkit-node
+# Start a Conflux node
+pnpm -w devkit-node start
 
-# Or use the CLI directly
-pnpm --filter @conflux-devkit/node cli start
+# Run complete workflow
+pnpm -w devkit-node workflow
+
+# Deploy contracts
+pnpm -w devkit-node deploy --contracts MyContract
+
+# Check node status
+pnpm -w devkit-node status
 ```
 
-### @conflux-devkit/server
-
-Backend services and API endpoints for blockchain development.
-
-**Features:**
-
-- RESTful API endpoints
-- Wallet management
-- Transaction handling
-- Contract interaction
-- Rate limiting and security
-- CORS support
-- JWT authentication
-
-**Usage:**
+### API Server
 
 ```bash
-# Start the server
-pnpm run start:server
+# Start API server
+pnpm -w start:api-server
 
-# The server will be available at http://localhost:3001
+# Start full stack (API + Dashboard)
+pnpm -w start:full-stack
 ```
 
-### @conflux-devkit/dashboard
-
-Modern React dashboard with Mantine UI components.
-
-**Features:**
-
-- Next.js 15 with App Router
-- Mantine UI component library
-- Wallet connection (MetaMask, WalletConnect)
-- Real-time blockchain data
-- Responsive design
-- TypeScript support
-
-**Usage:**
-
-```bash
-# Start the dashboard
-pnpm run start:dashboard
-
-# The dashboard will be available at http://localhost:3000
-```
-
-### @conflux-devkit/utility
-
-Shared utilities, types, and constants used across packages.
-
-**Features:**
-
-- Common TypeScript types
-- Wallet utilities
-- Network configuration
-- Validation functions
-- Formatting helpers
-- Constants and enums
-
-**Usage:**
-
-```typescript
-import {
-  WalletInfo,
-  formatAddress,
-  isValidAddress,
-} from '@conflux-devkit/utility';
-```
-
-## 🛠️ Development
+## 🔧 Development
 
 ### Available Scripts
 
 ```bash
-# Install all dependencies
-pnpm install
-
 # Build all packages
 pnpm run build
 
-# Start full development stack
+# Development mode
 pnpm run dev
 
-# Start individual services
-pnpm run start:devkit-node    # Start Conflux node
-pnpm run start:server         # Start backend server
-pnpm run start:dashboard      # Start dashboard
-
 # Linting and formatting
-pnpm run lint                 # Lint all packages
-pnpm run format              # Format all packages
+pnpm run lint
+pnpm run format
+pnpm run check
 
 # Clean build artifacts
-pnpm run clean               # Clean all packages
+pnpm run clean
+
+# Run checkpoint (build + test + check)
+pnpm run checkpoint
 ```
 
-### Working with Packages
+### Package-specific Scripts
 
 ```bash
-# Add a dependency to a specific package
-pnpm add <package> --filter @conflux-devkit/server
+# Core package
+pnpm --filter @conflux-devkit/core build
 
-# Run a command in a specific package
-pnpm run build --filter @conflux-devkit/dashboard
+# Blockchain package
+pnpm --filter @conflux-devkit/blockchain build
 
-# Run a command in all packages
-pnpm run build --recursive
+# Node package
+pnpm --filter @conflux-devkit/node build
+pnpm --filter @conflux-devkit/node workflow
+
+# API Server
+pnpm --filter @conflux-devkit/api-server dev
+
+# Dashboard
+pnpm --filter @conflux-devkit/dashboard dev
 ```
 
-### VSCode Integration
+## 📋 Type System Flow
 
-The project includes a comprehensive VSCode workspace configuration:
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              TYPE SYSTEM FLOW                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
 
-1. Open `conflux-devkit.code-workspace` in VSCode
-2. Install recommended extensions
-3. Use the integrated tasks and launch configurations
-
-**Recommended Extensions:**
-
-- TypeScript and JavaScript Language Features
-- ESLint
-- Prettier
-- Tailwind CSS IntelliSense
-- GitLens
-
-## 🔧 Configuration
-
-### Environment Variables
-
-Create `.env.local` files in each package as needed:
-
-**Server (.env.local):**
-
-```env
-ESPACE_RPC_URL=http://localhost:8545
-JWT_SECRET=your-secret-key
-PORT=3001
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   CORE TYPES    │    │  BLOCKCHAIN     │    │   NODE TYPES    │
+│                 │    │     TYPES       │    │                 │
+│  • NodeConfig   │───►│  • RPC Clients  │───►│  • NodeStatus   │
+│  • WalletInfo   │    │  • Contracts    │    │  • WorkflowResult│
+│  • NetworkConfig│    │  • Transactions │    │  • ValidationResult│
+│  • Constants    │    │  • API Responses│    │  • Service Interfaces│
+│  • Schemas      │    │  • Normalization│    │  • CLI Options  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   API TYPES     │    │  BROWSER TYPES  │    │  SERVICE TYPES  │
+│                 │    │                 │    │                 │
+│  • ApiResponse  │    │  • BrowserWallet│    │  • INodeService │
+│  • ApiError     │    │  • BrowserTx    │    │  • IWorkflowService│
+│  • ResponseMeta │    │  • BrowserBlock │    │  • IWalletService│
+│  • Error Classes│    │  • BrowserContract│   │  • IContractService│
+└─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-**Dashboard (.env.local):**
+## 🎯 Key Features
 
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3001
-NEXT_PUBLIC_RPC_URL=http://localhost:12537
+### Core Package
+
+- **Unified Type System** - Comprehensive TypeScript types for all Conflux operations
+- **Network Configuration** - Support for 6 Conflux network combinations (Core/EVM × Main/Test/Local)
+- **Validation Schemas** - Zod schemas for runtime validation
+- **Constants** - Network IDs, addresses, and configuration defaults
+- **Utilities** - Type normalization and browser-safe conversions
+
+### Blockchain Package
+
+- **RPC Clients** - Unified interface for Core and EVM operations
+- **Contract Management** - Deployment, interaction, and orchestration
+- **Wallet Operations** - Creation, management, and funding
+- **API Types** - Normalized response types for browser compatibility
+- **Network Management** - Multi-network support and switching
+
+### Node Package
+
+- **Unified Node Management** - Single package for all node operations
+- **Workflow Orchestration** - Complete development workflows
+- **CLI Interface** - Comprehensive command-line tools
+- **Service Architecture** - Clean interfaces for all operations
+- **Health Monitoring** - Node status and health checks
+
+### API Server Package
+
+- **Express Server** - Modern API server with middleware
+- **Service Layer** - Clean separation of concerns
+- **Route Handlers** - RESTful API endpoints
+- **Error Handling** - Comprehensive error management
+- **Type Safety** - Full TypeScript integration
+
+### Dashboard Package
+
+- **Next.js Application** - Modern React framework
+- **Mantine UI** - Beautiful component library
+- **Type Integration** - Full TypeScript support
+- **Service Integration** - API client services
+- **Responsive Design** - Mobile-friendly interface
+
+## 🔗 Dependencies
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              DEPENDENCY FLOW                                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────┐
+│   @conflux-     │
+│   devkit/core   │
+│                 │
+│  • No deps      │
+│  • Base types   │
+│  • Utilities    │
+└─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│   @conflux-     │
+│   devkit/       │
+│   blockchain    │
+│                 │
+│  • Depends on   │
+│    core         │
+│  • RPC clients  │
+│  • Contracts    │
+└─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│   @conflux-     │
+│   devkit/node   │
+│                 │
+│  • Depends on   │
+│    core +       │
+│    blockchain   │
+│  • Node mgmt    │
+│  • Workflows    │
+└─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│   @conflux-     │
+│   devkit/       │
+│   api-server    │
+│                 │
+│  • Depends on   │
+│    core +       │
+│    blockchain   │
+│  • Express API  │
+│  • Services     │
+└─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│   @conflux-     │
+│   devkit/       │
+│   dashboard     │
+│                 │
+│  • Depends on   │
+│    core +       │
+│    blockchain   │
+│  • Next.js UI   │
+│  • Mantine UI   │
+└─────────────────┘
 ```
 
-### Network Configuration
+## 🛠️ Technology Stack
 
-The DevKit supports multiple Conflux networks:
+- **TypeScript** - Type-safe development
+- **pnpm** - Fast package manager
+- **Turbo** - Monorepo task runner
+- **Biome** - Linting and formatting
+- **Next.js** - React framework
+- **Mantine** - UI component library
+- **Express** - API server
+- **viem** - EVM client library
+- **cive** - Conflux Core client library
 
-- **Local Development**: `http://localhost:12537` (Chain ID: 2030)
-- **Testnet**: `https://test.confluxrpc.com` (Chain ID: 1)
-- **Mainnet**: `https://main.confluxrpc.com` (Chain ID: 1029)
+## 📚 Documentation
 
-## 🐳 Docker Support
-
-Each package includes Docker support for easy deployment:
-
-```bash
-# Build all Docker images
-docker-compose build
-
-# Start all services
-docker-compose up
-
-# Start specific service
-docker-compose up devkit-node
-```
-
-## 📚 API Documentation
-
-### Server Endpoints
-
-- `GET /api/health` - Health check
-- `POST /api/wallet/create` - Create new wallet
-- `GET /api/wallet/:address` - Get wallet info
-- `POST /api/transaction/send` - Send transaction
-- `GET /api/contract/:address` - Get contract info
-
-### Frontend Components
-
-- `WalletProvider` - Wallet connection context
-- `NetworkSelector` - Network switching component
-- `TransactionForm` - Transaction creation form
-- `ContractInterface` - Contract interaction component
-
-## 🧪 Testing
-
-```bash
-# Run tests for all packages
-pnpm run test
-
-# Run tests for specific package
-pnpm run test --filter @conflux-devkit/utility
-
-# Run tests in watch mode
-pnpm run test:watch
-```
-
-## 📦 Deployment
-
-### Production Build
-
-```bash
-# Build all packages for production
-pnpm run build
-
-# Start production services
-pnpm run start:server
-pnpm run start:dashboard
-```
-
-### Docker Deployment
-
-```bash
-# Build production images
-docker-compose -f docker-compose.prod.yml build
-
-# Deploy to production
-docker-compose -f docker-compose.prod.yml up -d
-```
+- [Core Package](./packages/core/README.md) - Core types and utilities
+- [Blockchain Package](./packages/blockchain/README.md) - Blockchain operations
+- [Node Package](./packages/devkit-node/README.md) - Node management
+- [API Server](./packages/api-server/README.md) - API server
+- [Dashboard](./packages/dashboard/README.md) - Dashboard UI
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Guidelines
-
-- Follow TypeScript best practices
-- Write comprehensive tests
-- Use conventional commit messages
-- Update documentation for new features
-- Ensure all packages build successfully
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-- 📖 [Documentation](https://docs.conflux-devkit.com)
-- 🐛 [Issue Tracker](https://github.com/conflux-devkit/issues)
-- 💬 [Discord Community](https://discord.gg/conflux-devkit)
-- 📧 [Email Support](mailto:support@conflux-devkit.com)
-
-## 🙏 Acknowledgments
-
-- [Conflux Network](https://confluxnetwork.org/) for the blockchain infrastructure
-- [Mantine](https://mantine.dev/) for the UI component library
-- [Next.js](https://nextjs.org/) for the React framework
-- [pnpm](https://pnpm.io/) for the package manager
+MIT License - see [LICENSE](./LICENSE) for details.

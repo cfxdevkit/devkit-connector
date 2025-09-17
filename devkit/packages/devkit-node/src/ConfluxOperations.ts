@@ -1,16 +1,17 @@
 import { createWalletClient, http, parseEther } from 'viem';
 import { ConfluxNode } from './ConfluxNode';
 import type { ExecutionResult, NodeConfig } from './types';
+import type { EvmClient } from '@conflux-devkit/blockchain';
 
 export async function deployContract(
   contractCode: string,
   abi: unknown[],
   constructorArgs: unknown[] = [],
-  config: NodeConfig = {}
+  config: Partial<NodeConfig> = {}
 ): Promise<ExecutionResult<{ address: string; txHash: string }>> {
   const node = new ConfluxNode();
 
-  return node.executeScript(async (node) => {
+  return node.executeScript(async node => {
     const evmClient = node.getEvmClient();
     const miningWallet = node.getMiningWallet();
 
@@ -33,11 +34,11 @@ export async function deployContract(
     });
 
     // Wait for deployment
-    const receipt = await (evmClient as any).waitForTransactionReceipt({
-      hash,
+    const receipt = await (evmClient as EvmClient).getTransactionReceipt({
+      hash: hash,
     });
 
-    if (!receipt.contractAddress) {
+    if (!receipt || !receipt.contractAddress) {
       throw new Error('Contract deployment failed');
     }
 
@@ -53,17 +54,17 @@ export async function callContractMethod(
   abi: unknown[],
   methodName: string,
   args: unknown[] = [],
-  config: NodeConfig = {}
+  config: Partial<NodeConfig> = {}
 ): Promise<ExecutionResult<unknown>> {
   const node = new ConfluxNode();
 
-  return node.executeScript(async (node) => {
+  return node.executeScript(async node => {
     const evmClient = node.getEvmClient();
 
     // Read contract method
-    const result = await (evmClient as any).readContract({
+    const result = await (evmClient as EvmClient).readContract({
       address: contractAddress as `0x${string}`,
-      abi,
+      abi: abi as any[],
       functionName: methodName,
       args,
     });
@@ -76,11 +77,11 @@ export async function sendTransaction(
   to: string,
   value: string = '0',
   data: string = '0x',
-  config: NodeConfig = {}
+  config: Partial<NodeConfig> = {}
 ): Promise<ExecutionResult<{ txHash: string; receipt: unknown }>> {
   const node = new ConfluxNode();
 
-  return node.executeScript(async (node) => {
+  return node.executeScript(async node => {
     const evmClient = node.getEvmClient();
     const miningWallet = node.getMiningWallet();
 
@@ -103,8 +104,8 @@ export async function sendTransaction(
     });
 
     // Wait for receipt
-    const receipt = await (evmClient as any).waitForTransactionReceipt({
-      hash,
+    const receipt = await (evmClient as EvmClient).getTransactionReceipt({
+      hash: hash,
     });
 
     return { txHash: hash, receipt };
@@ -113,19 +114,19 @@ export async function sendTransaction(
 
 export async function getBlockInfo(
   blockNumber?: number,
-  config: NodeConfig = {}
+  config: Partial<NodeConfig> = {}
 ): Promise<ExecutionResult<unknown>> {
   const node = new ConfluxNode();
 
-  return node.executeScript(async (node) => {
+  return node.executeScript(async node => {
     const evmClient = node.getEvmClient();
 
     if (blockNumber) {
-      return await (evmClient as any).getBlock({
+      return await (evmClient as EvmClient).getBlock({
         blockNumber: BigInt(blockNumber),
       });
     } else {
-      return await (evmClient as any).getBlock({ blockTag: 'latest' });
+      return await (evmClient as EvmClient).getBlock({ blockTag: 'latest' });
     }
   }, config);
 }
@@ -137,13 +138,13 @@ export async function runCompleteDeploymentFlow(
     abi: unknown[];
     args?: unknown[];
   }>,
-  config: NodeConfig = {}
+  config: Partial<NodeConfig> = {}
 ): Promise<
   ExecutionResult<Array<{ name: string; address: string; txHash: string }>>
 > {
   const node = new ConfluxNode();
 
-  return node.executeScript(async (node) => {
+  return node.executeScript(async node => {
     const evmClient = node.getEvmClient();
     const miningWallet = node.getMiningWallet();
 
@@ -169,11 +170,11 @@ export async function runCompleteDeploymentFlow(
       });
 
       // Wait for deployment
-      const receipt = await (evmClient as any).waitForTransactionReceipt({
-        hash,
+      const receipt = await (evmClient as EvmClient).getTransactionReceipt({
+        hash: hash,
       });
 
-      if (!receipt.contractAddress) {
+      if (!receipt || !receipt.contractAddress) {
         throw new Error(`Contract ${contract.name} deployment failed`);
       }
 

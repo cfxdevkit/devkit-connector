@@ -2,6 +2,7 @@
 
 import chalk from 'chalk';
 import { ConfluxNode } from './ConfluxNode.js';
+import type { NodeConfig } from './types.js';
 
 async function runTest() {
   console.log(chalk.blue('🧪 Running Conflux node test...'));
@@ -12,11 +13,17 @@ async function runTest() {
     // Test basic functionality
     console.log(chalk.blue('📋 Testing node initialization...'));
 
-    const config = {
+    const config: Partial<NodeConfig> = {
       corePort: 12537,
       evmPort: 8545,
       blockInterval: 1000,
+      chainId: 2029,
+      evmChainId: 2030,
+      dataDir: '/tmp/conflux-test',
       silent: true,
+      walletMode: 'mnemonic',
+      fundWallets: false,
+      walletCount: 1,
     };
 
     console.log(chalk.green('✅ Node initialized successfully'));

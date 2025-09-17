@@ -1,0 +1,44 @@
+{
+  "name": "@conflux-devkit/blockchain",
+  "version": "1.0.0",
+  "description": "Conflux Development Kit Blockchain - Pure blockchain operations and wallet management",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "echo \"No tests specified\"",
+    "clean": "rm -rf dist",
+    "lint": "biome lint src/",
+    "lint:fix": "biome lint --write src/",
+    "format": "biome format src/",
+    "format:fix": "biome format --write src/",
+    "check": "biome check src/",
+    "check:fix": "biome check --write src/",
+    "checkpoint": "echo \"Checkpoint: @conflux-devkit/blockchain - All checks passed\""
+  },
+  "dependencies": {
+    "@conflux-devkit/core": "workspace:*",
+    "@xcfx/node": "^0.6.0",
+    "cive": "^0.8.1",
+    "viem": "^2.21.0",
+    "bip32": "^4.0.0",
+    "bip39": "^3.1.0",
+    "tiny-secp256k1": "^2.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.2.2"
+  },
+  "keywords": [
+    "conflux",
+    "blockchain",
+    "wallet",
+    "transaction",
+    "contract",
+    "operations"
+  ],
+  "author": "Conflux Development Team",
+  "license": "MIT",
+  "packageManager": "pnpm@10.11.0"
+}

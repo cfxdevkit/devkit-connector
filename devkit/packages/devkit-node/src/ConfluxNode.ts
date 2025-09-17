@@ -13,13 +13,14 @@ import type {
   NodeStatus,
   WalletInfo,
 } from './types';
+import { CoreClient, EvmClient } from '@conflux-devkit/blockchain';
 
 const bip32 = BIP32Factory(ecc);
 
 export class ConfluxNode {
   private server: unknown = null;
-  private coreClient: unknown = null;
-  private evmClient: unknown = null;
+  private coreClient: CoreClient | null = null;
+  private evmClient: EvmClient | null = null;
   private originalConsole: Record<string, unknown> = {};
   private isSilent: boolean = false;
   private wallets: WalletInfo[] = [];
@@ -152,8 +153,8 @@ export class ConfluxNode {
 
         this.wallets.push({
           index: i,
-          address: espaceAddress, // Use eSpace address as primary
-          privateKey: espacePrivateKey,
+          address: espaceAddress as `0x${string}`, // Use eSpace address as primary
+          privateKey: espacePrivateKey as `0x${string}`,
           isMining: i === 0,
         });
       }
@@ -185,7 +186,7 @@ export class ConfluxNode {
       this.wallets.push({
         index: 0,
         address: account.address,
-        privateKey: privateKey,
+        privateKey: privateKey as `0x${string}`,
         isMining: true,
       });
 
@@ -220,8 +221,8 @@ export class ConfluxNode {
 
       if (this.wallets.length > 0 && this.miningWallet) {
         // Check if mining wallet has balance
-        const miningBalance = await (this.evmClient as any).getBalance({
-          address: this.miningWallet.address,
+        const miningBalance = await this.evmClient!.getBalance({
+          address: this.miningWallet.address as `0x${string}`,
         });
 
         if (miningBalance > 0n) {
@@ -234,7 +235,8 @@ export class ConfluxNode {
           }
 
           // Update mining wallet balance
-          this.miningWallet.balance = (
+          this.miningWallet.balance = miningBalance;
+          this.miningWallet.balanceFormatted = (
             miningBalance / 1000000000000000000n
           ).toString(); // Convert to ETH
 
@@ -261,15 +263,16 @@ export class ConfluxNode {
                 });
 
                 // Wait for transaction to be mined
-                await (this.evmClient as any).waitForTransactionReceipt({
-                  hash: txHash,
-                });
+                await this.evmClient!.getTransactionReceipt({ hash: txHash });
 
                 // Update wallet balance
-                const balance = await (this.evmClient as any).getBalance({
-                  address: wallet.address,
+                const balance = await this.evmClient!.getBalance({
+                  address: wallet.address as `0x${string}`,
                 });
-                wallet.balance = (balance / 1000000000000000000n).toString(); // Convert to ETH
+                wallet.balance = balance;
+                wallet.balanceFormatted = (
+                  balance / 1000000000000000000n
+                ).toString(); // Convert to ETH
 
                 if (!this.isSilent) {
                   console.log(
@@ -301,7 +304,7 @@ export class ConfluxNode {
     }
   }
 
-  async start(config: NodeConfig = {}): Promise<void> {
+  async start(config: Partial<NodeConfig> = {}): Promise<void> {
     const {
       corePort = 12537,
       evmPort = 8545,
@@ -328,10 +331,8 @@ export class ConfluxNode {
         devBlockIntervalMs: blockInterval,
         chainId,
         evmChainId,
-        genesisSecrets: this.wallets.map((w) => w.privateKey as `0x${string}`),
-        genesisEvmSecrets: this.wallets.map(
-          (w) => w.privateKey as `0x${string}`
-        ),
+        genesisSecrets: this.wallets.map(w => w.privateKey as `0x${string}`),
+        genesisEvmSecrets: this.wallets.map(w => w.privateKey as `0x${string}`),
         miningAuthor: this.miningWallet?.address,
         log: !silent,
         dataDir,
@@ -343,16 +344,21 @@ export class ConfluxNode {
 
       // Create and start server
       this.server = await createServer(serverConfig);
-      await (this.server as any).start();
+      await (this.server as { start(): Promise<void> }).start();
 
-      // Create clients
-      this.coreClient = createPublicClient({
-        transport: http(`http://127.0.0.1:${corePort}`),
-      });
+      // Create clients using our custom implementations
+      const networkConfig = {
+        name: 'local',
+        rpcUrl: `http://127.0.0.1:${corePort}`,
+        chainId: 2029,
+        evmChainId: 2030,
+        currency: { name: 'Conflux', symbol: 'CFX', decimals: 18 },
+        isTestnet: false,
+        networkType: 'core' as const,
+      };
 
-      this.evmClient = createViemClient({
-        transport: viemHttp(`http://127.0.0.1:${evmPort}`),
-      });
+      this.coreClient = new CoreClient(networkConfig);
+      this.evmClient = new EvmClient(networkConfig);
 
       // Fund wallets if requested
       if (fundWallets) {
@@ -378,7 +384,7 @@ export class ConfluxNode {
 
   async stop(): Promise<void> {
     if (this.server) {
-      await (this.server as any).stop();
+      await (this.server as { stop(): Promise<void> }).stop();
       this.server = null;
       this.coreClient = null;
       this.evmClient = null;
@@ -393,7 +399,7 @@ export class ConfluxNode {
 
     try {
       if (this.evmClient) {
-        blockNumber = await (this.evmClient as any).getBlockNumber();
+        blockNumber = Number(await this.evmClient!.getBlockNumber());
       }
     } catch (_error) {
       // Ignore errors
@@ -405,19 +411,19 @@ export class ConfluxNode {
       evmPort: 8545,
       chainId: 2029,
       evmChainId: 2030,
-      blockNumber: Number(blockNumber),
+      blockNumber: BigInt(blockNumber),
       peerCount,
       walletMode: this.walletMode,
       wallets: this.wallets,
-      miningAddress: this.miningWallet?.address,
+      miningAddress: this.miningWallet?.address || undefined,
     };
   }
 
-  getCoreClient(): unknown {
+  getCoreClient(): CoreClient | null {
     return this.coreClient;
   }
 
-  getEvmClient(): unknown {
+  getEvmClient(): EvmClient | null {
     return this.evmClient;
   }
 
@@ -431,13 +437,13 @@ export class ConfluxNode {
 
   getWalletByAddress(address: string): WalletInfo | undefined {
     return this.wallets.find(
-      (w) => w.address.toLowerCase() === address.toLowerCase()
+      w => w.address.toLowerCase() === address.toLowerCase()
     );
   }
 
   async executeScript<T>(
     script: (node: ConfluxNode) => Promise<T>,
-    config: NodeConfig = {}
+    config: Partial<NodeConfig> = {}
   ): Promise<ExecutionResult<T>> {
     const startTime = Date.now();
 

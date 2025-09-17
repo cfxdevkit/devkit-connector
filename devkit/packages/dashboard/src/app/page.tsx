@@ -23,6 +23,7 @@ import {
 } from '@tabler/icons-react';
 import { useCallback, useEffect, useState } from 'react';
 import { contractApi, nodeApi, systemApi, walletApi } from '../services/api';
+import type { ChecklistStep, DashboardState } from '../types/dashboard';
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
@@ -51,12 +52,6 @@ export default function DashboardPage() {
   const [activeStep, setActiveStep] = useState(0);
 
   // Streamlined checklist steps
-  interface ChecklistStep {
-    id: number;
-    title: string;
-    completed: boolean;
-    description: string;
-  }
 
   const [checklistSteps, setChecklistSteps] = useState<ChecklistStep[]>([
     {

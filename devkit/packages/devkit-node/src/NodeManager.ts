@@ -13,7 +13,7 @@ export class NodeManager {
     this.node = new ConfluxNode();
   }
 
-  async start(config: NodeConfig = {}): Promise<void> {
+  async start(config: Partial<NodeConfig> = {}): Promise<void> {
     const {
       corePort = 12537,
       evmPort = 8545,
@@ -60,7 +60,7 @@ export class NodeManager {
     }
   }
 
-  async startDev(config: NodeConfig = {}): Promise<void> {
+  async startDev(config: Partial<NodeConfig> = {}): Promise<void> {
     await this.start(config);
 
     if (!this.isSilent()) {
