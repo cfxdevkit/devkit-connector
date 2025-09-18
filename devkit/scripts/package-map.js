@@ -2,8 +2,101 @@
 
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { execSync } from 'node:child_process';
 
 const PACKAGES_DIR = 'packages';
+
+// Colors for terminal output
+const colors = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  dim: '\x1b[2m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m',
+  white: '\x1b[37m',
+  bgRed: '\x1b[41m',
+  bgGreen: '\x1b[42m',
+  bgYellow: '\x1b[43m',
+  bgBlue: '\x1b[44m',
+  bgMagenta: '\x1b[45m',
+  bgCyan: '\x1b[46m'
+};
+
+// Check if terminal supports colors
+const supportsColor = process.stdout.isTTY && process.env.TERM !== 'dumb';
+
+function colorize(text, color) {
+  if (!supportsColor) return text;
+  return `${colors[color]}${text}${colors.reset}`;
+}
+
+function createTable(data, headers, options = {}) {
+  const { maxWidth = 80, padding = 1 } = options;
+  
+  // Handle empty data
+  if (data.length === 0) {
+    const emptyRow = headers.map(() => '');
+    data = [emptyRow];
+  }
+  
+  // Calculate column widths
+  const colWidths = headers.map((header, index) => {
+    const maxDataWidth = Math.max(...data.map(row => String(row[index] || '').length));
+    const headerWidth = String(header).length;
+    const calculatedWidth = Math.max(maxDataWidth, headerWidth);
+    return Math.min(calculatedWidth, Math.max(10, maxWidth / headers.length));
+  });
+  
+  // Create separator line
+  const separator = colWidths.map(width => '─'.repeat(width + padding * 2)).join('┼');
+  const topBorder = '┌' + separator.replace(/┼/g, '┬') + '┐';
+  const bottomBorder = '└' + separator.replace(/┼/g, '┴') + '┘';
+  const middleBorder = '├' + separator + '┤';
+  
+  // Create header
+  const headerRow = headers.map((header, index) => {
+    const padded = String(header).padEnd(colWidths[index]);
+    return ' '.repeat(padding) + padded + ' '.repeat(padding);
+  }).join('│');
+  
+  // Create data rows
+  const dataRows = data.map(row => {
+    return row.map((cell, index) => {
+      const cellStr = String(cell || '');
+      const truncated = cellStr.length > colWidths[index] 
+        ? cellStr.substring(0, colWidths[index] - 3) + '...'
+        : cellStr;
+      const padded = truncated.padEnd(colWidths[index]);
+      return ' '.repeat(padding) + padded + ' '.repeat(padding);
+    }).join('│');
+  });
+  
+  return [topBorder, '│' + headerRow + '│', middleBorder, ...dataRows.map(row => '│' + row + '│'), bottomBorder];
+}
+
+function createProgressBar(current, total, width = 40) {
+  const percentage = Math.round((current / total) * 100);
+  const filled = Math.round((current / total) * width);
+  const bar = '█'.repeat(filled) + '░'.repeat(width - filled);
+  return `[${bar}] ${percentage}%`;
+}
+
+function runCommand(command, description) {
+  try {
+    const output = execSync(command, { 
+      stdio: 'pipe', 
+      encoding: 'utf8',
+      cwd: process.cwd()
+    });
+    return { success: true, output };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
 
 function getPackageInfo(packageName) {
   const packagePath = join(PACKAGES_DIR, packageName, 'package.json');
@@ -146,10 +239,10 @@ function getPackageDependencies(packageInfo) {
 function generateAsciiDiagram(packages) {
   const diagram = [];
   
-  // Header
-  diagram.push('┌─────────────────────────────────────────────────────────────────────────────────┐');
-  diagram.push('│                    Conflux DevKit Package Relationship Map                     │');
-  diagram.push('└─────────────────────────────────────────────────────────────────────────────────┘');
+  // Header with colors
+  diagram.push(colorize('┌─────────────────────────────────────────────────────────────────────────────────┐', 'cyan'));
+  diagram.push(colorize('│                    Conflux DevKit Package Relationship Map                     │', 'cyan'));
+  diagram.push(colorize('└─────────────────────────────────────────────────────────────────────────────────┘', 'cyan'));
   diagram.push('');
   
   // Core packages (foundation)
@@ -159,14 +252,19 @@ function generateAsciiDiagram(packages) {
     pkg.name.includes('state')
   );
   
-  diagram.push('🏗️  FOUNDATION LAYER');
-  diagram.push('┌─────────────────────────────────────────────────────────────────────────────────┐');
-  corePackages.forEach(pkg => {
+  diagram.push(colorize('🏗️  FOUNDATION LAYER', 'yellow'));
+  const foundationData = corePackages.map(pkg => {
     const deps = getPackageDependencies(pkg);
     const internalDeps = deps.internal.map(dep => dep.name.split('/')[1]).join(', ');
-    diagram.push(`│ ${pkg.name.split('/')[1].padEnd(15)} │ v${pkg.version.padEnd(8)} │ Deps: ${internalDeps.padEnd(20)} │`);
+    return [
+      colorize(pkg.name.split('/')[1], 'green'),
+      colorize(`v${pkg.version}`, 'blue'),
+      internalDeps || 'none'
+    ];
   });
-  diagram.push('└─────────────────────────────────────────────────────────────────────────────────┘');
+  
+  const foundationTable = createTable(foundationData, ['Package', 'Version', 'Dependencies'], { maxWidth: 100 });
+  diagram.push(...foundationTable);
   diagram.push('');
   
   // Node packages
@@ -175,14 +273,19 @@ function generateAsciiDiagram(packages) {
     pkg.name.includes('api-server')
   );
   
-  diagram.push('🖥️  NODE LAYER');
-  diagram.push('┌─────────────────────────────────────────────────────────────────────────────────┐');
-  nodePackages.forEach(pkg => {
+  diagram.push(colorize('🖥️  NODE LAYER', 'blue'));
+  const nodeData = nodePackages.map(pkg => {
     const deps = getPackageDependencies(pkg);
     const internalDeps = deps.internal.map(dep => dep.name.split('/')[1]).join(', ');
-    diagram.push(`│ ${pkg.name.split('/')[1].padEnd(15)} │ v${pkg.version.padEnd(8)} │ Deps: ${internalDeps.padEnd(20)} │`);
+    return [
+      colorize(pkg.name.split('/')[1], 'green'),
+      colorize(`v${pkg.version}`, 'blue'),
+      internalDeps || 'none'
+    ];
   });
-  diagram.push('└─────────────────────────────────────────────────────────────────────────────────┘');
+  
+  const nodeTable = createTable(nodeData, ['Package', 'Version', 'Dependencies'], { maxWidth: 100 });
+  diagram.push(...nodeTable);
   diagram.push('');
   
   // UI packages
@@ -191,28 +294,33 @@ function generateAsciiDiagram(packages) {
     pkg.name.includes('showcase')
   );
   
-  diagram.push('🎨 UI LAYER');
-  diagram.push('┌─────────────────────────────────────────────────────────────────────────────────┐');
-  uiPackages.forEach(pkg => {
+  diagram.push(colorize('🎨 UI LAYER', 'magenta'));
+  const uiData = uiPackages.map(pkg => {
     const deps = getPackageDependencies(pkg);
     const internalDeps = deps.internal.map(dep => dep.name.split('/')[1]).join(', ');
-    diagram.push(`│ ${pkg.name.split('/')[1].padEnd(15)} │ v${pkg.version.padEnd(8)} │ Deps: ${internalDeps.padEnd(20)} │`);
+    return [
+      colorize(pkg.name.split('/')[1], 'green'),
+      colorize(`v${pkg.version}`, 'blue'),
+      internalDeps || 'none'
+    ];
   });
-  diagram.push('└─────────────────────────────────────────────────────────────────────────────────┘');
+  
+  const uiTable = createTable(uiData, ['Package', 'Version', 'Dependencies'], { maxWidth: 100 });
+  diagram.push(...uiTable);
   diagram.push('');
   
-  // Dependency flow diagram
-  diagram.push('🔄 DEPENDENCY FLOW');
-  diagram.push('┌─────────────────────────────────────────────────────────────────────────────────┐');
-  diagram.push('│ core ──┐                                                                       │');
-  diagram.push('│        ├──► blockchain ──┐                                                     │');
-  diagram.push('│        └──► state ───────┼──► node ──┐                                        │');
-  diagram.push('│                          │           ├──► api-server ──┐                      │');
-  diagram.push('│                          │           └──► showcase ────┼──► showcase-webapp    │');
-  diagram.push('│                          │                             │                      │');
-  diagram.push('│                          └──► ui-primitives ──────────┼──► ui-components      │');
-  diagram.push('│                                                      │                      │');
-  diagram.push('└─────────────────────────────────────────────────────────────────────────────────┘');
+  // Dependency flow diagram with colors
+  diagram.push(colorize('🔄 DEPENDENCY FLOW', 'cyan'));
+  diagram.push(colorize('┌─────────────────────────────────────────────────────────────────────────────────┐', 'cyan'));
+  diagram.push(colorize('│', 'cyan') + ' ' + colorize('core', 'green') + ' ──┐' + ' '.repeat(55) + colorize('│', 'cyan'));
+  diagram.push(colorize('│', 'cyan') + '        ├──► ' + colorize('blockchain', 'green') + ' ──┐' + ' '.repeat(40) + colorize('│', 'cyan'));
+  diagram.push(colorize('│', 'cyan') + '        └──► ' + colorize('state', 'green') + ' ───────┼──► ' + colorize('node', 'blue') + ' ──┐' + ' '.repeat(20) + colorize('│', 'cyan'));
+  diagram.push(colorize('│', 'cyan') + '                          │           ├──► ' + colorize('api-server', 'blue') + ' ──┐' + ' '.repeat(15) + colorize('│', 'cyan'));
+  diagram.push(colorize('│', 'cyan') + '                          │           └──► ' + colorize('showcase', 'magenta') + ' ────┼──► ' + colorize('showcase-webapp', 'magenta') + '    ' + colorize('│', 'cyan'));
+  diagram.push(colorize('│', 'cyan') + '                          │                             │' + ' '.repeat(20) + colorize('│', 'cyan'));
+  diagram.push(colorize('│', 'cyan') + '                          └──► ' + colorize('ui-primitives', 'magenta') + ' ──────────┼──► ' + colorize('ui-components', 'magenta') + '      ' + colorize('│', 'cyan'));
+  diagram.push(colorize('│', 'cyan') + '                                                      │' + ' '.repeat(20) + colorize('│', 'cyan'));
+  diagram.push(colorize('└─────────────────────────────────────────────────────────────────────────────────┘', 'cyan'));
   diagram.push('');
   
   return diagram.join('\n');
@@ -221,15 +329,51 @@ function generateAsciiDiagram(packages) {
 function generateTypeMap(packages) {
   const typeMap = [];
   
-  typeMap.push('📝 TYPE EXPORTS MAP');
-  typeMap.push('┌─────────────────────────────────────────────────────────────────────────────────┐');
+  typeMap.push(colorize('📝 TYPE EXPORTS MAP', 'cyan'));
   
+  // Create type data for table
+  const typeData = packages.map(pkg => {
+    const typeInfo = getTypeExports(pkg.name.split('/')[1]);
+    const shortName = pkg.name.split('/')[1];
+    
+    if (typeInfo.available && typeInfo.exports.length > 0) {
+      // Group by type
+      const byType = typeInfo.exports.reduce((acc, exp) => {
+        if (!acc[exp.type]) acc[exp.type] = [];
+        acc[exp.type].push(exp.name);
+        return acc;
+      }, {});
+      
+      const typeSummary = Object.entries(byType)
+        .map(([type, names]) => `${type.toUpperCase()}: ${names.length}`)
+        .join(', ');
+      
+      return [
+        colorize(shortName, 'green'),
+        colorize(typeInfo.exports.length.toString(), 'blue'),
+        typeSummary || 'No types'
+      ];
+    } else {
+      return [
+        colorize(shortName, 'red'),
+        colorize('0', 'red'),
+        colorize('Not available (run build first)', 'dim')
+      ];
+    }
+  });
+  
+  const typeTable = createTable(typeData, ['Package', 'Total', 'Breakdown'], { maxWidth: 120 });
+  typeMap.push(...typeTable);
+  typeMap.push('');
+  
+  // Detailed type breakdown
+  typeMap.push(colorize('📋 DETAILED TYPE BREAKDOWN', 'yellow'));
   packages.forEach(pkg => {
     const typeInfo = getTypeExports(pkg.name.split('/')[1]);
     const shortName = pkg.name.split('/')[1];
     
     if (typeInfo.available && typeInfo.exports.length > 0) {
-      typeMap.push(`│ ${shortName.padEnd(15)} │ ${typeInfo.exports.length.toString().padEnd(3)} exports │`);
+      typeMap.push(colorize(`\n${shortName}:`, 'green'));
       
       // Group by type
       const byType = typeInfo.exports.reduce((acc, exp) => {
@@ -239,18 +383,13 @@ function generateTypeMap(packages) {
       }, {});
       
       Object.entries(byType).forEach(([type, names]) => {
-        const typeLabel = type.toUpperCase();
-        const namesList = names.slice(0, 5).join(', '); // Show first 5
-        const more = names.length > 5 ? ` (+${names.length - 5} more)` : '';
-        typeMap.push(`│ ${' '.repeat(17)} │   ${typeLabel.padEnd(8)}: ${namesList}${more.padEnd(30)} │`);
+        const typeLabel = colorize(type.toUpperCase(), 'blue');
+        const namesList = names.slice(0, 8).join(', '); // Show first 8
+        const more = names.length > 8 ? colorize(` (+${names.length - 8} more)`, 'dim') : '';
+        typeMap.push(`  ${typeLabel}: ${namesList}${more}`);
       });
-    } else {
-      typeMap.push(`│ ${shortName.padEnd(15)} │ No types available (run build first)                    │`);
     }
-    typeMap.push('│─────────────────────────────────────────────────────────────────────────────────│');
   });
-  
-  typeMap.push('└─────────────────────────────────────────────────────────────────────────────────┘');
   
   return typeMap.join('\n');
 }
@@ -258,109 +397,233 @@ function generateTypeMap(packages) {
 function generateDependencyMatrix(packages) {
   const matrix = [];
   
-  matrix.push('🔗 DEPENDENCY MATRIX');
-  matrix.push('┌─────────────────────────────────────────────────────────────────────────────────┐');
+  matrix.push(colorize('🔗 DEPENDENCY MATRIX', 'cyan'));
   
-  // Create header
+  // Create matrix data
   const shortNames = packages.map(pkg => pkg.name.split('/')[1]);
-  const header = '│'.padEnd(4) + shortNames.map(name => name.padEnd(8)).join('│') + '│';
-  matrix.push(header);
-  matrix.push('│' + '─'.repeat(header.length - 2) + '│');
-  
-  // Create matrix rows
-  packages.forEach(pkg => {
+  const matrixData = packages.map(pkg => {
     const shortName = pkg.name.split('/')[1];
     const deps = getPackageDependencies(pkg);
     const internalDeps = deps.internal.map(dep => dep.name.split('/')[1]);
     
-    const row = '│' + shortName.padEnd(4) + '│';
-    const cells = shortNames.map(targetName => {
-      if (targetName === shortName) return 'self'.padEnd(8);
-      if (internalDeps.includes(targetName)) return '✓'.padEnd(8);
-      return ' '.padEnd(8);
-    }).join('│');
+    const row = [colorize(shortName, 'green')];
+    shortNames.forEach(targetName => {
+      if (targetName === shortName) {
+        row.push(colorize('self', 'yellow'));
+      } else if (internalDeps.includes(targetName)) {
+        row.push(colorize('✓', 'green'));
+      } else {
+        row.push(' ');
+      }
+    });
     
-    matrix.push(row + cells + '│');
+    return row;
   });
   
-  matrix.push('└─────────────────────────────────────────────────────────────────────────────────┘');
+  const headers = ['Package', ...shortNames];
+  const matrixTable = createTable(matrixData, headers, { maxWidth: 120 });
+  matrix.push(...matrixTable);
   matrix.push('');
-  matrix.push('Legend: ✓ = depends on, self = self-reference, blank = no dependency');
+  matrix.push(colorize('Legend:', 'yellow') + ' ' + colorize('✓', 'green') + ' = depends on, ' + colorize('self', 'yellow') + ' = self-reference, blank = no dependency');
   
   return matrix.join('\n');
 }
 
-function displayPackageMap() {
-  console.log('🚀 Conflux DevKit Package Relationship Mapper\n');
+
+function displayHelp() {
+  console.log(colorize('🚀 Conflux DevKit Package Relationship Mapper', 'bright'));
+  console.log('');
+  console.log(colorize('Usage:', 'yellow') + ' pnpm package-map [options]');
+  console.log('');
+  console.log(colorize('Options:', 'yellow'));
+  console.log('  --help, -h           Show this help message');
+  console.log('  --types, -t          Show only type exports mapping');
+  console.log('  --deps, -d           Show only dependency matrix');
+  console.log('  --layers, -l         Show only package layers');
+  console.log('  --summary, -s        Show only summary statistics');
+  console.log('  --no-color           Disable colored output');
+  console.log('  --filter <name>      Filter packages by name pattern');
+  console.log('');
+  console.log(colorize('Features:', 'yellow'));
+  console.log('  • ASCII diagram of package relationships');
+  console.log('  • Type exports mapping for each package');
+  console.log('  • Dependency matrix showing inter-package connections');
+  console.log('  • Detailed package information with statistics');
+  console.log('  • Visual representation of the monorepo structure');
+  console.log('  • Color-coded output for better readability');
+  console.log('');
+  console.log(colorize('Examples:', 'yellow'));
+  console.log('  pnpm package-map                    # Show complete map');
+  console.log('  pnpm package-map --types            # Show only type exports');
+  console.log('  pnpm package-map --deps             # Show only dependencies');
+  console.log('  pnpm package-map --filter core      # Show only core-related packages');
+  console.log('  pnpm package-map --no-color         # Disable colors');
+}
+
+function displayPackageMap(options = {}) {
+  const { showTypes = true, showDeps = true, showLayers = true, showSummary = true, filter = null } = options;
+  
+  console.log(colorize('🚀 Conflux DevKit Package Relationship Mapper', 'bright'));
+  console.log('');
+  
+  // Show progress
+  process.stdout.write(colorize('📦 Scanning packages...', 'yellow'));
   
   // Get all packages
-  const packages = readdirSync(PACKAGES_DIR, { withFileTypes: true })
+  let packages = readdirSync(PACKAGES_DIR, { withFileTypes: true })
     .filter(dirent => dirent.isDirectory())
     .map(dirent => dirent.name)
     .filter(name => !name.startsWith('.')) // Exclude hidden directories
     .map(name => getPackageInfo(name))
     .filter(info => info !== null);
   
-  console.log(`📦 Found ${packages.length} packages:\n`);
+  // Apply filter if specified
+  if (filter) {
+    packages = packages.filter(pkg => 
+      pkg.name.toLowerCase().includes(filter.toLowerCase()) ||
+      pkg.description.toLowerCase().includes(filter.toLowerCase())
+    );
+  }
+  
+  console.log(colorize(` ✅ Found ${packages.length} packages`, 'green'));
+  console.log('');
   
   // Generate and display ASCII diagram
-  console.log(generateAsciiDiagram(packages));
-  console.log('');
+  if (showLayers) {
+    process.stdout.write(colorize('🏗️  Generating package relationships...', 'yellow'));
+    console.log(colorize(' ✅', 'green'));
+    console.log(generateAsciiDiagram(packages));
+    console.log('');
+  }
   
   // Generate and display type map
-  console.log(generateTypeMap(packages));
-  console.log('');
+  if (showTypes) {
+    process.stdout.write(colorize('📝 Analyzing type exports...', 'yellow'));
+    console.log(colorize(' ✅', 'green'));
+    console.log(generateTypeMap(packages));
+    console.log('');
+  }
   
   // Generate and display dependency matrix
-  console.log(generateDependencyMatrix(packages));
-  console.log('');
+  if (showDeps) {
+    process.stdout.write(colorize('🔗 Building dependency matrix...', 'yellow'));
+    console.log(colorize(' ✅', 'green'));
+    console.log(generateDependencyMatrix(packages));
+    console.log('');
+  }
   
-  // Package details
-  console.log('📋 PACKAGE DETAILS');
-  console.log('┌─────────────────────────────────────────────────────────────────────────────────┐');
-  packages.forEach(pkg => {
-    const deps = getPackageDependencies(pkg);
-    const typeInfo = getTypeExports(pkg.name.split('/')[1]);
+  // Package details with better formatting
+  if (showSummary) {
+    console.log(colorize('📋 PACKAGE DETAILS', 'cyan'));
     
-    console.log(`│ ${pkg.name}`);
-    console.log(`│   Version: ${pkg.version} | License: ${pkg.license}`);
-    console.log(`│   Description: ${pkg.description}`);
-    console.log(`│   Internal Deps: ${deps.internal.length} | External Deps: ${deps.external.length} | Dev Deps: ${deps.dev.length}`);
-    console.log(`│   Type Exports: ${typeInfo.available ? typeInfo.exports.length : 'Not available'}`);
-    console.log('│─────────────────────────────────────────────────────────────────────────────────│');
-  });
-  console.log('└─────────────────────────────────────────────────────────────────────────────────┘');
+    const packageDetails = packages.map(pkg => {
+      const deps = getPackageDependencies(pkg);
+      const typeInfo = getTypeExports(pkg.name.split('/')[1]);
+      
+      return [
+        colorize(pkg.name.split('/')[1], 'green'),
+        colorize(`v${pkg.version}`, 'blue'),
+        colorize(pkg.license, 'yellow'),
+        deps.internal.length.toString(),
+        deps.external.length.toString(),
+        deps.dev.length.toString(),
+        typeInfo.available ? typeInfo.exports.length.toString() : colorize('N/A', 'red')
+      ];
+    });
+    
+    const detailsTable = createTable(
+      packageDetails, 
+      ['Package', 'Version', 'License', 'Internal', 'External', 'Dev', 'Types'], 
+      { maxWidth: 120 }
+    );
+    console.log(...detailsTable);
+    console.log('');
+    
+    // Summary statistics
+    const totalTypes = packages.reduce((sum, pkg) => {
+      const typeInfo = getTypeExports(pkg.name.split('/')[1]);
+      return sum + (typeInfo.available ? typeInfo.exports.length : 0);
+    }, 0);
+    
+    const totalDeps = packages.reduce((sum, pkg) => {
+      const deps = getPackageDependencies(pkg);
+      return sum + deps.internal.length + deps.external.length + deps.dev.length;
+    }, 0);
+    
+    console.log(colorize('📊 SUMMARY STATISTICS', 'cyan'));
+    console.log(colorize('┌─────────────────────────────────────────────────────────────────────────────────┐', 'cyan'));
+    console.log(colorize('│', 'cyan') + ` Total Packages: ${colorize(packages.length.toString(), 'green')}`.padEnd(65) + colorize('│', 'cyan'));
+    console.log(colorize('│', 'cyan') + ` Total Type Exports: ${colorize(totalTypes.toString(), 'blue')}`.padEnd(65) + colorize('│', 'cyan'));
+    console.log(colorize('│', 'cyan') + ` Total Dependencies: ${colorize(totalDeps.toString(), 'yellow')}`.padEnd(65) + colorize('│', 'cyan'));
+    console.log(colorize('└─────────────────────────────────────────────────────────────────────────────────┘', 'cyan'));
+  }
 }
 
 function main() {
   const args = process.argv.slice(2);
-  const command = args[0];
   
-  switch (command) {
-    case '--help':
-    case 'help':
-      console.log(`
-Usage: pnpm package-map [command]
-
-Commands:
-  package-map                    Show complete package relationship map
-  package-map help               Show this help message
-
-Features:
-  - ASCII diagram of package relationships
-  - Type exports mapping for each package
-  - Dependency matrix showing inter-package connections
-  - Detailed package information
-  - Visual representation of the monorepo structure
-
-Examples:
-  pnpm package-map               # Show complete map
-      `);
-      break;
-    default:
-      displayPackageMap();
-      break;
+  // Parse command line arguments
+  const options = {
+    showTypes: true,
+    showDeps: true,
+    showLayers: true,
+    showSummary: true,
+    filter: null
+  };
+  
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    
+    switch (arg) {
+      case '--help':
+      case '-h':
+        displayHelp();
+        return;
+      case '--types':
+      case '-t':
+        options.showTypes = true;
+        options.showDeps = false;
+        options.showLayers = false;
+        options.showSummary = false;
+        break;
+      case '--deps':
+      case '-d':
+        options.showTypes = false;
+        options.showDeps = true;
+        options.showLayers = false;
+        options.showSummary = false;
+        break;
+      case '--layers':
+      case '-l':
+        options.showTypes = false;
+        options.showDeps = false;
+        options.showLayers = true;
+        options.showSummary = false;
+        break;
+      case '--summary':
+      case '-s':
+        options.showTypes = false;
+        options.showDeps = false;
+        options.showLayers = false;
+        options.showSummary = true;
+        break;
+      case '--no-color':
+        // Disable colors by overriding the colorize function
+        global.colorize = (text) => text;
+        break;
+      case '--filter':
+        options.filter = args[i + 1];
+        i++; // Skip next argument as it's the filter value
+        break;
+      default:
+        if (arg.startsWith('--filter=')) {
+          options.filter = arg.split('=')[1];
+        }
+        break;
+    }
   }
+  
+  displayPackageMap(options);
 }
 
 main();
