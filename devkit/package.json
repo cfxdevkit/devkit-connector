@@ -21,6 +21,8 @@
     "check:fix:unsafe": "turbo run check:fix:unsafe",
     "dev": "turbo run dev",
     "checkpoint": "node scripts/checkpoint.js",
+    "changelog": "node scripts/changelog.js",
+    "quickstart": "node scripts/quickstart.js",
     "start:full-stack": "concurrently --kill-others-on-fail \"turbo run dev --filter=@conflux-devkit/api-server\" \"turbo run dev --filter=@conflux-devkit/showcase-webapp\"",
     "start:devkit-node": "turbo run dev --filter=@conflux-devkit/node",
     "start:api-server": "turbo run dev --filter=@conflux-devkit/api-server",

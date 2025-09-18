@@ -92,7 +92,7 @@ export class RpcCacheManager {
   generateKey(method: string, params: Record<string, unknown> = {}): string {
     const sortedParams = Object.keys(params)
       .sort()
-      .map((key) => {
+      .map(key => {
         const value = params[key];
         // Handle BigInt serialization
         if (typeof value === 'bigint') {
@@ -120,14 +120,14 @@ export class RpcCacheManager {
 
     // Clean old call history
     this.callHistory = this.callHistory.filter(
-      (call) => call.timestamp > oneMinuteAgo
+      call => call.timestamp > oneMinuteAgo
     );
 
     // In UI protection mode, be more lenient - only prevent rapid successive calls
     if (this.config.uiProtectionMode) {
       // Check for rapid successive calls (likely re-renders)
       const recentCalls = this.callHistory.filter(
-        (call) => call.timestamp > oneSecondAgo
+        call => call.timestamp > oneSecondAgo
       );
       if (recentCalls.length >= this.config.maxCallsPerSecond) {
         // Only warn, don't block - let cache handle it
@@ -139,7 +139,7 @@ export class RpcCacheManager {
     } else {
       // Strict rate limiting for non-UI mode
       const recentCalls = this.callHistory.filter(
-        (call) => call.timestamp > oneSecondAgo
+        call => call.timestamp > oneSecondAgo
       );
       if (recentCalls.length >= this.config.maxCallsPerSecond) {
         this.emitWarning(
@@ -151,7 +151,7 @@ export class RpcCacheManager {
 
     // Check method-specific rate limit (more lenient in UI mode)
     const methodCalls = this.callHistory.filter(
-      (call) => call.method === method && call.timestamp > oneMinuteAgo
+      call => call.method === method && call.timestamp > oneMinuteAgo
     );
     const methodLimit = this.config.uiProtectionMode
       ? this.config.maxCallsPerMethod * 2
@@ -200,7 +200,7 @@ export class RpcCacheManager {
    * Emit warning to all registered callbacks
    */
   private emitWarning(message: string): void {
-    this.warningCallbacks.forEach((callback) => {
+    this.warningCallbacks.forEach(callback => {
       try {
         callback(message);
       } catch (error) {
@@ -232,7 +232,7 @@ export class RpcCacheManager {
     const now = Date.now();
     const oneMinuteAgo = now - 60000;
     const recentCalls = this.callHistory.filter(
-      (call) => call.timestamp > oneMinuteAgo
+      call => call.timestamp > oneMinuteAgo
     ).length;
 
     return {
@@ -348,7 +348,7 @@ export const rpcMethods = {
 };
 
 // Warning handler for console output
-rpcCache.onWarning((message) => {
+rpcCache.onWarning(message => {
   console.warn(`🚨 RPC Rate Limit Warning: ${message}`);
 });
 

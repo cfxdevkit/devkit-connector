@@ -111,7 +111,7 @@ export class NodeOrchestrationService {
       sync: true, // TODO: Check sync status
     };
 
-    const isHealthy = Object.values(checks).every((check) => check);
+    const isHealthy = Object.values(checks).every(check => check);
 
     return {
       status: isHealthy ? 'healthy' : 'unhealthy',
@@ -228,7 +228,7 @@ export class NodeOrchestrationService {
       await this.stopNode({ graceful: true });
 
       // Wait a bit
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Start the node
       await this.startNode({ config, autoConnect, waitForReady, timeout });
@@ -407,7 +407,7 @@ export class NodeOrchestrationService {
       if (await this.isNodeRunning()) {
         return;
       }
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     throw new Error('Node failed to start within timeout');
@@ -423,7 +423,7 @@ export class NodeOrchestrationService {
       if (!(await this.isNodeRunning())) {
         return;
       }
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     throw new Error('Node failed to stop within timeout');

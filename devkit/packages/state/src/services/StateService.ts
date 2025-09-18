@@ -212,7 +212,7 @@ export class StateService implements IStateService {
     });
 
     // Node events
-    this.on('state:node:started', (status) => {
+    this.on('state:node:started', status => {
       console.log('State: Node started', status);
       this.addNotification({
         type: 'success',
@@ -233,7 +233,7 @@ export class StateService implements IStateService {
     });
 
     // Wallet events
-    this.on('state:wallet:created', (wallet) => {
+    this.on('state:wallet:created', wallet => {
       console.log('State: Wallet created', wallet.address);
       this.addNotification({
         type: 'success',
@@ -243,12 +243,12 @@ export class StateService implements IStateService {
       });
     });
 
-    this.on('state:wallet:selected', (wallet) => {
+    this.on('state:wallet:selected', wallet => {
       console.log('State: Wallet selected', wallet.address);
     });
 
     // Contract events
-    this.on('state:contract:deployed', (contract) => {
+    this.on('state:contract:deployed', contract => {
       console.log('State: Contract deployed', contract.address);
       this.addNotification({
         type: 'success',
@@ -258,16 +258,16 @@ export class StateService implements IStateService {
       });
     });
 
-    this.on('state:contract:called', (call) => {
+    this.on('state:contract:called', call => {
       console.log('State: Contract called', call.method);
     });
 
-    this.on('state:contract:event', (event) => {
+    this.on('state:contract:event', event => {
       console.log('State: Contract event', event.eventName);
     });
 
     // Network events
-    this.on('state:network:switched', (network) => {
+    this.on('state:network:switched', network => {
       console.log('State: Network switched', network.name);
       this.addNotification({
         type: 'info',
@@ -289,7 +289,7 @@ export class StateService implements IStateService {
     });
 
     // Notification events
-    this.on('state:notification', (notification) => {
+    this.on('state:notification', notification => {
       console.log('State: Notification', notification.title);
     });
   }
@@ -454,7 +454,7 @@ export class StateService implements IStateService {
     // Get contracts from the real contract service
     const contracts = await realContractService.getContracts();
     // Convert to browser-safe format
-    return contracts.map((contract) => ({
+    return contracts.map(contract => ({
       name: contract.name,
       address: contract.address as `0x${string}`,
       abi: JSON.stringify(contract.abi),
@@ -631,7 +631,7 @@ export class StateService implements IStateService {
   getContractDataForAPI(contractAddress: string) {
     const contract = this.store
       .getState()
-      .contracts.deployed.find((c) => c.address === contractAddress);
+      .contracts.deployed.find(c => c.address === contractAddress);
     if (!contract) {
       return null;
     }
@@ -639,11 +639,11 @@ export class StateService implements IStateService {
     const calls = this.store
       .getState()
       .contracts.contractCalls.filter(
-        (c) => c.contractAddress === contractAddress
+        c => c.contractAddress === contractAddress
       );
     const events = this.store
       .getState()
-      .contracts.events.filter((e) => e.contractAddress === contractAddress);
+      .contracts.events.filter(e => e.contractAddress === contractAddress);
 
     return {
       contract,
@@ -658,7 +658,7 @@ export class StateService implements IStateService {
   getWalletDataForAPI(address: string) {
     const wallet = this.store
       .getState()
-      .wallets.wallets.find((w) => w.address === address);
+      .wallets.wallets.find(w => w.address === address);
     if (!wallet) {
       return null;
     }

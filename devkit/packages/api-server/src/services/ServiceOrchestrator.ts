@@ -308,7 +308,7 @@ export class ServiceOrchestrator {
       console.log('ServiceOrchestrator: Disconnected from Conflux network');
     });
 
-    this.stateIntegration.on('state:node:started', (status) => {
+    this.stateIntegration.on('state:node:started', status => {
       console.log('ServiceOrchestrator: Node started', status);
     });
 
@@ -316,14 +316,14 @@ export class ServiceOrchestrator {
       console.log('ServiceOrchestrator: Node stopped');
     });
 
-    this.stateIntegration.on('state:wallet:created', (wallet) => {
+    this.stateIntegration.on('state:wallet:created', wallet => {
       console.log(
         'ServiceOrchestrator: Wallet created',
         (wallet as { address: string }).address
       );
     });
 
-    this.stateIntegration.on('state:contract:deployed', (contract) => {
+    this.stateIntegration.on('state:contract:deployed', contract => {
       console.log(
         'ServiceOrchestrator: Contract deployed',
         (contract as { address: string }).address
