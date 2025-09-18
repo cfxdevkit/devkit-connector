@@ -4,9 +4,18 @@ import type { BrowserNodeStatus } from '@conflux-devkit/core';
 interface NodeControlProps {
   nodeStatus: BrowserNodeStatus | null;
   onRefresh: () => void;
+  nodeActions: {
+    startNode: (config?: any) => Promise<void>;
+    stopNode: () => Promise<void>;
+    restartNode: (config?: any) => Promise<void>;
+  };
 }
 
-export function NodeControl({ nodeStatus, onRefresh }: NodeControlProps) {
+export function NodeControl({
+  nodeStatus,
+  onRefresh,
+  nodeActions,
+}: NodeControlProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
@@ -15,10 +24,10 @@ export function NodeControl({ nodeStatus, onRefresh }: NodeControlProps) {
   const isRunning = nodeStatus?.running || false;
   const status = nodeStatus;
   const error = actionError; // Use action error instead of node status error
-  
+
   const statusColor = isRunning ? 'online' : 'offline';
   const statusText = isRunning ? 'Running' : 'Stopped';
-  
+
   const metrics = {
     blockNumber: nodeStatus?.blockNumber || '0',
     peerCount: nodeStatus?.peerCount || '0',
@@ -33,16 +42,17 @@ export function NodeControl({ nodeStatus, onRefresh }: NodeControlProps) {
     setIsStarting(true);
     setActionError(null);
     try {
-      const response = await fetch('/api/node/start', { method: 'POST' });
-      const result = await response.json();
-      if (!result.success) {
-        setActionError(result.error || 'Failed to start node');
-      } else {
-        // Refresh status after starting
-        setTimeout(() => onRefresh(), 1000);
-      }
+      await nodeActions.startNode({
+        corePort: 12537,
+        evmPort: 8545,
+        chainId: 2029,
+        evmChainId: 2030,
+      });
+      // State will update automatically through subscriptions
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : 'Unknown error');
+      setActionError(
+        error instanceof Error ? error.message : 'Failed to start node'
+      );
     } finally {
       setIsLoading(false);
       setIsStarting(false);
@@ -54,16 +64,12 @@ export function NodeControl({ nodeStatus, onRefresh }: NodeControlProps) {
     setIsStopping(true);
     setActionError(null);
     try {
-      const response = await fetch('/api/node/stop', { method: 'POST' });
-      const result = await response.json();
-      if (!result.success) {
-        setActionError(result.error || 'Failed to stop node');
-      } else {
-        // Refresh status after stopping
-        setTimeout(() => onRefresh(), 1000);
-      }
+      await nodeActions.stopNode();
+      // State will update automatically through subscriptions
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : 'Unknown error');
+      setActionError(
+        error instanceof Error ? error.message : 'Failed to stop node'
+      );
     } finally {
       setIsLoading(false);
       setIsStopping(false);
@@ -74,16 +80,17 @@ export function NodeControl({ nodeStatus, onRefresh }: NodeControlProps) {
     setIsLoading(true);
     setActionError(null);
     try {
-      const response = await fetch('/api/node/restart', { method: 'POST' });
-      const result = await response.json();
-      if (!result.success) {
-        setActionError(result.error || 'Failed to restart node');
-      } else {
-        // Refresh status after restarting
-        setTimeout(() => onRefresh(), 2000);
-      }
+      await nodeActions.restartNode({
+        corePort: 12537,
+        evmPort: 8545,
+        chainId: 2029,
+        evmChainId: 2030,
+      });
+      // State will update automatically through subscriptions
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : 'Unknown error');
+      setActionError(
+        error instanceof Error ? error.message : 'Failed to restart node'
+      );
     } finally {
       setIsLoading(false);
     }

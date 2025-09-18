@@ -2,9 +2,12 @@
 
 export * from './config';
 export * from './constants';
-export * from './contracts';
+// Note: contracts module is excluded as it contains server-side code
+// export * from './contracts';
 export * from './schemas';
 export * from './types';
+// Export base types first (foundation for all other types)
+export * from './types/base';
 // Export API types and utilities
 export type {
   ApiError,

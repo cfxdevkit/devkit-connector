@@ -13,8 +13,13 @@ declare global {
 interface WalletManagementProps {
   wallets: BrowserWalletInfo[];
   activeWallet: BrowserWalletInfo | null;
-  onWalletChange: (wallet: BrowserWalletInfo) => void;
+  onWalletChange: (walletAddress: string) => void;
   onRefresh: () => void;
+  walletActions: {
+    createWallet: (mnemonic?: string) => Promise<any>;
+    selectWallet: (address: string) => void;
+    refreshWalletBalance: (address: string) => Promise<void>;
+  };
 }
 
 interface BrowserWallet {
@@ -24,11 +29,12 @@ interface BrowserWallet {
   balance?: string;
 }
 
-export function WalletManagement({ 
-  wallets, 
-  activeWallet, 
-  onWalletChange, 
-  onRefresh 
+export function WalletManagement({
+  wallets,
+  activeWallet,
+  onWalletChange,
+  onRefresh,
+  walletActions,
 }: WalletManagementProps) {
   const [browserWallets, setBrowserWallets] = useState<BrowserWallet[]>([]);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -48,13 +54,17 @@ export function WalletManagement({
     try {
       // Check for MetaMask
       if (typeof window.ethereum !== 'undefined') {
-        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        const accounts = await window.ethereum.request({
+          method: 'eth_accounts',
+        });
         if (accounts.length > 0) {
-          const browserWallets: BrowserWallet[] = accounts.map((address: string, index: number) => ({
-            address,
-            name: `MetaMask ${index + 1}`,
-            isConnected: true,
-          }));
+          const browserWallets: BrowserWallet[] = accounts.map(
+            (address: string, index: number) => ({
+              address,
+              name: `MetaMask ${index + 1}`,
+              isConnected: true,
+            })
+          );
           setBrowserWallets(browserWallets);
         }
       }
@@ -68,16 +78,18 @@ export function WalletManagement({
     setActionError(null);
     try {
       if (typeof window.ethereum !== 'undefined') {
-        const accounts = await window.ethereum.request({ 
-          method: 'eth_requestAccounts' 
+        const accounts = await window.ethereum.request({
+          method: 'eth_requestAccounts',
         });
-        
-        const newWallets: BrowserWallet[] = accounts.map((address: string, index: number) => ({
-          address,
-          name: `MetaMask ${index + 1}`,
-          isConnected: true,
-        }));
-        
+
+        const newWallets: BrowserWallet[] = accounts.map(
+          (address: string, index: number) => ({
+            address,
+            name: `MetaMask ${index + 1}`,
+            isConnected: true,
+          })
+        );
+
         setBrowserWallets(prev => [...prev, ...newWallets]);
       } else {
         setActionError('No browser wallet detected. Please install MetaMask.');
@@ -90,10 +102,8 @@ export function WalletManagement({
   };
 
   const selectWallet = (walletAddress: string) => {
-    const wallet = wallets.find(w => w.address === walletAddress);
-    if (wallet) {
-      onWalletChange(wallet);
-    }
+    walletActions.selectWallet(walletAddress);
+    onWalletChange(walletAddress);
   };
 
   const handleCreateWallet = async () => {
@@ -101,19 +111,10 @@ export function WalletManagement({
     setIsCreating(true);
     setActionError(null);
     try {
-      const response = await fetch('/api/wallet/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mnemonic: mnemonic || undefined }),
-      });
-      const result = await response.json();
-      if (!result.success) {
-        setActionError(result.error || 'Failed to create wallet');
-      } else {
-        setShowCreateForm(false);
-        setMnemonic('');
-        onRefresh(); // Refresh wallets list
-      }
+      await walletActions.createWallet(mnemonic || undefined);
+      setShowCreateForm(false);
+      setMnemonic('');
+      // State will update automatically through subscriptions
     } catch (error) {
       setActionError(
         error instanceof Error ? error.message : 'Failed to create wallet'
@@ -128,7 +129,7 @@ export function WalletManagement({
     setIsLoading(true);
     setActionError(null);
     try {
-      onRefresh();
+      // State will update automatically through subscriptions
     } catch (error) {
       setActionError(
         error instanceof Error ? error.message : 'Failed to refresh wallets'
@@ -143,7 +144,8 @@ export function WalletManagement({
       setIsLoading(true);
       setActionError(null);
       try {
-        onRefresh(); // This will refresh all data including balance
+        await walletActions.refreshWalletBalance(activeWallet.address);
+        // State will update automatically through subscriptions
       } catch (error) {
         setActionError(
           error instanceof Error ? error.message : 'Failed to refresh balance'
@@ -198,7 +200,9 @@ export function WalletManagement({
                     <div className="wallet-address">
                       {wallet.address.slice(0, 8)}...{wallet.address.slice(-8)}
                     </div>
-                    <div className="wallet-balance">{wallet.balance || '0'} CFX</div>
+                    <div className="wallet-balance">
+                      {wallet.balance || '0'} CFX
+                    </div>
                   </div>
                   <div className="wallet-actions">
                     <span className="connected-indicator">✓</span>
@@ -209,7 +213,9 @@ export function WalletManagement({
           ) : (
             <div className="no-wallets">
               <p>No browser wallets connected</p>
-              <p className="text-muted">Connect MetaMask or other browser wallets</p>
+              <p className="text-muted">
+                Connect MetaMask or other browser wallets
+              </p>
             </div>
           )}
         </div>
@@ -355,7 +361,9 @@ export function WalletManagement({
                     <div className="wallet-address">
                       {wallet.address.slice(0, 8)}...{wallet.address.slice(-8)}
                     </div>
-                    <div className="wallet-balance">{wallet.balance || '0'} CFX</div>
+                    <div className="wallet-balance">
+                      {wallet.balance || '0'} CFX
+                    </div>
                   </div>
                   <div className="wallet-actions">
                     {activeWallet?.address === wallet.address && (

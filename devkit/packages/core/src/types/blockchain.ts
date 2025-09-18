@@ -1,85 +1,41 @@
 // Blockchain-specific types aligned with viem/cive APIs
 
-// Wallet types
-export interface WalletInfo {
-  index: number;
-  address: `0x${string}`;
-  privateKey: `0x${string}`;
-  mnemonic?: string;
+import type {
+  BaseWalletInfo,
+  BaseNetworkConfig,
+  BaseContractInfo,
+  BaseAddress,
+  BaseTransactionRequest,
+  BaseTransactionResponse,
+  AbiItem,
+} from './base';
+
+// Server-side wallet with bigint precision
+export interface WalletInfo extends BaseWalletInfo {
   balance?: bigint; // Internal: bigint for calculations
   balanceFormatted?: string; // Display: formatted string
-  isMining?: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
 }
 
-// Network configuration
-export interface NetworkConfig {
-  name: string;
-  rpcUrl: string;
-  chainId: number;
-  evmChainId?: number;
-  currency: {
-    name: string;
-    symbol: string;
-    decimals: number;
-  };
-  isTestnet: boolean;
-  networkType?: 'core' | 'evm';
-  blockExplorer?: string;
+// Server-side network configuration
+export interface NetworkConfig extends BaseNetworkConfig {
+  // No additional fields needed - base type is already server-optimized
 }
 
-// Contract information
-export interface ContractInfo {
-  address: `0x${string}`;
-  abi: AbiItem[];
-  name: string;
-  version?: string;
-  deployedAt?: Date;
-  network: string;
+// Server-side contract information
+export interface ContractInfo extends BaseContractInfo {
+  // No additional fields needed - base type is already server-optimized
 }
 
-// ABI types for better type safety
-export interface AbiItem {
-  type: string;
-  name?: string;
-  inputs?: AbiInput[];
-  outputs?: AbiOutput[];
-  stateMutability?: string;
-  anonymous?: boolean;
-}
-
-export interface AbiInput {
-  name: string;
-  type: string;
-  indexed?: boolean;
-  internalType?: string;
-}
-
-export interface AbiOutput {
-  name: string;
-  type: string;
-  internalType?: string;
-}
+// ABI types are now exported from base.ts
+export type { AbiItem, AbiInput, AbiOutput } from './base';
 
 // Transaction types
-export interface TransactionRequest {
-  to: `0x${string}`;
-  value?: bigint;
-  data?: `0x${string}`;
-  gasLimit?: bigint;
-  gasPrice?: bigint;
+export interface TransactionRequest extends BaseTransactionRequest {
+  // No additional fields needed - base type is already server-optimized
 }
 
-export interface TransactionResponse {
-  hash: `0x${string}`;
-  from: `0x${string}`;
-  to: `0x${string}`;
-  value: bigint;
-  gasUsed: bigint;
-  status: 'pending' | 'success' | 'failed';
-  blockNumber?: bigint;
-  confirmations?: number;
+export interface TransactionResponse extends BaseTransactionResponse {
+  // No additional fields needed - base type is already server-optimized
 }
 
 // Deployment result

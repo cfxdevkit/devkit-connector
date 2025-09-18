@@ -1,25 +1,15 @@
 import { useState, useEffect } from 'react';
-import { ApiIntegration } from './ApiIntegration.js';
-import { ContractManagement } from './ContractManagement.js';
 import { HardhatDeploymentStatus } from './HardhatDeploymentStatus.js';
-import { NetworkControl } from './NetworkControl.js';
 import { NodeControl } from './NodeControl.js';
 import { WalletManagement } from './WalletManagement.js';
+import { NetworkSelection } from './NetworkSelection.js';
 import type {
   BrowserNetworkConfig,
   BrowserWalletInfo,
   BrowserNodeStatus,
-  BrowserContractOrchestrator,
 } from '@conflux-devkit/core';
 
-type TabType =
-  | 'overview'
-  | 'node'
-  | 'wallets'
-  | 'contracts'
-  | 'hardhat'
-  | 'network'
-  | 'api';
+type TabType = 'overview' | 'node' | 'wallets' | 'hardhat';
 
 interface ShowcaseState {
   networks: BrowserNetworkConfig[];
@@ -27,16 +17,31 @@ interface ShowcaseState {
   wallets: BrowserWalletInfo[];
   activeWallet: BrowserWalletInfo | null;
   nodeStatus: BrowserNodeStatus | null;
-  contracts: BrowserContractOrchestrator[];
   isLoading: boolean;
   error: string | null;
 }
 
 interface DashboardProps {
   state: ShowcaseState;
-  onNetworkChange: (network: BrowserNetworkConfig) => void;
-  onWalletChange: (wallet: BrowserWalletInfo) => void;
+  onNetworkChange: (networkId: string) => void;
+  onWalletChange: (walletAddress: string) => void;
   onRefresh: () => void;
+  nodeActions: {
+    startNode: (config?: any) => Promise<void>;
+    stopNode: () => Promise<void>;
+    restartNode: (config?: any) => Promise<void>;
+  };
+  walletActions: {
+    createWallet: (mnemonic?: string) => Promise<any>;
+    selectWallet: (address: string) => void;
+    refreshWalletBalance: (address: string) => Promise<void>;
+  };
+  networkActions: {
+    switchNetwork: (networkId: string) => Promise<void>;
+  };
+  hardhatActions: {
+    deployContract: (contractName: string, args?: any[]) => Promise<any>;
+  };
 }
 
 // Overview Tab Component
@@ -126,28 +131,13 @@ function OverviewTab({
             <p>Node status unknown</p>
           )}
         </div>
-
-        {/* Contracts Status Card */}
-        <div className="overview-card">
-          <h3>📦 Contracts</h3>
-          <p>
-            <strong>Available:</strong> {state.contracts.length}
-          </p>
-          <p>
-            <strong>Deployed:</strong>{' '}
-            {
-              state.contracts.filter(
-                c => c.address !== '0x0000000000000000000000000000000000000000'
-              ).length
-            }
-          </p>
-        </div>
       </div>
 
       <div className="overview-actions">
-        <button onClick={onRefresh} className="btn btn-primary">
-          🔄 Refresh All Data
-        </button>
+        <div className="refresh-info">
+          <span className="refresh-icon">🔄</span>
+          <span>Data updates automatically via state subscriptions</span>
+        </div>
       </div>
     </div>
   );
@@ -158,6 +148,10 @@ export function Dashboard({
   onNetworkChange,
   onWalletChange,
   onRefresh,
+  nodeActions,
+  walletActions,
+  networkActions,
+  hardhatActions,
 }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
 
@@ -210,7 +204,6 @@ export function Dashboard({
         body: JSON.stringify({ contractNames, network, constructorArgs }),
       });
       const result = await response.json();
-      console.log('Deployment result:', result);
 
       if (result.success) {
         setHardhatStatus(prev => ({
@@ -221,7 +214,7 @@ export function Dashboard({
           contracts: result.deployments,
           endTime: new Date(),
         }));
-        onRefresh(); // Refresh contracts list
+        // State will update automatically through subscriptions
       } else {
         setHardhatStatus(prev => ({
           ...prev,
@@ -259,7 +252,6 @@ export function Dashboard({
         headers: { 'Content-Type': 'application/json' },
       });
       const result = await response.json();
-      console.log('Compilation result:', result);
 
       if (result.success) {
         setHardhatStatus(prev => ({
@@ -319,10 +311,7 @@ export function Dashboard({
     { id: 'overview' as TabType, label: 'Overview', icon: '📊' },
     { id: 'node' as TabType, label: 'Node Control', icon: '🖥️' },
     { id: 'wallets' as TabType, label: 'Wallets', icon: '👛' },
-    { id: 'contracts' as TabType, label: 'Contracts', icon: '📦' },
     { id: 'hardhat' as TabType, label: 'Hardhat', icon: '🔨' },
-    { id: 'network' as TabType, label: 'Network', icon: '🌐' },
-    { id: 'api' as TabType, label: 'API Integration', icon: '🔗' },
   ];
 
   const renderTabContent = () => {
@@ -331,7 +320,11 @@ export function Dashboard({
         return <OverviewTab state={state} onRefresh={onRefresh} />;
       case 'node':
         return (
-          <NodeControl nodeStatus={state.nodeStatus} onRefresh={onRefresh} />
+          <NodeControl
+            nodeStatus={state.nodeStatus}
+            onRefresh={onRefresh}
+            nodeActions={nodeActions}
+          />
         );
       case 'wallets':
         return (
@@ -340,13 +333,7 @@ export function Dashboard({
             activeWallet={state.activeWallet}
             onWalletChange={onWalletChange}
             onRefresh={onRefresh}
-          />
-        );
-      case 'contracts':
-        return (
-          <ContractManagement
-            contracts={state.contracts}
-            onRefresh={onRefresh}
+            walletActions={walletActions}
           />
         );
       case 'hardhat':
@@ -357,21 +344,8 @@ export function Dashboard({
             onCompile={handleHardhatCompile}
             onReset={handleHardhatReset}
             onLoadDeployments={handleLoadDeployments}
+            hardhatActions={hardhatActions}
           />
-        );
-      case 'network':
-        return (
-          <div className="placeholder-content">
-            <h3>Network Control</h3>
-            <p>Network control functionality will be implemented here.</p>
-          </div>
-        );
-      case 'api':
-        return (
-          <div className="placeholder-content">
-            <h3>API Integration</h3>
-            <p>API integration functionality will be implemented here.</p>
-          </div>
         );
       default:
         return <OverviewTab state={state} onRefresh={onRefresh} />;
@@ -381,10 +355,19 @@ export function Dashboard({
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h1 className="dashboard-title">🚀 Conflux DevKit Showcase</h1>
-        <p className="dashboard-subtitle">
-          Complete UI Ecosystem Demonstration with Full State Management
-        </p>
+        <div className="dashboard-title-section">
+          <h1 className="dashboard-title">🚀 Conflux DevKit Showcase</h1>
+          <p className="dashboard-subtitle">
+            Complete UI Ecosystem Demonstration with Full State Management
+          </p>
+        </div>
+        <div className="dashboard-controls">
+          <NetworkSelection
+            currentNetwork={state.currentNetwork}
+            onNetworkChange={onNetworkChange}
+            isSwitching={false}
+          />
+        </div>
       </div>
 
       <div className="tab-navigation">
@@ -409,6 +392,43 @@ export function Dashboard({
 
 // Tab Navigation Styles
 const tabStyles = `
+.dashboard-header {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.dashboard-title-section {
+  text-align: left;
+}
+
+.dashboard-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 0.5rem 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dashboard-subtitle {
+  font-size: 1.125rem;
+  color: #6b7280;
+  margin: 0;
+  font-weight: 400;
+}
+
+.dashboard-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .tab-navigation {
   margin-bottom: 2rem;
   border-bottom: 1px solid #e2e8f0;
@@ -497,6 +517,22 @@ const tabStyles = `
   gap: 1rem;
 }
 
+.refresh-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+  color: #0369a1;
+  font-size: 0.875rem;
+}
+
+.refresh-icon {
+  font-size: 1rem;
+}
+
 .btn {
   padding: 0.75rem 1.5rem;
   border: 1px solid #e2e8f0;
@@ -526,6 +562,20 @@ const tabStyles = `
 }
 
 @media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .dashboard-title-section {
+    text-align: center;
+  }
+  
+  .dashboard-controls {
+    width: 100%;
+    justify-content: center;
+  }
+  
   .tab-list {
     flex-wrap: wrap;
   }
@@ -541,16 +591,6 @@ const tabStyles = `
   }
 }
 
-.placeholder-content {
-  padding: 2rem;
-  text-align: center;
-  color: #6b7280;
-}
-
-.placeholder-content h3 {
-  color: #2d3748;
-  margin-bottom: 1rem;
-}
 `;
 
 // Inject styles

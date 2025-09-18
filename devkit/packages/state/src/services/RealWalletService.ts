@@ -1,6 +1,6 @@
 // Real wallet service using blockchain package integration
 
-import { EvmClient, networkManager } from '@conflux-devkit/blockchain';
+import { EvmClient, networkManager } from '@conflux-devkit/blockchain/browser';
 import type { BrowserWalletInfo, NetworkConfig } from '@conflux-devkit/core';
 import { BIP32Factory } from 'bip32';
 import { generateMnemonic, mnemonicToSeedSync } from 'bip39';

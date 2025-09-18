@@ -1,6 +1,12 @@
 // State service for managing Conflux DevKit state and providing API integration
 
-import type { EventEmitter } from 'node:events';
+// Browser-compatible EventEmitter type
+type EventEmitter = {
+  on(event: string, listener: Function): EventEmitter;
+  off(event: string, listener: Function): EventEmitter;
+  emit(event: string, ...args: any[]): boolean;
+  removeAllListeners?(event?: string): EventEmitter;
+};
 import type {
   BrowserContractOrchestrator,
   BrowserWalletInfo,

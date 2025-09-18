@@ -1,11 +1,7 @@
 // Contract-related exports for blockchain package
 
-// Export singleton instances
-export {
-  contractDeploymentManager,
-  contractOrchestratorManager,
-  contractRegistry,
-} from '@conflux-devkit/core';
+// Note: contractDeploymentManager, contractOrchestratorManager, contractRegistry
+// are server-side only and not available in browser builds
 export * from './BrowserContractManager';
 export { browserContractManager } from './BrowserContractManager';
 export * from './BrowserContractWrapper';

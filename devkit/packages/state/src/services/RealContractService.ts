@@ -1,6 +1,6 @@
 // Real contract service using blockchain package integration
 
-import { EvmClient, networkManager } from '@conflux-devkit/blockchain';
+import { EvmClient, networkManager } from '@conflux-devkit/blockchain/browser';
 import type {
   BrowserContractOrchestrator,
   NetworkConfig,

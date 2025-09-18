@@ -1,10 +1,11 @@
-// Export all blockchain operations
+// Export all blockchain operations (browser-compatible)
 
 export * from './contract';
 // Export specific classes that are imported by other packages
 export { ContractManager } from './contract/ContractManager';
 export * from './examples';
-export * from './hardhat';
+// Note: hardhat module is excluded as it contains server-side code
+// export * from './hardhat';
 export * from './network';
 export * from './rpc';
 export * from './transaction';

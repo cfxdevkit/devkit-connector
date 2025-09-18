@@ -83,54 +83,31 @@ try {
   const stateModule = await import('@conflux-devkit/state');
   const nodeModule = await import('@conflux-devkit/node');
 
-  // Extract classes handling potential default export wrapping
-  const WalletManager =
-    blockchainModule.WalletManager || blockchainModule.default?.WalletManager;
-  const NetworkManager =
-    blockchainModule.NetworkManager || blockchainModule.default?.NetworkManager;
-  const ContractManager =
-    blockchainModule.ContractManager ||
-    blockchainModule.default?.ContractManager;
-  const StateService =
-    stateModule.StateService || stateModule.default?.StateService;
-  const ConfluxNode = nodeModule.ConfluxNode || nodeModule.default?.ConfluxNode;
+  // Extract classes from named exports
+  const WalletManager = blockchainModule.WalletManager;
+  const NetworkManager = blockchainModule.NetworkManager;
+  const ContractManager = blockchainModule.ContractManager;
+  const StateService = stateModule.StateService;
+  const ConfluxNode = nodeModule.ConfluxNode;
 
   // Initialize services
   if (WalletManager) {
     devKitServices.walletManager = new WalletManager();
-    console.log('✅ WalletManager initialized');
-  } else {
-    console.log('❌ WalletManager not available');
   }
   if (NetworkManager) {
     devKitServices.networkManager = NetworkManager.getInstance();
-    console.log('✅ NetworkManager initialized');
-  } else {
-    console.log('❌ NetworkManager not available');
   }
   if (ContractManager) {
     devKitServices.contractManager = new ContractManager();
-    console.log('✅ ContractManager initialized');
-  } else {
-    console.log('❌ ContractManager not available');
   }
   if (StateService) {
     devKitServices.stateService = new StateService();
-    console.log('✅ StateService initialized');
-  } else {
-    console.log('❌ StateService not available');
   }
   if (ConfluxNode) {
     devKitServices.confluxNode = new ConfluxNode();
-    console.log('✅ ConfluxNode initialized');
-  } else {
-    console.log('❌ ConfluxNode not available');
   }
-
-  console.log('✅ DevKit services initialized successfully');
 } catch (error) {
-  console.error('❌ Failed to initialize DevKit services:', error);
-  console.log('⚠️  Using enhanced mock services with realistic behavior');
+  console.error('Failed to initialize DevKit services:', error);
 }
 
 // Serve workspace packages
@@ -234,24 +211,19 @@ app.get('/api/packages', (_req, res) => {
 // Demo Checklist API endpoints
 app.get('/api/wallet/info', async (_req, res) => {
   try {
-    console.log('🔍 Checking wallet service availability...');
     if (!devKitServices.walletManager) {
-      console.log('❌ Wallet service not available');
       return res.status(503).json({
         available: false,
         error: 'Wallet service not available',
       });
     }
 
-    console.log('✅ Wallet service available, getting wallets...');
     // Get real wallet information from the node
     const nodeStatus = await devKitServices.confluxNode.getStatus();
-    console.log('📋 Node wallets found:', nodeStatus.wallets?.length || 0);
 
     if (nodeStatus.wallets && nodeStatus.wallets.length > 0) {
       // Use the first wallet (mining wallet) as the active wallet
       const activeWallet = nodeStatus.wallets[0];
-      console.log('✅ Active wallet found:', activeWallet.address);
 
       // Get real balance
       const balance = await devKitServices.walletManager.getBalance(
@@ -267,7 +239,6 @@ app.get('/api/wallet/info', async (_req, res) => {
         index: activeWallet.index,
       });
     } else {
-      console.log('❌ No wallets found in node status');
       return res.json({
         available: false,
         name: null,
@@ -286,7 +257,6 @@ app.get('/api/wallet/info', async (_req, res) => {
 
 app.get('/api/wallet/list', async (_req, res) => {
   try {
-    console.log('🔍 Getting all server wallets...');
     if (!devKitServices.walletManager) {
       return res.status(503).json({
         success: false,

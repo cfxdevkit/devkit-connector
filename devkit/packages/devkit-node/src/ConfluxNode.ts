@@ -358,14 +358,18 @@ export class ConfluxNode {
       // Dynamic import for ESM/CJS compatibility
       try {
         const blockchainModule = await import('@conflux-devkit/blockchain');
-        const CoreClientClass = blockchainModule.CoreClient || blockchainModule.default?.CoreClient;
-        const EvmClientClass = blockchainModule.EvmClient || blockchainModule.default?.EvmClient;
+        const CoreClientClass =
+          blockchainModule.CoreClient || blockchainModule.default?.CoreClient;
+        const EvmClientClass =
+          blockchainModule.EvmClient || blockchainModule.default?.EvmClient;
 
         if (CoreClientClass && EvmClientClass) {
           this.coreClient = new CoreClientClass();
           this.evmClient = new EvmClientClass(networkConfig);
         } else {
-          console.warn('CoreClient or EvmClient not found in blockchain module');
+          console.warn(
+            'CoreClient or EvmClient not found in blockchain module'
+          );
         }
       } catch (error) {
         console.warn('Failed to load blockchain clients:', error);

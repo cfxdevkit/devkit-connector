@@ -4,6 +4,17 @@
   "description": "Conflux Development Kit Blockchain - Pure blockchain operations and wallet management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./browser": {
+      "import": "./dist/browser/browser.mjs",
+      "types": "./dist/browser/browser.d.mts"
+    }
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsc --watch",

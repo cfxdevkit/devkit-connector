@@ -9,25 +9,25 @@ import type {
   NetworkConfig,
 } from '@conflux-devkit/core';
 import { createContractError, createNetworkError } from '@conflux-devkit/core';
-import {
-  HardhatManager,
-  type HardhatDeployment,
-  type HardhatDeploymentStatus,
-  type HardhatCompilationResult,
-} from '../hardhat/HardhatManager';
+// Note: Hardhat functionality is server-side only
+// import {
+//   HardhatManager,
+//   type HardhatDeployment,
+//   type HardhatDeploymentStatus,
+//   type HardhatCompilationResult,
+// } from '../hardhat/HardhatManager';
 
 export class ContractManager {
   private evmClient: EvmClient | null = null;
   private contracts: Map<string, ContractInfo> = new Map();
-  private hardhatManager: HardhatManager;
 
   constructor(
     evmClient?: EvmClient,
     _coreClient?: CoreClient,
-    hardhatPath?: string
+    _hardhatPath?: string
   ) {
     this.evmClient = evmClient || null;
-    this.hardhatManager = new HardhatManager(hardhatPath);
+    // Note: Hardhat functionality is server-side only
   }
 
   /**
@@ -234,52 +234,48 @@ export class ContractManager {
   }
 
   /**
-   * Deploy contracts using Hardhat
+   * Deploy contracts using Hardhat (server-side only)
    */
   async deployWithHardhat(
-    contractNames: string[],
-    network: string = 'confluxESpaceLocal',
-    constructorArgs: { [contractName: string]: any[] } = {}
-  ): Promise<HardhatDeployment[]> {
-    return this.hardhatManager.deployContracts(
-      contractNames,
-      network,
-      constructorArgs
-    );
+    _contractNames: string[],
+    _network: string = 'confluxESpaceLocal',
+    _constructorArgs: { [contractName: string]: any[] } = {}
+  ): Promise<any[]> {
+    throw new Error('Hardhat functionality is server-side only. Use the API server for contract deployment.');
   }
 
   /**
-   * Compile contracts using Hardhat
+   * Compile contracts using Hardhat (server-side only)
    */
-  async compileWithHardhat(): Promise<HardhatCompilationResult> {
-    return this.hardhatManager.compileContracts();
+  async compileWithHardhat(): Promise<any> {
+    throw new Error('Hardhat functionality is server-side only. Use the API server for contract compilation.');
   }
 
   /**
-   * Get Hardhat deployment status
+   * Get Hardhat deployment status (server-side only)
    */
-  getHardhatStatus(): HardhatDeploymentStatus {
-    return this.hardhatManager.getStatus();
+  getHardhatStatus(): any {
+    throw new Error('Hardhat functionality is server-side only. Use the API server for deployment status.');
   }
 
   /**
-   * Subscribe to Hardhat status updates
+   * Subscribe to Hardhat status updates (server-side only)
    */
-  onHardhatStatusUpdate(callback: (status: HardhatDeploymentStatus) => void) {
-    this.hardhatManager.onStatusUpdate(callback);
+  onHardhatStatusUpdate(_callback: (status: any) => void) {
+    throw new Error('Hardhat functionality is server-side only. Use the API server for status updates.');
   }
 
   /**
-   * Check Hardhat setup
+   * Check Hardhat setup (server-side only)
    */
   async checkHardhatSetup(): Promise<{ valid: boolean; errors: string[] }> {
-    return this.hardhatManager.checkHardhatSetup();
+    throw new Error('Hardhat functionality is server-side only. Use the API server for Hardhat setup.');
   }
 
   /**
-   * Load existing Hardhat deployments
+   * Load existing Hardhat deployments (server-side only)
    */
-  async loadHardhatDeployments(): Promise<HardhatDeployment[]> {
-    return this.hardhatManager.loadDeployments();
+  async loadHardhatDeployments(): Promise<any[]> {
+    throw new Error('Hardhat functionality is server-side only. Use the API server for deployment loading.');
   }
 }

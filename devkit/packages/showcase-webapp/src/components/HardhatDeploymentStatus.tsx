@@ -26,6 +26,9 @@ interface HardhatDeploymentStatusProps {
   onCompile: () => void;
   onReset: () => void;
   onLoadDeployments: () => void;
+  hardhatActions?: {
+    deployContract: (contractName: string, args?: any[]) => Promise<any>;
+  };
 }
 
 export const HardhatDeploymentStatus: React.FC<
