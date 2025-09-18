@@ -1,15 +1,11 @@
 // Unified CLI interface for the merged node package
 
-import { Command } from 'commander';
-import chalk from 'chalk';
-import ora from 'ora';
-import type {
-  NodeConfig,
-  WorkflowCommandOptions,
-  NodeCommandOptions,
-} from '../types/unified';
-import { NodeService } from '../services/NodeService';
 import { createDefaultXcfxConfig } from '@conflux-devkit/core';
+import chalk from 'chalk';
+import { Command } from 'commander';
+import ora from 'ora';
+import { NodeService } from '../services/NodeService';
+import type { NodeConfig, WorkflowCommandOptions } from '../types/unified';
 
 export class UnifiedCLI {
   private program: Command;
@@ -116,13 +112,13 @@ export class UnifiedCLI {
 
     try {
       const config: Partial<NodeConfig> = {
-        corePort: parseInt(options.port),
-        evmPort: parseInt(options.ethPort),
-        chainId: parseInt(options.chainId),
-        evmChainId: parseInt(options.evmChainId),
+        corePort: parseInt(options.port, 10),
+        evmPort: parseInt(options.ethPort, 10),
+        chainId: parseInt(options.chainId, 10),
+        evmChainId: parseInt(options.evmChainId, 10),
         silent: options.silent,
         fundWallets: options.fundWallets,
-        walletCount: parseInt(options.walletCount),
+        walletCount: parseInt(options.walletCount, 10),
       };
 
       const defaultConfig = createDefaultXcfxConfig();
@@ -169,8 +165,8 @@ export class UnifiedCLI {
       }
 
       const config: Partial<NodeConfig> = {
-        corePort: parseInt(options.port),
-        evmPort: parseInt(options.ethPort),
+        corePort: parseInt(options.port, 10),
+        evmPort: parseInt(options.ethPort, 10),
       };
 
       await this.nodeService.restart(config);
@@ -267,7 +263,7 @@ export class UnifiedCLI {
         throw new Error('No contracts specified');
       }
 
-      const workflowOptions: WorkflowCommandOptions = {
+      const _workflowOptions: WorkflowCommandOptions = {
         network: options.network,
         contracts: options.contracts,
         silent: options.silent,
@@ -323,7 +319,7 @@ export class UnifiedCLI {
     }
   }
 
-  private async handleTest(options: any): Promise<void> {
+  private async handleTest(_options: any): Promise<void> {
     const spinner = ora('Running tests...').start();
 
     try {
@@ -346,7 +342,7 @@ export class UnifiedCLI {
 
   private logWorkflowResult(result: any): void {
     console.log(chalk.blue('\n📊 Workflow Results:'));
-    console.log(`  Duration: ${chalk.cyan(result.duration + 'ms')}`);
+    console.log(`  Duration: ${chalk.cyan(`${result.duration}ms`)}`);
     console.log(`  Wallets: ${chalk.cyan(result.wallets.length.toString())}`);
     console.log(
       `  Contracts: ${chalk.cyan(result.contracts.length.toString())}`

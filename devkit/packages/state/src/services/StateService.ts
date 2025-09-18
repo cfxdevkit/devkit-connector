@@ -1,42 +1,38 @@
 // State service for managing Conflux DevKit state and providing API integration
 
-import { EventEmitter } from 'events';
-import {
-  useAppStore,
-  getStateEventEmitter,
-  selectors,
-} from '../stores/appStore';
+import type { EventEmitter } from 'node:events';
 import type {
-  IStateService,
+  BrowserContractOrchestrator,
+  BrowserWalletInfo,
+  NodeConfig,
+} from '@conflux-devkit/core';
+import { realContractService } from '../services/RealContractService';
+import { realWalletService } from '../services/RealWalletService';
+import { getStateEventEmitter, useAppStore } from '../stores/appStore';
+import type {
+  AppState,
   AppStore,
-  StoreConfig,
-  StateEvents,
   ContractCallParams,
   ContractCallState,
+  IStateService,
   NotificationState,
-  ModalState,
+  StateEvents,
+  StoreConfig,
 } from '../types/state';
-import type {
-  NodeConfig,
-  BrowserNodeStatus,
-  BrowserWalletInfo,
-  BrowserContractOrchestrator,
-  BrowserNetworkConfig,
-} from '@conflux-devkit/core';
 
 // ============================================================================
 // State Service Implementation
 // ============================================================================
 
 export class StateService implements IStateService {
-  private store: AppStore;
+  private store: typeof useAppStore;
   private eventEmitter: EventEmitter;
   private config: StoreConfig;
   private intervals: Map<string, NodeJS.Timeout> = new Map();
-  private isInitialized = false;
+  private _isInitialized = false;
 
   constructor(config?: Partial<StoreConfig>) {
-    this.store = useAppStore.getState();
+    this.store = useAppStore;
     this.eventEmitter = getStateEventEmitter();
     this.config = { ...config } as StoreConfig;
   }
@@ -47,6 +43,10 @@ export class StateService implements IStateService {
 
   getStore(): AppStore {
     return this.store;
+  }
+
+  getState(): AppState {
+    return this.store.getState();
   }
 
   subscribe<T>(
@@ -105,7 +105,7 @@ export class StateService implements IStateService {
   // ========================================================================
 
   async initialize(config?: Partial<StoreConfig>): Promise<void> {
-    if (this.isInitialized) {
+    if (this._isInitialized) {
       console.warn('StateService is already initialized');
       return;
     }
@@ -118,15 +118,23 @@ export class StateService implements IStateService {
     // Set up event listeners
     this.setupEventListeners();
 
-    this.isInitialized = true;
+    this._isInitialized = true;
     console.log('StateService initialized');
+  }
+
+  isInitialized(): boolean {
+    return this._isInitialized;
   }
 
   destroy(): void {
     this.stopAllIntervals();
-    this.eventEmitter.removeAllListeners();
-    this.isInitialized = false;
+    this.eventEmitter.removeAllListeners?.();
+    this._isInitialized = false;
     console.log('StateService destroyed');
+  }
+
+  cleanup(): void {
+    this.destroy();
   }
 
   // ========================================================================
@@ -326,7 +334,9 @@ export class StateService implements IStateService {
 
   // Wallet management
   async createWallet(mnemonic?: string): Promise<BrowserWalletInfo> {
-    return this.store.createWallet(mnemonic);
+    const wallet = await realWalletService.createWallet(mnemonic);
+    this.store.createWallet(mnemonic);
+    return wallet;
   }
 
   async importWallet(privateKey: string): Promise<BrowserWalletInfo> {
@@ -341,12 +351,37 @@ export class StateService implements IStateService {
     return this.store.refreshWalletBalance(address);
   }
 
+  async getWallets(): Promise<BrowserWalletInfo[]> {
+    const wallets = await realWalletService.getWallets();
+    return wallets;
+  }
+
+  async removeWallet(address: string): Promise<boolean> {
+    await realWalletService.removeWallet(address);
+    this.store.getState().removeWallet(address);
+    return true;
+  }
+
   // Contract management
   async deployContract(
     contractName: string,
-    args?: unknown[]
+    bytecode: string,
+    abi: any[],
+    constructorArgs?: unknown[]
   ): Promise<BrowserContractOrchestrator> {
-    return this.store.deployContract(contractName, args);
+    // Call the real contract service
+    const contract = await realContractService.deployContract(
+      contractName,
+      bytecode as `0x${string}`,
+      abi,
+      constructorArgs,
+      '' // privateKey - placeholder
+    );
+
+    // Add to store
+    this.store.getState().addContract(contract);
+
+    return contract;
   }
 
   selectContract(address: string): void {
@@ -356,7 +391,50 @@ export class StateService implements IStateService {
   async callContractMethod(
     params: ContractCallParams
   ): Promise<ContractCallState> {
-    return this.store.callContractMethod(params);
+    // Call the real contract service
+    const result = await realContractService.callContract(
+      params.contractAddress,
+      params.method,
+      params.args
+    );
+
+    // Create a contract call state
+    const callState: ContractCallState = {
+      id: `call_${Date.now()}`,
+      contractAddress: params.contractAddress,
+      method: params.method,
+      methodName: params.method,
+      args: params.args,
+      result: result,
+      error: null,
+      timestamp: new Date(),
+      status: 'success',
+    };
+
+    // Add to store
+    this.store.contracts.contractCalls.push(callState);
+
+    return callState;
+  }
+
+  async callContract(
+    contractAddress: string,
+    methodName: string,
+    args?: unknown[]
+  ): Promise<unknown> {
+    // Call the real contract service
+    const result = await realContractService.callContract(
+      contractAddress,
+      methodName,
+      args || []
+    );
+
+    return result;
+  }
+
+  async getContracts(): Promise<BrowserContractOrchestrator[]> {
+    const contracts = await realContractService.getContracts();
+    return contracts;
   }
 
   subscribeToEvents(contractAddress: string, eventName?: string): void {

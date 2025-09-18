@@ -1,32 +1,28 @@
 // Main Zustand store for Conflux DevKit state management
 
-import { create } from 'zustand';
-import { subscribeWithSelector } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
-import { persist } from 'zustand/middleware';
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
+import { networkManager } from '@conflux-devkit/blockchain';
 import type {
-  AppState,
-  AppActions,
-  AppStore,
-  StoreConfig,
-  DEFAULT_STORE_CONFIG,
-  ContractCallParams,
-  ContractCallState,
-  NotificationState,
-  ModalState,
-  StateEvents,
-} from '../types/state';
-import type {
-  NodeConfig,
-  BrowserNodeStatus,
-  BrowserWalletInfo,
   BrowserContractOrchestrator,
   BrowserNetworkConfig,
+  BrowserNodeStatus,
+  BrowserWalletInfo,
+  NodeConfig,
 } from '@conflux-devkit/core';
-import { realWalletService } from '../services/RealWalletService';
+import { create } from 'zustand';
+import { persist, subscribeWithSelector } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
 import { realContractService } from '../services/RealContractService';
-import { networkManager } from '@conflux-devkit/blockchain';
+import { realWalletService } from '../services/RealWalletService';
+import type {
+  AppState,
+  AppStore,
+  ContractCallParams,
+  ContractCallState,
+  ModalState,
+  NotificationState,
+  StateEvents,
+} from '../types/state';
 
 // ============================================================================
 // Event Emitter for State Events
@@ -65,6 +61,7 @@ const initialState: AppState = {
   isConnected: false,
   isConnecting: false,
   connectionError: null,
+  error: null,
 
   node: {
     status: null,
@@ -107,7 +104,8 @@ const initialState: AppState = {
     activeTab: 'dashboard',
     notifications: [],
     modals: [],
-    loading: {},
+    loading: {} as Record<string, boolean>,
+    error: null,
   },
 };
 
@@ -528,6 +526,7 @@ export const useAppStore = create<AppStore>()(
             id: callId,
             contractAddress: params.contractAddress,
             method: params.method,
+            methodName: params.method,
             args: params.args,
             result: null,
             error: null,
@@ -741,6 +740,9 @@ export const useAppStore = create<AppStore>()(
           };
 
           set(state => {
+            if (!Array.isArray(state.ui.modals)) {
+              state.ui.modals = [];
+            }
             state.ui.modals.push(modal);
           });
 
@@ -749,12 +751,17 @@ export const useAppStore = create<AppStore>()(
 
         closeModal: (id: string) => {
           set(state => {
-            state.ui.modals = state.ui.modals.filter(m => m.id !== id);
+            if (Array.isArray(state.ui.modals)) {
+              state.ui.modals = state.ui.modals.filter(m => m.id !== id);
+            }
           });
         },
 
         setLoading: (key: string, loading: boolean) => {
           set(state => {
+            if (!state.ui.loading) {
+              state.ui.loading = {};
+            }
             state.ui.loading[key] = loading;
           });
         },
@@ -787,6 +794,58 @@ export const useAppStore = create<AppStore>()(
             console.log('Refreshing all state...');
           }
         },
+
+        // ====================================================================
+        // Missing Methods for Tests
+        // ====================================================================
+
+        removeWallet: (address: string) => {
+          set(state => {
+            state.wallets.wallets = state.wallets.wallets.filter(
+              wallet => wallet.address !== address
+            );
+            if (state.wallets.activeWallet?.address === address) {
+              state.wallets.activeWallet = null;
+            }
+          });
+        },
+
+        addContract: (contract: BrowserContractOrchestrator) => {
+          set(state => {
+            state.contracts.deployed.push(contract);
+          });
+        },
+
+        removeContract: (address: string) => {
+          set(state => {
+            state.contracts.deployed = state.contracts.deployed.filter(
+              contract => contract.address !== address
+            );
+            if (state.contracts.activeContract?.address === address) {
+              state.contracts.activeContract = null;
+            }
+          });
+        },
+
+        setCurrentNetwork: (network: BrowserNetworkConfig) => {
+          set(state => {
+            state.network.current = network;
+          });
+        },
+
+        setError: (error: string) => {
+          set(state => {
+            state.error = error;
+            state.ui.error = error;
+          });
+        },
+
+        clearError: () => {
+          set(state => {
+            state.error = null;
+            state.ui.error = null;
+          });
+        },
       })),
       {
         name: 'conflux-devkit-state',
@@ -796,10 +855,34 @@ export const useAppStore = create<AppStore>()(
             activeTab: state.ui.activeTab,
           },
           wallets: {
-            wallets: state.wallets.wallets,
-            activeWallet: state.wallets.activeWallet,
+            wallets: state.wallets.wallets.map(wallet => ({
+              ...wallet,
+              balance: wallet.balance?.toString(),
+            })),
+            activeWallet: state.wallets.activeWallet
+              ? {
+                  ...state.wallets.activeWallet,
+                  balance: state.wallets.activeWallet.balance?.toString(),
+                }
+              : null,
           },
         }),
+        serialize: state => {
+          return JSON.stringify(state, (_key, value) => {
+            if (typeof value === 'bigint') {
+              return value.toString();
+            }
+            return value;
+          });
+        },
+        deserialize: str => {
+          return JSON.parse(str, (key, value) => {
+            if (key === 'balance' && typeof value === 'string') {
+              return BigInt(value);
+            }
+            return value;
+          });
+        },
       }
     )
   )

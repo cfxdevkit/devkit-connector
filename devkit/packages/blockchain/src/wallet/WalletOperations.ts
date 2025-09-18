@@ -14,7 +14,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 export class WalletOperations {
   private evmClient: EvmClient | null = null;
   private coreClient: CoreClient | null = null;
-  
+
   constructor(evmClient?: EvmClient, coreClient?: CoreClient) {
     this.evmClient = evmClient || null;
     this.coreClient = coreClient || null;

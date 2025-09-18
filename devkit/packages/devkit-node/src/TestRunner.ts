@@ -22,7 +22,7 @@ export class TestRunner {
         this.spinner.succeed(
           chalk.green(
             `eSpace tests completed: ${
-              espaceResults.filter(r => r.passed).length
+              espaceResults.filter((r) => r.passed).length
             }/${espaceResults.length} passed`
           )
         );
@@ -40,7 +40,7 @@ export class TestRunner {
         this.spinner.succeed(
           chalk.green(
             `Core tests completed: ${
-              coreResults.filter(r => r.passed).length
+              coreResults.filter((r) => r.passed).length
             }/${coreResults.length} passed`
           )
         );
@@ -261,7 +261,7 @@ export class TestRunner {
       });
     });
 
-    const totalPassed = results.filter(r => r.passed).length;
+    const totalPassed = results.filter((r) => r.passed).length;
     const totalTests = results.length;
     const successRate =
       totalTests > 0 ? ((totalPassed / totalTests) * 100).toFixed(1) : '0';

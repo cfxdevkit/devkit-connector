@@ -1,7 +1,7 @@
+import type { EvmClient } from '@conflux-devkit/blockchain';
 import { createWalletClient, http, parseEther } from 'viem';
 import { ConfluxNode } from './ConfluxNode';
 import type { ExecutionResult, NodeConfig } from './types';
-import type { EvmClient } from '@conflux-devkit/blockchain';
 
 export async function deployContract(
   contractCode: string,
@@ -11,7 +11,7 @@ export async function deployContract(
 ): Promise<ExecutionResult<{ address: string; txHash: string }>> {
   const node = new ConfluxNode();
 
-  return node.executeScript(async node => {
+  return node.executeScript(async (node) => {
     const evmClient = node.getEvmClient();
     const miningWallet = node.getMiningWallet();
 
@@ -58,7 +58,7 @@ export async function callContractMethod(
 ): Promise<ExecutionResult<unknown>> {
   const node = new ConfluxNode();
 
-  return node.executeScript(async node => {
+  return node.executeScript(async (node) => {
     const evmClient = node.getEvmClient();
 
     // Read contract method
@@ -81,7 +81,7 @@ export async function sendTransaction(
 ): Promise<ExecutionResult<{ txHash: string; receipt: unknown }>> {
   const node = new ConfluxNode();
 
-  return node.executeScript(async node => {
+  return node.executeScript(async (node) => {
     const evmClient = node.getEvmClient();
     const miningWallet = node.getMiningWallet();
 
@@ -118,7 +118,7 @@ export async function getBlockInfo(
 ): Promise<ExecutionResult<unknown>> {
   const node = new ConfluxNode();
 
-  return node.executeScript(async node => {
+  return node.executeScript(async (node) => {
     const evmClient = node.getEvmClient();
 
     if (blockNumber) {
@@ -144,7 +144,7 @@ export async function runCompleteDeploymentFlow(
 > {
   const node = new ConfluxNode();
 
-  return node.executeScript(async node => {
+  return node.executeScript(async (node) => {
     const evmClient = node.getEvmClient();
     const miningWallet = node.getMiningWallet();
 

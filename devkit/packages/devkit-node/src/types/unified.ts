@@ -1,10 +1,9 @@
 // Unified type interfaces for the merged node package
 
 import type {
-  NodeConfig,
   NodeStatus as CoreNodeStatus,
+  NodeConfig,
   WalletInfo,
-  NetworkConfig,
 } from '@conflux-devkit/core';
 import type {
   ContractOrchestrator,
@@ -230,9 +229,9 @@ export type ServiceFactory<T> = (config?: Partial<NodeConfig>) => T;
 
 // Re-export core types for convenience
 export type {
-  NodeConfig,
-  WalletInfo,
-  NetworkConfig,
   ContractOrchestrator,
+  NetworkConfig,
+  NodeConfig,
   TypedDeploymentResult,
+  WalletInfo,
 } from '@conflux-devkit/core';

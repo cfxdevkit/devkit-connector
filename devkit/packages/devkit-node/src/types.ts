@@ -1,14 +1,14 @@
 // Re-export core types from core package
 export type {
+  AbiItem,
+  DeploymentResult,
   NodeConfig,
   NodeStatus,
-  WalletInfo,
-  DeploymentResult,
   TestOptions,
   TestResult,
   TransactionRequest,
   TransactionResponse,
-  AbiItem,
+  WalletInfo,
 } from '@conflux-devkit/core';
 
 // Node-specific types that extend core types

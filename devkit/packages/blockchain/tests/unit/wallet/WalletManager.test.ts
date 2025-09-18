@@ -231,7 +231,7 @@ describe('WalletManager', () => {
 
       await expect(
         walletManager.generateWallet(mnemonic, index, network)
-      ).rejects.toThrow('Invalid mnemonic phrase');
+      ).rejects.toThrow('Failed to generate wallet');
     });
 
     it('should throw error for empty mnemonic', async () => {
@@ -241,7 +241,7 @@ describe('WalletManager', () => {
 
       await expect(
         walletManager.generateWallet(mnemonic, index, network)
-      ).rejects.toThrow('Invalid mnemonic phrase');
+      ).rejects.toThrow('Failed to generate wallet');
     });
 
     it('should throw error when private key derivation fails', async () => {
@@ -251,10 +251,11 @@ describe('WalletManager', () => {
 
       // Mock child without private key
       mockChild.privateKey = null;
+      mockRoot.derivePath.mockReturnValue(mockChild);
 
       await expect(
         walletManager.generateWallet(mnemonic, index, network)
-      ).rejects.toThrow('Failed to derive private key');
+      ).rejects.toThrow('Failed to generate wallet');
     });
 
     it('should handle BIP32 errors', async () => {

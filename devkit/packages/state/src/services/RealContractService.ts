@@ -1,11 +1,10 @@
 // Real contract service using blockchain package integration
 
+import { EvmClient, networkManager } from '@conflux-devkit/blockchain';
 import type {
   BrowserContractOrchestrator,
   NetworkConfig,
 } from '@conflux-devkit/core';
-import { EvmClient } from '@conflux-devkit/blockchain';
-import { networkManager } from '@conflux-devkit/blockchain';
 import { privateKeyToAccount } from 'viem/accounts';
 
 export class RealContractService {
@@ -37,7 +36,7 @@ export class RealContractService {
     contractName: string,
     bytecode: `0x${string}`,
     abi: any[],
-    constructorArgs: unknown[] = [],
+    _constructorArgs: unknown[] = [],
     privateKey: string
   ): Promise<BrowserContractOrchestrator> {
     if (!this.evmClient || !this.currentNetwork) {
@@ -45,8 +44,8 @@ export class RealContractService {
     }
 
     try {
-      const account = privateKeyToAccount(privateKey as `0x${string}`);
-      const evmClientWithWallet = new EvmClient(
+      const _account = privateKeyToAccount(privateKey as `0x${string}`);
+      const _evmClientWithWallet = new EvmClient(
         this.currentNetwork,
         privateKey as `0x${string}`
       );
@@ -211,7 +210,7 @@ export class RealContractService {
   /**
    * Get contract code
    */
-  async getContractCode(contractAddress: string): Promise<string> {
+  async getContractCode(_contractAddress: string): Promise<string> {
     if (!this.evmClient) {
       throw new Error('EVM client not initialized');
     }
@@ -225,6 +224,32 @@ export class RealContractService {
         `Failed to get contract code: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
+  }
+
+  /**
+   * Call a contract method (alias for callContractMethod)
+   */
+  async callContract(
+    contractAddress: string,
+    methodName: string,
+    args: unknown[] = [],
+    privateKey?: string
+  ): Promise<any> {
+    return this.callContractMethod(
+      contractAddress,
+      methodName,
+      args,
+      privateKey
+    );
+  }
+
+  /**
+   * Get all contracts (placeholder implementation)
+   */
+  async getContracts(): Promise<any[]> {
+    // This would typically return stored contracts
+    // For now, return empty array as this is a placeholder
+    return [];
   }
 }
 

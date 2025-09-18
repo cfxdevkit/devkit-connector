@@ -1,11 +1,10 @@
+import { CoreClient, EvmClient } from '@conflux-devkit/blockchain';
 import { createServer } from '@xcfx/node';
 import { BIP32Factory } from 'bip32';
 import { mnemonicToSeed, validateMnemonic } from 'bip39';
 import chalk from 'chalk';
-import { createPublicClient, http } from 'cive';
 import { privateKeyToAccount as corePrivateKeyToAccount } from 'cive/accounts';
 import * as ecc from 'tiny-secp256k1';
-import { createPublicClient as createViemClient, http as viemHttp } from 'viem';
 import { privateKeyToAccount as espacePrivateKeyToAccount } from 'viem/accounts';
 import type {
   ExecutionResult,
@@ -13,7 +12,6 @@ import type {
   NodeStatus,
   WalletInfo,
 } from './types';
-import { CoreClient, EvmClient } from '@conflux-devkit/blockchain';
 
 const bip32 = BIP32Factory(ecc);
 
@@ -221,7 +219,7 @@ export class ConfluxNode {
 
       if (this.wallets.length > 0 && this.miningWallet) {
         // Check if mining wallet has balance
-        const miningBalance = await this.evmClient!.getBalance({
+        const miningBalance = await this.evmClient?.getBalance({
           address: this.miningWallet.address as `0x${string}`,
         });
 
@@ -263,10 +261,10 @@ export class ConfluxNode {
                 });
 
                 // Wait for transaction to be mined
-                await this.evmClient!.getTransactionReceipt({ hash: txHash });
+                await this.evmClient?.getTransactionReceipt({ hash: txHash });
 
                 // Update wallet balance
-                const balance = await this.evmClient!.getBalance({
+                const balance = await this.evmClient?.getBalance({
                   address: wallet.address as `0x${string}`,
                 });
                 wallet.balance = balance;
@@ -331,8 +329,10 @@ export class ConfluxNode {
         devBlockIntervalMs: blockInterval,
         chainId,
         evmChainId,
-        genesisSecrets: this.wallets.map(w => w.privateKey as `0x${string}`),
-        genesisEvmSecrets: this.wallets.map(w => w.privateKey as `0x${string}`),
+        genesisSecrets: this.wallets.map((w) => w.privateKey as `0x${string}`),
+        genesisEvmSecrets: this.wallets.map(
+          (w) => w.privateKey as `0x${string}`
+        ),
         miningAuthor: this.miningWallet?.address,
         log: !silent,
         dataDir,
@@ -399,7 +399,7 @@ export class ConfluxNode {
 
     try {
       if (this.evmClient) {
-        blockNumber = Number(await this.evmClient!.getBlockNumber());
+        blockNumber = Number(await this.evmClient?.getBlockNumber());
       }
     } catch (_error) {
       // Ignore errors
@@ -437,7 +437,7 @@ export class ConfluxNode {
 
   getWalletByAddress(address: string): WalletInfo | undefined {
     return this.wallets.find(
-      w => w.address.toLowerCase() === address.toLowerCase()
+      (w) => w.address.toLowerCase() === address.toLowerCase()
     );
   }
 

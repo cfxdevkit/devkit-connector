@@ -2,16 +2,33 @@
 
 import type { BrowserNetworkConfig } from '@conflux-devkit/core';
 import { css, html, LitElement } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement } from 'lit/decorators.js';
 
 @customElement('conflux-network-selector')
 export class NetworkSelector extends LitElement {
-  @property({ type: Object }) current: BrowserNetworkConfig | null = null;
-  @property({ type: Array }) available: BrowserNetworkConfig[] = [];
-  @property({ type: Boolean }) isLoading = false;
-  @property({ type: Boolean }) disabled = false;
+  static properties = {
+    current: { type: Object },
+    available: { type: Array },
+    isLoading: { type: Boolean },
+    disabled: { type: Boolean },
+    isOpen: { type: Boolean, state: true },
+  };
 
-  @state() private isOpen = false;
+  // Property declarations for TypeScript
+  current: BrowserNetworkConfig | null = null;
+  available: BrowserNetworkConfig[] = [];
+  isLoading: boolean = false;
+  disabled: boolean = false;
+  isOpen: boolean = false;
+
+  constructor() {
+    super();
+    this.current = null;
+    this.available = [];
+    this.isLoading = false;
+    this.disabled = false;
+    this.isOpen = false;
+  }
 
   static styles = css`
     :host {
@@ -172,11 +189,9 @@ export class NetworkSelector extends LitElement {
         @click=${this.toggleDropdown}
         ?disabled=${this.disabled || this.isLoading}
       >
-        ${
-          this.isLoading
-            ? html` <div class="loading-spinner"></div> `
-            : html` <div class="network-icon">${this.getNetworkIcon()}</div> `
-        }
+        ${this.isLoading
+          ? html` <div class="loading-spinner"></div> `
+          : html` <div class="network-icon">${this.getNetworkIcon()}</div> `}
 
         <div class="network-info">
           <h4 class="network-name">${this.getCurrentNetworkName()}</h4>
@@ -186,29 +201,25 @@ export class NetworkSelector extends LitElement {
         <div class="dropdown-arrow ${this.isOpen ? 'open' : ''}"></div>
       </div>
 
-      ${
-        this.isOpen
-          ? html`
+      ${this.isOpen
+        ? html`
             <div class="dropdown">
-              ${
-                this.available.length > 0
-                  ? this.renderNetworkList()
-                  : this.renderEmptyState()
-              }
+              ${this.available.length > 0
+                ? this.renderNetworkList()
+                : this.renderEmptyState()}
             </div>
           `
-          : ''
-      }
+        : ''}
     `;
   }
 
   private renderNetworkList() {
     return this.available.map(
-      (network) => html`
+      network => html`
         <div
-          class="dropdown-item ${
-            this.isCurrentNetwork(network) ? 'selected' : ''
-          }"
+          class="dropdown-item ${this.isCurrentNetwork(network)
+            ? 'selected'
+            : ''}"
           @click=${() => this.selectNetwork(network)}
         >
           <div class="item-icon">${this.getNetworkIcon(network)}</div>

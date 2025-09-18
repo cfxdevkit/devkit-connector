@@ -1,10 +1,5 @@
 // Main exports - Core functionality
 export { ConfluxNode } from './ConfluxNode';
-export { ContractDeployer } from './ContractDeployer';
-export { NodeManager } from './NodeManager';
-export { TestRunner } from './TestRunner';
-export { WalletManager } from './WalletManager';
-
 // Main exports - Operations
 export {
   callContractMethod,
@@ -13,54 +8,49 @@ export {
   runCompleteDeploymentFlow,
   sendTransaction,
 } from './ConfluxOperations';
-
-// Main exports - Services
-export { NodeService } from './services/NodeService';
-
+export { ContractDeployer } from './ContractDeployer';
 // Main exports - CLI
 export { UnifiedCLI } from './cli/unified';
+export { NodeManager } from './NodeManager';
+// Main exports - Services
+export { NodeService } from './services/NodeService';
+export { TestRunner } from './TestRunner';
+// Legacy type exports for backward compatibility
+export type { DeploymentResult } from './types';
 
 // Type exports - Unified types
 export type {
-  // Core types
-  NodeConfig,
-  WalletInfo,
-  NetworkConfig,
   ContractOrchestrator,
-  TypedDeploymentResult,
-
-  // Node types
-  NodeStatus,
-  WorkflowResult,
-  ValidationResult,
-  ExecutionResult,
   DeployOptions,
-  TestOptions,
-  TestResult,
-
-  // Command types
-  WorkflowCommandOptions,
-  NodeCommandOptions,
-
+  ExecutionResult,
+  IContractService,
   // Service interfaces
   INodeService,
-  IWorkflowService,
   IWalletService,
-  IContractService,
-
-  // Configuration types
-  NodeServiceConfig,
-  WorkflowServiceConfig,
-
+  IWorkflowService,
+  NetworkConfig,
+  NodeCommandOptions,
+  // Core types
+  NodeConfig,
   // Error types
   NodeError,
-  WorkflowError,
-  ValidationError,
-
   // Utility types
   NodeEventCallback,
+  // Configuration types
+  NodeServiceConfig,
+  // Node types
+  NodeStatus,
   ServiceFactory,
+  TestOptions,
+  TestResult,
+  TypedDeploymentResult,
+  ValidationError,
+  ValidationResult,
+  WalletInfo,
+  // Command types
+  WorkflowCommandOptions,
+  WorkflowError,
+  WorkflowResult,
+  WorkflowServiceConfig,
 } from './types/unified';
-
-// Legacy type exports for backward compatibility
-export type { DeploymentResult } from './types';
+export { WalletManager } from './WalletManager';

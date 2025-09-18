@@ -1,13 +1,11 @@
 // Real wallet service using blockchain package integration
 
+import { EvmClient, networkManager } from '@conflux-devkit/blockchain';
 import type { BrowserWalletInfo, NetworkConfig } from '@conflux-devkit/core';
-import { EvmClient } from '@conflux-devkit/blockchain';
-import { networkManager } from '@conflux-devkit/blockchain';
-import { privateKeyToAccount } from 'viem/accounts';
-import { generateMnemonic } from 'bip39';
 import { BIP32Factory } from 'bip32';
-import { mnemonicToSeedSync } from 'bip39';
+import { generateMnemonic, mnemonicToSeedSync } from 'bip39';
 import * as ecc from 'tiny-secp256k1';
+import { privateKeyToAccount } from 'viem/accounts';
 
 const bip32 = BIP32Factory(ecc);
 
@@ -58,7 +56,7 @@ export class RealWalletService {
       const account = privateKeyToAccount(privateKey);
 
       // Get balance using EVM client
-      const balance = await this.evmClient!.getBalance({
+      const balance = await this.evmClient?.getBalance({
         address: account.address,
       });
 
@@ -67,8 +65,8 @@ export class RealWalletService {
         privateKey,
         mnemonic: walletMnemonic,
         index: 0,
-        balance: balance.toString(),
-        balanceFormatted: `${(Number(balance) / 1e18).toFixed(4)} ETH`,
+        balance: balance?.toString() || '0',
+        balanceFormatted: `${(Number(balance || 0) / 1e18).toFixed(4)} ETH`,
         isMining: false,
       };
     } catch (error) {
@@ -91,7 +89,7 @@ export class RealWalletService {
       const account = privateKeyToAccount(privateKey as `0x${string}`);
 
       // Get balance using EVM client
-      const balance = await this.evmClient!.getBalance({
+      const balance = await this.evmClient?.getBalance({
         address: account.address,
       });
 
@@ -100,8 +98,8 @@ export class RealWalletService {
         privateKey,
         mnemonic: '',
         index: 0,
-        balance: balance.toString(),
-        balanceFormatted: `${(Number(balance) / 1e18).toFixed(4)} ETH`,
+        balance: balance?.toString() || '0',
+        balanceFormatted: `${(Number(balance || 0) / 1e18).toFixed(4)} ETH`,
         isMining: false,
       };
     } catch (error) {
@@ -143,7 +141,7 @@ export class RealWalletService {
    * Send transaction
    */
   async sendTransaction(
-    from: string,
+    _from: string,
     to: string,
     value: string,
     privateKey: string
@@ -153,7 +151,7 @@ export class RealWalletService {
     }
 
     try {
-      const account = privateKeyToAccount(privateKey as `0x${string}`);
+      const _account = privateKeyToAccount(privateKey as `0x${string}`);
       const evmClientWithWallet = new EvmClient(
         this.currentNetwork!,
         privateKey as `0x${string}`
@@ -170,6 +168,24 @@ export class RealWalletService {
         `Failed to send transaction: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
+  }
+
+  /**
+   * Get all wallets (placeholder implementation)
+   */
+  async getWallets(): Promise<BrowserWalletInfo[]> {
+    // This would typically return stored wallets
+    // For now, return empty array as this is a placeholder
+    return [];
+  }
+
+  /**
+   * Remove a wallet (placeholder implementation)
+   */
+  async removeWallet(address: string): Promise<void> {
+    // This would typically remove the wallet from storage
+    // For now, just log the action
+    console.log(`Removing wallet: ${address}`);
   }
 }
 

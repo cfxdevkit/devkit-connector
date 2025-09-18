@@ -7,6 +7,12 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
+    "test": "vitest --run",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest --watch",
+    "test:ci": "vitest run --coverage --reporter=verbose",
     "clean": "rm -rf dist",
     "check": "biome check src/",
     "check:fix": "biome check --write src/",
@@ -27,7 +33,12 @@
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
     "@types/node": "^20.10.0",
-    "typescript": "^5.3.0"
+    "@vitest/ui": "^3.2.4",
+    "@vitest/coverage-v8": "^3.2.4",
+    "jsdom": "^24.0.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.3.0",
+    "vitest": "^3.2.4"
   },
   "peerDependencies": {
     "react": ">=18.0.0"

@@ -1,15 +1,11 @@
 // State management types for Conflux DevKit
 
 import type {
-  NodeConfig,
-  WalletInfo,
-  NetworkConfig,
-  ContractOrchestrator,
-  TypedDeploymentResult,
-  BrowserWalletInfo,
   BrowserContractOrchestrator,
-  BrowserNodeStatus,
   BrowserNetworkConfig,
+  BrowserNodeStatus,
+  BrowserWalletInfo,
+  NodeConfig,
 } from '@conflux-devkit/core';
 
 // ============================================================================
@@ -21,19 +17,20 @@ export interface AppState {
   isConnected: boolean;
   isConnecting: boolean;
   connectionError: string | null;
-  
+  error: string | null;
+
   // Node state
   node: NodeState;
-  
+
   // Wallet state
   wallets: WalletState;
-  
+
   // Contract state
   contracts: ContractState;
-  
+
   // Network state
   network: NetworkState;
-  
+
   // UI state
   ui: UIState;
 }
@@ -71,6 +68,7 @@ export interface ContractCallState {
   id: string;
   contractAddress: string;
   method: string;
+  methodName: string;
   args: unknown[];
   result: unknown | null;
   error: string | null;
@@ -104,6 +102,7 @@ export interface UIState {
   notifications: NotificationState[];
   modals: ModalState[];
   loading: Record<string, boolean>;
+  error: string | null;
 }
 
 export interface NotificationState {
@@ -138,42 +137,49 @@ export interface AppActions {
   connect: (config: Partial<NodeConfig>) => Promise<void>;
   disconnect: () => Promise<void>;
   setConnectionError: (error: string | null) => void;
-  
+
   // Node actions
   startNode: (config?: Partial<NodeConfig>) => Promise<void>;
   stopNode: () => Promise<void>;
   restartNode: (config?: Partial<NodeConfig>) => Promise<void>;
   updateNodeStatus: (status: BrowserNodeStatus) => void;
   setNodeError: (error: string | null) => void;
-  
+
   // Wallet actions
   createWallet: (mnemonic?: string) => Promise<BrowserWalletInfo>;
   importWallet: (privateKey: string) => Promise<BrowserWalletInfo>;
   selectWallet: (address: string) => void;
   refreshWalletBalance: (address: string) => Promise<void>;
   setWalletError: (error: string | null) => void;
-  
+
   // Contract actions
-  deployContract: (contractName: string, args?: unknown[]) => Promise<BrowserContractOrchestrator>;
+  deployContract: (
+    contractName: string,
+    args?: unknown[]
+  ) => Promise<BrowserContractOrchestrator>;
   selectContract: (address: string) => void;
-  callContractMethod: (params: ContractCallParams) => Promise<ContractCallState>;
+  callContractMethod: (
+    params: ContractCallParams
+  ) => Promise<ContractCallState>;
   subscribeToEvents: (contractAddress: string, eventName?: string) => void;
   unsubscribeFromEvents: (contractAddress: string, eventName?: string) => void;
   setContractError: (error: string | null) => void;
-  
+
   // Network actions
   switchNetwork: (networkId: string) => Promise<void>;
   setNetworkError: (error: string | null) => void;
-  
+
   // UI actions
   toggleSidebar: () => void;
   setActiveTab: (tab: string) => void;
-  addNotification: (notification: Omit<NotificationState, 'id' | 'timestamp'>) => void;
+  addNotification: (
+    notification: Omit<NotificationState, 'id' | 'timestamp'>
+  ) => void;
   removeNotification: (id: string) => void;
   openModal: (type: string, props?: Record<string, unknown>) => string;
   closeModal: (id: string) => void;
   setLoading: (key: string, loading: boolean) => void;
-  
+
   // Utility actions
   reset: () => void;
   refreshAll: () => Promise<void>;
@@ -208,16 +214,16 @@ export interface StoreConfig {
   // Persistence
   persist: boolean;
   persistKey: string;
-  
+
   // Auto-refresh intervals (in ms)
   nodeStatusInterval: number;
   walletBalanceInterval: number;
   contractEventsInterval: number;
-  
+
   // Error handling
   maxRetries: number;
   retryDelay: number;
-  
+
   // UI defaults
   defaultNotificationDuration: number;
   maxNotifications: number;
@@ -246,31 +252,31 @@ export interface StoreSelectors {
   isConnected: (state: AppStore) => boolean;
   isConnecting: (state: AppStore) => boolean;
   connectionError: (state: AppStore) => string | null;
-  
+
   // Node selectors
   nodeStatus: (state: AppStore) => BrowserNodeStatus | null;
   isNodeRunning: (state: AppStore) => boolean;
   nodeError: (state: AppStore) => string | null;
-  
+
   // Wallet selectors
   activeWallet: (state: AppStore) => BrowserWalletInfo | null;
   wallets: (state: AppStore) => BrowserWalletInfo[];
   walletBalance: (state: AppStore) => string | null;
   walletError: (state: AppStore) => string | null;
-  
+
   // Contract selectors
   deployedContracts: (state: AppStore) => BrowserContractOrchestrator[];
   activeContract: (state: AppStore) => BrowserContractOrchestrator | null;
   contractCalls: (state: AppStore) => ContractCallState[];
   contractEvents: (state: AppStore) => ContractEventState[];
   contractError: (state: AppStore) => string | null;
-  
+
   // Network selectors
   currentNetwork: (state: AppStore) => BrowserNetworkConfig | null;
   availableNetworks: (state: AppStore) => BrowserNetworkConfig[];
   isNetworkSwitching: (state: AppStore) => boolean;
   networkError: (state: AppStore) => string | null;
-  
+
   // UI selectors
   sidebarOpen: (state: AppStore) => boolean;
   activeTab: (state: AppStore) => string;
@@ -305,18 +311,30 @@ export interface StateEvents {
 export interface IStateService {
   // Store management
   getStore: () => AppStore;
-  subscribe: <T>(selector: (state: AppStore) => T, callback: (value: T) => void) => () => void;
-  
+  subscribe: <T>(
+    selector: (state: AppStore) => T,
+    callback: (value: T) => void
+  ) => () => void;
+
   // Event management
-  on: <K extends keyof StateEvents>(event: K, callback: (...args: StateEvents[K]) => void) => void;
-  off: <K extends keyof StateEvents>(event: K, callback: (...args: StateEvents[K]) => void) => void;
-  emit: <K extends keyof StateEvents>(event: K, ...args: StateEvents[K]) => void;
-  
+  on: <K extends keyof StateEvents>(
+    event: K,
+    callback: (...args: StateEvents[K]) => void
+  ) => void;
+  off: <K extends keyof StateEvents>(
+    event: K,
+    callback: (...args: StateEvents[K]) => void
+  ) => void;
+  emit: <K extends keyof StateEvents>(
+    event: K,
+    ...args: StateEvents[K]
+  ) => void;
+
   // State persistence
   save: () => void;
   load: () => void;
   clear: () => void;
-  
+
   // Lifecycle
   initialize: (config?: Partial<StoreConfig>) => Promise<void>;
   destroy: () => void;
@@ -332,4 +350,8 @@ export type StateUpdater<T> = (state: T) => T;
 
 export type StateListener<T> = (state: T, prevState: T) => void;
 
-export type StateMiddleware = (state: AppState, action: string, ...args: unknown[]) => AppState | void;
+export type StateMiddleware = (
+  state: AppState,
+  action: string,
+  ...args: unknown[]
+) => AppState | undefined;

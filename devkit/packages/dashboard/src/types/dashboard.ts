@@ -50,6 +50,6 @@ export interface ChecklistStep {
 
 // Import core types from utility
 import type {
-  NodeStatus,
   ContractStatus as CoreContractStatus,
+  NodeStatus,
 } from '@conflux-devkit/utility';

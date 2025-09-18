@@ -1,0 +1,36 @@
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./tests/setup.ts'],
+    watch: false, // Disable watch mode
+    run: true, // Force run mode
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'dist/',
+        'tests/',
+        '**/*.d.ts',
+        '**/*.config.*',
+        '**/*.test.*',
+        '**/*.spec.*',
+      ],
+      thresholds: {
+        global: {
+          branches: 90,
+          functions: 100,
+          lines: 95,
+          statements: 95,
+        },
+      },
+    },
+    testTimeout: 10000,
+    hookTimeout: 10000,
+    include: ['tests/**/*.{test,spec}.{js,ts}'],
+    exclude: ['node_modules', 'dist'],
+  },
+});

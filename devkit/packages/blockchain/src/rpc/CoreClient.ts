@@ -13,7 +13,7 @@ import { networkManager } from '../network';
 
 export class CoreClient implements ICoreClient {
   private networkConfig: NetworkConfig;
-  
+
   constructor(network: NetworkConfig) {
     this.networkConfig = network;
   }

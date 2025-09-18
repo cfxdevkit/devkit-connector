@@ -32,5 +32,5 @@ export default {
     }
   },
   "contracts": {},
-  "generatedAt": "2025-09-17T23:03:39.496Z"
+  "generatedAt": "2025-09-18T07:51:54.902Z"
 };

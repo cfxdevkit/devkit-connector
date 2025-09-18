@@ -1,31 +1,28 @@
 // Unified Node Service - combines direct node operations and workflow management
 
-import { EventEmitter } from 'events';
-import { spawn, ChildProcess } from 'child_process';
+import type { ChildProcess } from 'node:child_process';
+import { EventEmitter } from 'node:events';
 import type {
-  NodeConfig,
-  NodeStatus,
-  WorkflowResult,
-  ValidationResult,
-  WorkflowCommandOptions,
-  NodeCommandOptions,
-  INodeService,
-  IWorkflowService,
-  IWalletService,
-  IContractService,
-  WorkflowEvents,
-  NodeServiceConfig,
-  WorkflowServiceConfig,
-} from '../types/unified';
-import type {
-  WalletInfo,
   ContractOrchestrator,
   TypedDeploymentResult,
+  WalletInfo,
 } from '@conflux-devkit/core';
-import { ConfluxNode } from '../ConfluxNode';
-import { WalletManager } from '../WalletManager';
-import { ContractDeployer } from '../ContractDeployer';
 import { createNodeError } from '@conflux-devkit/core';
+import { ConfluxNode } from '../ConfluxNode';
+import { ContractDeployer } from '../ContractDeployer';
+import type {
+  INodeService,
+  IWorkflowService,
+  NodeConfig,
+  NodeServiceConfig,
+  NodeStatus,
+  ValidationResult,
+  WorkflowCommandOptions,
+  WorkflowEvents,
+  WorkflowResult,
+  WorkflowServiceConfig,
+} from '../types/unified';
+import { WalletManager } from '../WalletManager';
 
 export class NodeService
   extends EventEmitter
@@ -185,7 +182,7 @@ export class NodeService
     const workflowStartTime = Date.now();
     const errors: string[] = [];
     let wallets: WalletInfo[] = [];
-    let contracts: ContractOrchestrator[] = [];
+    const contracts: ContractOrchestrator[] = [];
     let deploymentResults: TypedDeploymentResult[] = [];
     let validationResults: ValidationResult[] = [];
 
@@ -290,12 +287,12 @@ export class NodeService
         if (isHealthy) {
           return;
         }
-      } catch (error) {
+      } catch (_error) {
         // Continue retrying
       }
 
       retries++;
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     throw createNodeError('Node failed to become ready', {

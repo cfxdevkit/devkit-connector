@@ -48,7 +48,7 @@ export class ContractDeployer {
     await this.saveDeploymentResults(results);
 
     console.log(chalk.blue('\n📊 Deployment Summary:'));
-    results.forEach(result => {
+    results.forEach((result) => {
       console.log(chalk.blue(`  ${result.network}: ${result.address}`));
     });
   }

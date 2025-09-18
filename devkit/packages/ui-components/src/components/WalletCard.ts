@@ -1,17 +1,32 @@
 // Wallet Card Web Component
 
-import type { BrowserWalletInfo } from '@conflux-devkit/core';
 import { css, html, LitElement } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement } from 'lit/decorators.js';
 
 @customElement('conflux-wallet-card')
 export class WalletCard extends LitElement {
-  @property({ type: Object }) wallet!: BrowserWalletInfo;
-  @property({ type: Boolean }) active = false;
-  @property({ type: Boolean }) showActions = true;
-  @property({ type: Boolean }) compact = false;
+  static properties = {
+    wallet: { type: Object },
+    active: { type: Boolean, reflect: true },
+    showActions: { type: Boolean },
+    compact: { type: Boolean },
+    isExpanded: { type: Boolean, state: true },
+  };
 
-  @state() private isExpanded = false;
+  // Property declarations for TypeScript
+  wallet: any = null;
+  active: boolean = false;
+  showActions: boolean = true;
+  compact: boolean = false;
+  isExpanded: boolean = false;
+
+  constructor() {
+    super();
+    this.active = false;
+    this.showActions = true;
+    this.compact = false;
+    this.isExpanded = false;
+  }
 
   static styles = css`
     :host {
@@ -192,9 +207,9 @@ export class WalletCard extends LitElement {
       </div>
 
       <div
-        class="card-content ${this.compact ? 'compact' : ''} ${
-          this.isExpanded ? 'expanded' : 'collapsed'
-        }"
+        class="card-content ${this.compact ? 'compact' : ''} ${this.isExpanded
+          ? 'expanded'
+          : 'collapsed'}"
       >
         <div class="wallet-info">
           <div class="balance">
@@ -216,9 +231,8 @@ export class WalletCard extends LitElement {
         </div>
       </div>
 
-      ${
-        this.showActions
-          ? html`
+      ${this.showActions
+        ? html`
             <div class="card-actions">
               <button class="btn" @click=${this.handleSelect}>Select</button>
               <button class="btn primary" @click=${this.handleRefresh}>
@@ -226,8 +240,7 @@ export class WalletCard extends LitElement {
               </button>
             </div>
           `
-          : ''
-      }
+        : ''}
     `;
   }
 

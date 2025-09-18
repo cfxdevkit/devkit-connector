@@ -21,8 +21,8 @@ import {
   IconRocket,
   IconSettings,
 } from '@tabler/icons-react';
-import { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { useCallback, useEffect, useState } from 'react';
 import { contractApi, nodeApi, systemApi, walletApi } from '../services/api';
 import type { ChecklistStep, DashboardState } from '../types/dashboard';
 

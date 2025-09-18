@@ -16,24 +16,9 @@ vi.mock('../../../src/network', () => ({
 }));
 
 describe('CoreClient', () => {
-  let mockNetworkManager: any;
-
   beforeEach(() => {
     // Reset mocks
     vi.clearAllMocks();
-
-    // Mock network manager
-    mockNetworkManager = {
-      getNetwork: vi.fn(),
-      getLocalNetwork: vi.fn(),
-      getTestnetNetwork: vi.fn(),
-      getMainnetNetwork: vi.fn(),
-    };
-
-    // Mock the network manager module
-    vi.doMock('../../../src/network', () => ({
-      networkManager: mockNetworkManager,
-    }));
   });
 
   describe('Constructor', () => {
@@ -46,7 +31,12 @@ describe('CoreClient', () => {
   });
 
   describe('Static Factory Methods', () => {
-    beforeEach(() => {
+    let mockNetworkManager: any;
+
+    beforeEach(async () => {
+      const { networkManager } = await import('../../../src/network');
+      mockNetworkManager = networkManager;
+
       mockNetworkManager.getNetwork.mockReturnValue(MOCK_NETWORKS.mainnetCore);
       mockNetworkManager.getLocalNetwork.mockReturnValue(
         MOCK_NETWORKS.localCore
@@ -60,11 +50,11 @@ describe('CoreClient', () => {
     });
 
     it('should create client from network ID', () => {
-      const client = CoreClient.createFromNetworkId('mainnet-core');
+      const client = CoreClient.createFromNetworkId('core-mainnet');
 
       expect(client).toBeDefined();
       expect(mockNetworkManager.getNetwork).toHaveBeenCalledWith(
-        'mainnet-core'
+        'core-mainnet'
       );
     });
 
