@@ -256,6 +256,20 @@ function getTypeExports(packageName) {
           const name = constant.replace('export const ', '');
           exports.push({ type: 'const', name });
         });
+
+        // Extract re-exported items (export { name } or export { name as alias })
+        const reExports =
+          typesContent.match(/export\s*\{\s*([^}]+)\s*\}/g) || [];
+        reExports.forEach(reExport => {
+          const content = reExport.replace(/export\s*\{\s*|\s*\}/g, '');
+          const items = content.split(',').map(item => item.trim());
+          items.forEach(item => {
+            const name = item.split(/\s+as\s+/)[0].trim();
+            if (name) {
+              exports.push({ type: 'export', name });
+            }
+          });
+        });
       } catch (error) {
         // Skip files that can't be read
         continue;
@@ -407,25 +421,63 @@ function generateAsciiDiagram(packages) {
   diagram.push('');
 
   // Create a cleaner, more aligned diagram with exact spacing
-  const createFlowLine = (content) => {
+  const createFlowLine = content => {
     const cleanContent = content.replace(/\x1b\[[0-9;]*m/g, '');
     const contentLength = cleanContent.length;
     const paddingNeeded = 77 - contentLength; // 77 = 79 - 2 (for the │ characters)
     return '│' + content + ' '.repeat(paddingNeeded) + '│';
   };
 
-  diagram.push('┌─────────────────────────────────────────────────────────────────────────────────┐');
+  diagram.push(
+    '┌─────────────────────────────────────────────────────────────────────────────────┐'
+  );
   diagram.push(createFlowLine(''));
   diagram.push(createFlowLine('  ' + colorize('core', 'green') + ' ──┐'));
-  diagram.push(createFlowLine('      ├──► ' + colorize('blockchain', 'green') + ' ──┐'));
-  diagram.push(createFlowLine('      └──► ' + colorize('state', 'green') + ' ───────┼──► ' + colorize('node', 'blue') + ' ──┐'));
-  diagram.push(createFlowLine('                    │           ├──► ' + colorize('api-server', 'blue') + ' ──┐'));
-  diagram.push(createFlowLine('                    │           └──► ' + colorize('showcase-webapp', 'magenta') + ' ────┼──► ' + colorize('ui-components', 'magenta')));
-  diagram.push(createFlowLine('                    │                             │'));
-  diagram.push(createFlowLine('                    └──► ' + colorize('ui-primitives', 'magenta') + ' ──────────┼──► ' + colorize('ui-components', 'magenta')));
-  diagram.push(createFlowLine('                                                      │'));
+  diagram.push(
+    createFlowLine('      ├──► ' + colorize('blockchain', 'green') + ' ──┐')
+  );
+  diagram.push(
+    createFlowLine(
+      '      └──► ' +
+        colorize('state', 'green') +
+        ' ───────┼──► ' +
+        colorize('node', 'blue') +
+        ' ──┐'
+    )
+  );
+  diagram.push(
+    createFlowLine(
+      '                    │           ├──► ' +
+        colorize('api-server', 'blue') +
+        ' ──┐'
+    )
+  );
+  diagram.push(
+    createFlowLine(
+      '                    │           └──► ' +
+        colorize('showcase-webapp', 'magenta') +
+        ' ────┼──► ' +
+        colorize('ui-components', 'magenta')
+    )
+  );
+  diagram.push(
+    createFlowLine('                    │                             │')
+  );
+  diagram.push(
+    createFlowLine(
+      '                    └──► ' +
+        colorize('ui-primitives', 'magenta') +
+        ' ──────────┼──► ' +
+        colorize('ui-components', 'magenta')
+    )
+  );
+  diagram.push(
+    createFlowLine('                                                      │')
+  );
   diagram.push(createFlowLine(''));
-  diagram.push('└─────────────────────────────────────────────────────────────────────────────────┘');
+  diagram.push(
+    '└─────────────────────────────────────────────────────────────────────────────────┘'
+  );
   diagram.push('');
 
   return diagram.join('\n');
@@ -438,8 +490,11 @@ function generateTypeMap(packages) {
 
   // Create type data for table
   const typeData = packages.map(pkg => {
-    const typeInfo = getTypeExports(pkg.name.split('/')[1]);
-    const shortName = pkg.name.split('/')[1];
+    // Use the actual directory name instead of package name
+    const packageDir = pkg.name.split('/')[1];
+    const actualDir = packageDir === 'node' ? 'devkit-node' : packageDir;
+    const typeInfo = getTypeExports(actualDir);
+    const shortName = packageDir;
 
     if (typeInfo.available && typeInfo.exports.length > 0) {
       // Group by type
@@ -476,8 +531,11 @@ function generateTypeMap(packages) {
   // Detailed type breakdown
   typeMap.push(colorize('📋 DETAILED TYPE BREAKDOWN', 'yellow'));
   packages.forEach(pkg => {
-    const typeInfo = getTypeExports(pkg.name.split('/')[1]);
-    const shortName = pkg.name.split('/')[1];
+    // Use the actual directory name instead of package name
+    const packageDir = pkg.name.split('/')[1];
+    const actualDir = packageDir === 'node' ? 'devkit-node' : packageDir;
+    const typeInfo = getTypeExports(actualDir);
+    const shortName = packageDir;
 
     if (typeInfo.available && typeInfo.exports.length > 0) {
       typeMap.push(colorize(`\n${shortName}:`, 'green'));

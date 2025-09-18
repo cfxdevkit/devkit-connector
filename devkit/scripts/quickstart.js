@@ -244,6 +244,23 @@ Examples:
     `);
   } else {
     displayAllPackages();
+    
+    // Show package relationship map after quickstart
+    console.log('\n🏗️  Package Relationship Map:');
+    console.log('=' .repeat(60));
+    
+    try {
+      const packageMapOutput = execSync('pnpm package-map --layers', { 
+        encoding: 'utf8',
+        cwd: process.cwd(),
+        stdio: 'pipe'
+      });
+      console.log(packageMapOutput);
+    } catch (error) {
+      console.log('❌ Could not display package relationship map');
+      console.log('   Run "pnpm package-map --layers" manually to see the map');
+      console.log('   Error:', error.message);
+    }
   }
 }
 
