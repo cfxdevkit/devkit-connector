@@ -1,4 +1,10 @@
 import { useState, useEffect } from 'react';
+import type {
+  BrowserNetworkConfig,
+  BrowserWalletInfo,
+  BrowserNodeStatus,
+  BrowserContractOrchestrator,
+} from '@conflux-devkit/core';
 
 interface ChecklistItem {
   id: string;
@@ -22,31 +28,34 @@ interface ApiStatus {
   };
 }
 
-interface NodeStatus {
-  running: boolean;
-  name?: string;
-  version?: string;
-  network?: string;
+interface ShowcaseState {
+  networks: BrowserNetworkConfig[];
+  currentNetwork: BrowserNetworkConfig | null;
+  wallets: BrowserWalletInfo[];
+  activeWallet: BrowserWalletInfo | null;
+  nodeStatus: BrowserNodeStatus | null;
+  contracts: BrowserContractOrchestrator[];
+  isLoading: boolean;
+  error: string | null;
 }
 
-interface WalletInfo {
-  available: boolean;
-  name?: string;
-  address?: string;
-  balance?: string;
+interface DemoChecklistProps {
+  state: ShowcaseState;
+  onNetworkChange: (network: BrowserNetworkConfig) => void;
+  onWalletChange: (wallet: BrowserWalletInfo) => void;
+  onRefresh: () => void;
 }
 
-interface ContractInfo {
-  name: string;
-  description: string;
-  deployed: boolean;
-  address?: string;
-  abi?: any;
-}
-
-export default function DemoChecklist() {
+export function DemoChecklist({
+  state,
+  onNetworkChange,
+  onWalletChange,
+  onRefresh,
+}: DemoChecklistProps) {
   const [realServicesAvailable, setRealServicesAvailable] = useState(false);
   const [servicesStatus, setServicesStatus] = useState<string>('checking');
+  const [apiStatus, setApiStatus] = useState<ApiStatus | null>(null);
+  const [selectedContracts, setSelectedContracts] = useState<string[]>([]);
 
   const [checklist, setChecklist] = useState<ChecklistItem[]>([
     {
@@ -90,12 +99,6 @@ export default function DemoChecklist() {
     },
   ]);
 
-  const [apiStatus, setApiStatus] = useState<ApiStatus | null>(null);
-  const [walletInfo, setWalletInfo] = useState<WalletInfo | null>(null);
-  const [nodeStatus, setNodeStatus] = useState<NodeStatus | null>(null);
-  const [contracts, setContracts] = useState<ContractInfo[]>([]);
-  const [selectedContracts, setSelectedContracts] = useState<string[]>([]);
-
   const updateChecklistItem = (
     id: string,
     status: ChecklistItem['status'],
@@ -136,10 +139,11 @@ export default function DemoChecklist() {
   const checkWallet = async () => {
     updateChecklistItem('wallet-check', 'in-progress');
     try {
-      const response = await fetch('/api/wallet/info');
-      const data = await response.json();
-      setWalletInfo(data);
-      updateChecklistItem('wallet-check', 'completed');
+      if (state.activeWallet) {
+        updateChecklistItem('wallet-check', 'completed');
+      } else {
+        updateChecklistItem('wallet-check', 'error', 'No wallet available');
+      }
     } catch (error) {
       updateChecklistItem(
         'wallet-check',
@@ -152,10 +156,11 @@ export default function DemoChecklist() {
   const checkNodeStatus = async () => {
     updateChecklistItem('node-status', 'in-progress');
     try {
-      const response = await fetch('/api/node/status');
-      const data = await response.json();
-      setNodeStatus(data);
-      updateChecklistItem('node-status', 'completed');
+      if (state.nodeStatus?.running) {
+        updateChecklistItem('node-status', 'completed');
+      } else {
+        updateChecklistItem('node-status', 'error', 'Node is not running');
+      }
     } catch (error) {
       updateChecklistItem(
         'node-status',
@@ -189,10 +194,15 @@ export default function DemoChecklist() {
   const loadContracts = async () => {
     updateChecklistItem('contracts-list', 'in-progress');
     try {
-      const response = await fetch('/api/contracts/list');
-      const data = await response.json();
-      setContracts(data.contracts || []);
-      updateChecklistItem('contracts-list', 'completed');
+      if (state.contracts.length > 0) {
+        updateChecklistItem('contracts-list', 'completed');
+      } else {
+        updateChecklistItem(
+          'contracts-list',
+          'error',
+          'No contracts available'
+        );
+      }
     } catch (error) {
       updateChecklistItem(
         'contracts-list',
@@ -213,8 +223,8 @@ export default function DemoChecklist() {
       const data = await response.json();
       if (data.success) {
         updateChecklistItem('deploy-contracts', 'completed');
-        // Reload contracts to show updated status
-        setTimeout(loadContracts, 1000);
+        // Refresh the parent state
+        onRefresh();
       } else {
         updateChecklistItem(
           'deploy-contracts',
@@ -240,7 +250,7 @@ export default function DemoChecklist() {
 
   useEffect(() => {
     runAllChecks();
-  }, []);
+  }, [state.activeWallet, state.nodeStatus, state.contracts]);
 
   const getStatusIcon = (status: ChecklistItem['status']) => {
     switch (status) {
@@ -367,8 +377,8 @@ export default function DemoChecklist() {
                       </button>
                     )}
                     {item.id === 'start-node' &&
-                      nodeStatus &&
-                      !nodeStatus.running && (
+                      state.nodeStatus &&
+                      !state.nodeStatus.running && (
                         <button
                           onClick={startNode}
                           disabled={item.status === 'in-progress'}
@@ -386,18 +396,19 @@ export default function DemoChecklist() {
                         Load
                       </button>
                     )}
-                    {item.id === 'deploy-contracts' && contracts.length > 0 && (
-                      <button
-                        onClick={deployContracts}
-                        disabled={
-                          item.status === 'in-progress' ||
-                          selectedContracts.length === 0
-                        }
-                        className="btn btn-success btn-sm"
-                      >
-                        Deploy Selected
-                      </button>
-                    )}
+                    {item.id === 'deploy-contracts' &&
+                      state.contracts.length > 0 && (
+                        <button
+                          onClick={deployContracts}
+                          disabled={
+                            item.status === 'in-progress' ||
+                            selectedContracts.length === 0
+                          }
+                          className="btn btn-success btn-sm"
+                        >
+                          Deploy Selected
+                        </button>
+                      )}
                   </div>
                 </div>
               </div>
@@ -429,59 +440,45 @@ export default function DemoChecklist() {
           {/* Wallet Info */}
           <div className="demo-status-card">
             <h3 className="demo-status-title">Wallet Info</h3>
-            {walletInfo ? (
+            {state.activeWallet ? (
               <div className="demo-status-content">
-                <p
-                  className={
-                    walletInfo.available ? 'status-success' : 'status-error'
-                  }
-                >
-                  {walletInfo.available ? '✅ Available' : '❌ Not Available'}
+                <p className="status-success">✅ Available</p>
+                <p className="demo-status-text">
+                  Name: {state.activeWallet.name}
                 </p>
-                {walletInfo.name && (
-                  <p className="demo-status-text">Name: {walletInfo.name}</p>
-                )}
-                {walletInfo.address && (
-                  <p className="demo-status-text">
-                    Address: {walletInfo.address.slice(0, 10)}...
-                  </p>
-                )}
-                {walletInfo.balance && (
-                  <p className="demo-status-text">
-                    Balance: {walletInfo.balance}
-                  </p>
-                )}
+                <p className="demo-status-text">
+                  Address: {state.activeWallet.address.slice(0, 10)}...
+                </p>
+                <p className="demo-status-text">
+                  Balance: {state.activeWallet.balance}
+                </p>
               </div>
             ) : (
-              <p className="demo-status-placeholder">Not checked</p>
+              <p className="demo-status-placeholder">Not available</p>
             )}
           </div>
 
           {/* Node Status */}
           <div className="demo-status-card">
             <h3 className="demo-status-title">Node Status</h3>
-            {nodeStatus ? (
+            {state.nodeStatus ? (
               <div className="demo-status-content">
                 <p
                   className={
-                    nodeStatus.running ? 'status-success' : 'status-error'
+                    state.nodeStatus.running ? 'status-success' : 'status-error'
                   }
                 >
-                  {nodeStatus.running ? '✅ Running' : '❌ Stopped'}
+                  {state.nodeStatus.running ? '✅ Running' : '❌ Stopped'}
                 </p>
-                {nodeStatus.name && (
-                  <p className="demo-status-text">Name: {nodeStatus.name}</p>
-                )}
-                {nodeStatus.version && (
-                  <p className="demo-status-text">
-                    Version: {nodeStatus.version}
-                  </p>
-                )}
-                {nodeStatus.network && (
-                  <p className="demo-status-text">
-                    Network: {nodeStatus.network}
-                  </p>
-                )}
+                <p className="demo-status-text">
+                  Health: {state.nodeStatus.health}
+                </p>
+                <p className="demo-status-text">
+                  Chain ID: {state.nodeStatus.chainId}
+                </p>
+                <p className="demo-status-text">
+                  Block Number: {state.nodeStatus.blockNumber}
+                </p>
               </div>
             ) : (
               <p className="demo-status-placeholder">Not checked</p>
@@ -491,9 +488,9 @@ export default function DemoChecklist() {
           {/* Contracts */}
           <div className="demo-status-card">
             <h3 className="demo-status-title">Available Contracts</h3>
-            {contracts.length > 0 ? (
+            {state.contracts.length > 0 ? (
               <div className="demo-contracts-list">
-                {contracts.map((contract, index) => (
+                {state.contracts.map((contract, index) => (
                   <div key={index} className="demo-contract-item">
                     <input
                       type="checkbox"
@@ -520,7 +517,8 @@ export default function DemoChecklist() {
                       className="demo-contract-label"
                     >
                       {contract.name}{' '}
-                      {contract.deployed && (
+                      {contract.address !==
+                        '0x0000000000000000000000000000000000000000' && (
                         <span className="status-success">(Deployed)</span>
                       )}
                     </label>
