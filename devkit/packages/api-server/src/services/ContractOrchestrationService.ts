@@ -358,7 +358,13 @@ export class ContractOrchestrationService {
     if (!contractData) {
       throw new Error('Contract not found');
     }
-    return JSON.parse(contractData.contract.abi) as AbiItem[];
+
+    const abi = contractData.contract.abi;
+    if (typeof abi === 'string') {
+      return JSON.parse(abi) as AbiItem[];
+    } else {
+      return abi as AbiItem[];
+    }
   }
 
   /**
