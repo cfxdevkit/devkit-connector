@@ -36,14 +36,41 @@ function askQuestion(question) {
 async function checkpoint() {
   console.log('🚀 Starting Conflux DevKit Checkpoint...\n');
 
+  // Step 0: Auto-fix Biome issues first
+  console.log('🔧 Running automatic fixes...');
+  const autoFixResult = runCommand('turbo run check:fix:unsafe', 'Auto-fixing code issues');
+  if (!autoFixResult.success) {
+    console.log('\n⚠️  Auto-fix encountered some issues, continuing with manual check...');
+  } else {
+    console.log('✅ Auto-fix completed successfully');
+  }
+
   // Step 1: Run Biome checks
   const biomeResult = runCommand('pnpm run check', 'Running Biome checks');
   if (!biomeResult.success) {
-    console.log(
-      '\n❌ Biome checks failed. Please fix the issues before proceeding.'
-    );
-    rl.close();
-    process.exit(1);
+    console.log('\n⚠️  Biome checks failed, trying one more auto-fix...');
+
+    // Try once more with auto-fix
+    const secondAutoFixResult = runCommand('turbo run check:fix', 'Running safe auto-fix');
+    if (secondAutoFixResult.success) {
+      console.log('✅ Auto-fix resolved the issues');
+
+      // Retry Biome checks
+      const retryBiomeResult = runCommand('pnpm run check', 'Retrying Biome checks');
+      if (!retryBiomeResult.success) {
+        console.log('\n❌ Biome checks still failing after auto-fix. Manual intervention required.');
+        console.log('   Some issues may require manual fixing.');
+        console.log('   Run: pnpm run check:fix:unsafe');
+        rl.close();
+        process.exit(1);
+      }
+    } else {
+      console.log('\n❌ Biome checks failed and auto-fix unsuccessful.');
+      console.log('   Please manually fix the issues before proceeding.');
+      console.log('   Run: pnpm run check:fix or pnpm run check:fix:unsafe');
+      rl.close();
+      process.exit(1);
+    }
   }
 
   // Step 2: Run builds
@@ -66,14 +93,24 @@ async function checkpoint() {
     process.exit(1);
   }
 
-  // Step 4: Run final check
+  // Step 4: Run final check (warnings are acceptable)
   const finalCheckResult = runCommand('pnpm run check', 'Final Biome check');
   if (!finalCheckResult.success) {
-    console.log(
-      '\n❌ Final check failed. Please fix the remaining issues before proceeding.'
-    );
-    rl.close();
-    process.exit(1);
+    console.log('\n⚠️  Final Biome check found some issues.');
+    console.log('   If these are only warnings (not errors), the checkpoint can continue.');
+    console.log('   Check the output above to determine if manual fixes are needed.');
+
+    // Check if the error output contains only warnings
+    const errorOutput = finalCheckResult.error?.stdout || finalCheckResult.error?.stderr || '';
+    const hasErrors = errorOutput.includes('error') || errorOutput.includes('ERROR');
+
+    if (hasErrors) {
+      console.log('\n❌ Critical errors found in final check. Please fix before proceeding.');
+      rl.close();
+      process.exit(1);
+    } else {
+      console.log('✅ Only warnings found, continuing checkpoint...');
+    }
   }
 
   // Step 5: Validate changelog

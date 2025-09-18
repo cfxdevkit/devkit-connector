@@ -92,9 +92,11 @@ export interface ContractCallResponse extends ApiResponse<ContractCallResult> {}
 export interface ContractCallResult {
   success: boolean;
   data?: unknown;
+  result?: unknown;
   error?: string;
   transactionHash?: `0x${string}`;
   gasUsed?: bigint;
+  blockNumber?: bigint;
   isMock?: boolean;
 }
 

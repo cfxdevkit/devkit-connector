@@ -30,9 +30,11 @@ export {
 export * from './node';
 export * from './validation';
 
-// Legacy types for backward compatibility (deprecated)
+// Legacy types for backward compatibility (deprecated - use core types instead)
+/** @deprecated Use BrowserWalletInfo from browser-safe types instead */
 export type WalletType = 'mnemonic' | 'privateKey';
 
+/** @deprecated Use BrowserWalletInfo from browser-safe types instead */
 export interface WalletConfig {
   type: WalletType;
   value: string;
@@ -42,6 +44,7 @@ export interface WalletConfig {
 // Import types for legacy compatibility
 import type { ContractInfo, NetworkConfig } from './blockchain';
 
+/** @deprecated Use ContractDeploymentConfig from contracts types instead */
 export interface DeploymentConfig {
   contracts: ContractInfo[];
   networks: NetworkConfig[];

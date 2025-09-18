@@ -53,13 +53,8 @@ export interface ValidationResult {
   warnings: string[];
 }
 
-// Execution result types
-export interface ExecutionResult<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  duration: number;
-}
+// Re-export ExecutionResult from main types to avoid duplication
+export type { ExecutionResult } from '../types';
 
 // Deployment options
 export interface DeployOptions {

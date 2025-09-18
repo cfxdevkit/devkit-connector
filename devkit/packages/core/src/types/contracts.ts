@@ -1,6 +1,6 @@
 // Contract artifact and deployment types
 
-import type { AbiItem } from './blockchain';
+import type { AbiItem, NetworkConfig } from './blockchain';
 
 // Re-export types that might be needed by other packages
 export type { ContractOrchestrator } from './contract-orchestration';
@@ -90,6 +90,9 @@ export interface ContractCodegenConfig {
   evmChainId?: number;
 }
 
+// Re-export NetworkConfig from blockchain types to avoid duplication
+export type { NetworkConfig } from './blockchain';
+
 // Contract factory for creating typed contract instances
 export interface ContractFactory<T = unknown> {
   create(contractAddress: `0x${string}`, networkConfig: NetworkConfig): T;
@@ -98,21 +101,6 @@ export interface ContractFactory<T = unknown> {
   getDeployedBytecode(): `0x${string}`;
   getContractName(): string;
   getChainType(): 'core' | 'evm';
-}
-
-// Network configuration for contracts
-export interface NetworkConfig {
-  name: string;
-  rpcUrl: string;
-  chainId: number;
-  evmChainId?: number;
-  currency: {
-    name: string;
-    symbol: string;
-    decimals: number;
-  };
-  isTestnet: boolean;
-  networkType?: 'core' | 'evm';
 }
 
 // Contract deployment status

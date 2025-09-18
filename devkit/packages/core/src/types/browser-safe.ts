@@ -11,6 +11,9 @@ export interface BrowserWalletInfo {
   balance: string; // Formatted balance as string
   balanceFormatted: string; // Human-readable balance
   isMining: boolean;
+  isDefault?: boolean; // Whether this is the default wallet
+  name?: string; // Optional display name for the wallet
+  network?: string; // Network this wallet is associated with
 }
 
 // Browser-safe transaction receipt
@@ -119,29 +122,80 @@ export interface BrowserNetworkConfig {
   };
   isTestnet: boolean;
   networkType: 'core' | 'evm';
+  blockExplorer?: string;
 }
 
-// Browser-safe contract orchestrator
+// Browser-safe contract orchestrator - flexible interface that can handle both string and complex types
 export interface BrowserContractOrchestrator {
+  id?: string;
   name: string;
   address: BrowserAddress;
-  abi: string; // JSON stringified ABI
+  abi: string | any[]; // JSON stringified ABI or ABI array
   bytecode: string;
   deployedBytecode: string;
   chainType: 'core' | 'evm';
   networkId: string;
-  chainId: string;
-  evmChainId?: string;
+  chainId: string | number; // Support both string and number
+  evmChainId?: string | number; // Support both string and number
   network: BrowserNetworkConfig;
   methods: {
-    read: string[]; // Method names
-    write: string[]; // Method names
-    events: string[]; // Event names
+    read: string[] | any[]; // Method names or method objects
+    write: string[] | any[]; // Method names or method objects
+    events: string[] | any[]; // Event names or event objects
+    constructor?: any; // Optional constructor method
   };
   capabilities: {
     read: boolean;
     write: boolean;
     events: boolean;
+    canRead?: boolean; // Alias for backward compatibility
+    canWrite?: boolean; // Alias for backward compatibility
+    hasEvents?: boolean; // Alias for backward compatibility
+    canReceive?: boolean;
+    canFallback?: boolean;
+    isUpgradeable?: boolean;
+    isPausable?: boolean;
+    isOwnable?: boolean;
+  };
+  // Optional metadata for extended functionality
+  metadata?: {
+    name?: string;
+    version?: string;
+    description?: string;
+    author?: string;
+    license?: string;
+    source?: string;
+    tags?: string[];
+    category?: string;
+    icon?: string;
+    color?: string;
+    website?: string;
+    documentation?: string;
+  };
+  deployment?: {
+    transactionHash?: string;
+    blockNumber?: string;
+    gasUsed?: string;
+    deployedAt?: string;
+    isVerified?: boolean;
+    verificationStatus?: string;
+  };
+  types?: {
+    generated?: boolean;
+    generatedAt?: string;
+    error?: string;
+    generatedTypes?: Record<string, unknown>;
+  };
+  ui?: {
+    displayName?: string;
+    description?: string;
+    category?: string;
+    icon?: string;
+    color?: string;
+    tags?: string[];
+    isActive?: boolean;
+    lastUsed?: string;
+    usageCount?: number;
   };
 }
 

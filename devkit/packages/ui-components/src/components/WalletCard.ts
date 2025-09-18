@@ -1,15 +1,8 @@
 // Wallet Card Web Component
 
+import type { BrowserWalletInfo } from '@conflux-devkit/core';
 import { css, html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
-
-interface WalletInfo {
-  address: string;
-  balance?: string;
-  isDefault?: boolean;
-  name?: string;
-  network?: string;
-}
 
 @customElement('conflux-wallet-card')
 export class WalletCard extends LitElement {
@@ -22,7 +15,7 @@ export class WalletCard extends LitElement {
   };
 
   // Property declarations for TypeScript
-  declare wallet: WalletInfo | null;
+  declare wallet: BrowserWalletInfo | null;
   declare active: boolean;
   declare showActions: boolean;
   declare compact: boolean;

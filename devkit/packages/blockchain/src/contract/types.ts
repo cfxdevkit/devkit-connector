@@ -1,7 +1,5 @@
 // Browser-safe contract types for blockchain package
 
-import type { AbiItem } from '@conflux-devkit/core';
-
 // Browser-safe contract method call parameters
 export interface BrowserContractMethodCall {
   methodName: string;
@@ -46,87 +44,9 @@ export interface BrowserContractEventLog {
   removed: boolean;
 }
 
-// Import BrowserContractOrchestrator from core package
-import type { BrowserContractOrchestrator as CoreBrowserContractOrchestrator } from '@conflux-devkit/core';
-
-// Extended BrowserContractOrchestrator with additional blockchain-specific properties
-export interface BrowserContractOrchestrator
-  extends Omit<
-    CoreBrowserContractOrchestrator,
-    'abi' | 'chainId' | 'evmChainId' | 'methods' | 'capabilities' | 'network'
-  > {
-  // Additional blockchain-specific properties
-  id: string;
-  chainId: number;
-  evmChainId?: number;
-  abi: AbiItem[]; // Full ABI, not stringified
-  methods: {
-    read: BrowserContractMethod[];
-    write: BrowserContractMethod[];
-    events: BrowserContractEvent[];
-    constructor: BrowserContractMethod | null;
-  };
-  capabilities: {
-    canRead: boolean;
-    canWrite: boolean;
-    canReceive: boolean;
-    canFallback: boolean;
-    hasEvents: boolean;
-    isUpgradeable: boolean;
-    isPausable: boolean;
-    isOwnable: boolean;
-  };
-  metadata: {
-    name: string;
-    version?: string;
-    description?: string;
-    author?: string;
-    license?: string;
-    source?: string;
-    tags?: string[];
-    category?: 'token' | 'nft' | 'defi' | 'governance' | 'utility' | 'custom';
-    icon?: string;
-    color?: string;
-    website?: string;
-    documentation?: string;
-  };
-  deployment: {
-    transactionHash: string;
-    blockNumber: string;
-    gasUsed: string;
-    deployedAt: string; // ISO string
-    isVerified: boolean;
-    verificationStatus?: 'pending' | 'verified' | 'failed';
-  };
-  types: {
-    generated: boolean;
-    generatedAt?: string; // ISO string
-    error?: string;
-    generatedTypes?: Record<string, unknown>;
-  };
-  ui: {
-    displayName: string;
-    description: string;
-    category: string;
-    icon?: string;
-    color?: string;
-    tags: string[];
-    isActive: boolean;
-    lastUsed?: string; // ISO string
-    usageCount: number;
-  };
-  network: {
-    name: string;
-    rpcUrl: string;
-    isTestnet: boolean;
-    blockExplorer?: string;
-    currency: {
-      name: string;
-      symbol: string;
-      decimals: number;
-    };
-  };
-}
+// Import and re-export BrowserContractOrchestrator from core
+import type { BrowserContractOrchestrator } from '@conflux-devkit/core';
+export type { BrowserContractOrchestrator };
 
 // Browser-safe contract method
 export interface BrowserContractMethod {

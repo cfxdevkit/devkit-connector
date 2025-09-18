@@ -207,13 +207,8 @@ export interface ContractCallParams {
   gasPrice?: string;
 }
 
-export interface ContractCallResult {
-  success: boolean;
-  result?: unknown;
-  error?: string;
-  gasUsed?: string;
-  transactionHash?: string;
-}
+// Re-export ContractCallResult from core to ensure consistency
+export type { ContractCallResult } from '@conflux-devkit/core';
 
 // ============================================================================
 // Store Configuration
@@ -350,9 +345,17 @@ export interface IStateService {
 }
 
 // ============================================================================
-// ABI and Contract Types
+// ABI and Contract Types - Re-exported from core
 // ============================================================================
 
+// Import and re-export ABI types from core to avoid duplication
+import type { AbiItem } from '@conflux-devkit/core';
+export type { AbiItem };
+
+// Define ContractAbi as array of AbiItem for backward compatibility
+export type ContractAbi = AbiItem[];
+
+// Define specific ABI component types for backward compatibility
 export interface AbiFunction {
   type: 'function';
   name: string;
@@ -374,16 +377,6 @@ export interface AbiConstructor {
   stateMutability: 'payable' | 'nonpayable';
 }
 
-export interface AbiFallback {
-  type: 'fallback';
-  stateMutability: 'payable' | 'nonpayable';
-}
-
-export interface AbiReceive {
-  type: 'receive';
-  stateMutability: 'payable';
-}
-
 export interface AbiParameter {
   name: string;
   type: string;
@@ -392,25 +385,17 @@ export interface AbiParameter {
   components?: AbiParameter[];
 }
 
-export type AbiItem =
-  | AbiFunction
-  | AbiEvent
-  | AbiConstructor
-  | AbiFallback
-  | AbiReceive;
-
-export type ContractAbi = AbiItem[];
-
 export interface ContractDeploymentResult {
   address: string;
   transactionHash: string;
   gasUsed: string;
   contractName: string;
-  abi: ContractAbi;
+  abi: AbiItem[];
   bytecode: string;
 }
 
-export interface ContractCallResult {
+// Browser-safe ContractCallResult for UI consumption
+export interface BrowserContractCallResult {
   success: boolean;
   result?: unknown;
   error?: string;
@@ -421,7 +406,7 @@ export interface ContractCallResult {
 export interface ContractInfo {
   address: string;
   name: string;
-  abi: ContractAbi;
+  abi: AbiItem[];
   bytecode?: string;
   deployedAt: Date;
   networkId: string;

@@ -72,6 +72,7 @@ export class ContractManager {
       });
 
       return {
+        success: true,
         result,
         gasUsed: 0n, // Mock value
         blockNumber: 0n, // Mock value

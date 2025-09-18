@@ -6,17 +6,24 @@ export * from './contracts';
 export * from './schemas';
 export * from './types';
 // Export API types and utilities
-export type { ApiError, ApiResponse, ResponseMeta } from './types/api';
+export type {
+  ApiError,
+  ApiResponse,
+  ContractCallResult,
+  ContractStatus,
+  NetworkInfo,
+  ResponseMeta,
+} from './types/api';
 export {
-  AuthenticationError as ApiAuthenticationError,
-  AuthorizationError as ApiAuthorizationError,
+  AuthenticationError,
+  AuthorizationError,
   BaseApiError,
-  ConflictError as ApiConflictError,
-  InternalServerError as ApiInternalServerError,
-  NotFoundError as ApiNotFoundError,
-  RateLimitError as ApiRateLimitError,
-  ServiceUnavailableError as ApiServiceUnavailableError,
-  ValidationError as ApiValidationError,
+  ConflictError,
+  InternalServerError,
+  NotFoundError,
+  RateLimitError,
+  ServiceUnavailableError,
+  ValidationError,
 } from './types/api';
 export * from './types/browser-safe';
 // Export contract orchestration types specifically
@@ -38,19 +45,19 @@ export type {
 export {
   createApiError,
   createApiResponse,
-  createAuthenticationError as createApiAuthenticationError,
-  createAuthorizationError as createApiAuthorizationError,
-  createConflictError as createApiConflictError,
+  createAuthenticationError,
+  createAuthorizationError,
+  createConflictError,
   createErrorResponse,
   createHealthCheckResponse,
-  createInternalServerError as createApiInternalServerError,
-  createNotFoundError as createApiNotFoundError,
+  createInternalServerError,
+  createNotFoundError,
   createPaginatedResponse,
-  createRateLimitError as createApiRateLimitError,
+  createRateLimitError,
   createResponseMeta,
-  createServiceUnavailableError as createApiServiceUnavailableError,
+  createServiceUnavailableError,
   createSuccessResponse,
-  createValidationError as createApiValidationError,
+  createValidationError,
   filterResponse,
   generateRequestId,
   handleApiError,
@@ -77,6 +84,23 @@ export {
 // Export RPC utilities
 export * from './utils/rpc-cache';
 export * from './utils/rpc-monitor';
+// Export type converters with specific naming to avoid conflicts
+export {
+  abiFromString,
+  abiToString,
+  bigintToString,
+  contractCallResultToBrowser,
+  createMinimalBrowserContractOrchestrator,
+  deploymentResultToBrowser,
+  networkConfigToBrowser,
+  numberToString,
+  stringToBigint,
+  toBrowserAddress,
+  validateBrowserAddress,
+  walletInfoToBrowser,
+} from './utils/type-converters';
+// Note: toBrowserSafe is exported from browser-conversion module
+export * from './utils/type-guards';
 // Export browser-safe utilities
 export * from './utils/type-normalization';
 export * from './wallet';

@@ -97,7 +97,19 @@ export class BrowserContractWrapper {
         usageCount: this.orchestrator.ui.usageCount,
       },
 
-      capabilities: this.orchestrator.capabilities,
+      capabilities: {
+        read: this.orchestrator.capabilities.canRead || false,
+        write: this.orchestrator.capabilities.canWrite || false,
+        events: this.orchestrator.capabilities.hasEvents || false,
+        canRead: this.orchestrator.capabilities.canRead,
+        canWrite: this.orchestrator.capabilities.canWrite,
+        hasEvents: this.orchestrator.capabilities.hasEvents,
+        canReceive: this.orchestrator.capabilities.canReceive,
+        canFallback: this.orchestrator.capabilities.canFallback,
+        isUpgradeable: this.orchestrator.capabilities.isUpgradeable,
+        isPausable: this.orchestrator.capabilities.isPausable,
+        isOwnable: this.orchestrator.capabilities.isOwnable,
+      },
 
       network: {
         ...this.orchestrator.network,
