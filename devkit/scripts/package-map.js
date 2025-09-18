@@ -404,82 +404,28 @@ function generateAsciiDiagram(packages) {
 
   // Dependency flow diagram with colors
   diagram.push(colorize('🔄 DEPENDENCY FLOW', 'cyan'));
-  diagram.push(
-    colorize(
-      '┌─────────────────────────────────────────────────────────────────────────────────┐',
-      'cyan'
-    )
-  );
-  diagram.push(
-    colorize('│', 'cyan') +
-      ' ' +
-      colorize('core', 'green') +
-      ' ──┐' +
-      ' '.repeat(55) +
-      colorize('│', 'cyan')
-  );
-  diagram.push(
-    colorize('│', 'cyan') +
-      '        ├──► ' +
-      colorize('blockchain', 'green') +
-      ' ──┐' +
-      ' '.repeat(40) +
-      colorize('│', 'cyan')
-  );
-  diagram.push(
-    colorize('│', 'cyan') +
-      '        └──► ' +
-      colorize('state', 'green') +
-      ' ───────┼──► ' +
-      colorize('node', 'blue') +
-      ' ──┐' +
-      ' '.repeat(20) +
-      colorize('│', 'cyan')
-  );
-  diagram.push(
-    colorize('│', 'cyan') +
-      '                          │           ├──► ' +
-      colorize('api-server', 'blue') +
-      ' ──┐' +
-      ' '.repeat(15) +
-      colorize('│', 'cyan')
-  );
-  diagram.push(
-    colorize('│', 'cyan') +
-      '                          │           └──► ' +
-      colorize('showcase-webapp', 'magenta') +
-      ' ────┼──► ' +
-      colorize('ui-components', 'magenta') +
-      '    ' +
-      colorize('│', 'cyan')
-  );
-  diagram.push(
-    colorize('│', 'cyan') +
-      '                          │                             │' +
-      ' '.repeat(20) +
-      colorize('│', 'cyan')
-  );
-  diagram.push(
-    colorize('│', 'cyan') +
-      '                          └──► ' +
-      colorize('ui-primitives', 'magenta') +
-      ' ──────────┼──► ' +
-      colorize('ui-components', 'magenta') +
-      '      ' +
-      colorize('│', 'cyan')
-  );
-  diagram.push(
-    colorize('│', 'cyan') +
-      '                                                      │' +
-      ' '.repeat(20) +
-      colorize('│', 'cyan')
-  );
-  diagram.push(
-    colorize(
-      '└─────────────────────────────────────────────────────────────────────────────────┘',
-      'cyan'
-    )
-  );
+  diagram.push('');
+
+  // Create a cleaner, more aligned diagram with exact spacing
+  const createFlowLine = (content) => {
+    const cleanContent = content.replace(/\x1b\[[0-9;]*m/g, '');
+    const contentLength = cleanContent.length;
+    const paddingNeeded = 77 - contentLength; // 77 = 79 - 2 (for the │ characters)
+    return '│' + content + ' '.repeat(paddingNeeded) + '│';
+  };
+
+  diagram.push('┌─────────────────────────────────────────────────────────────────────────────────┐');
+  diagram.push(createFlowLine(''));
+  diagram.push(createFlowLine('  ' + colorize('core', 'green') + ' ──┐'));
+  diagram.push(createFlowLine('      ├──► ' + colorize('blockchain', 'green') + ' ──┐'));
+  diagram.push(createFlowLine('      └──► ' + colorize('state', 'green') + ' ───────┼──► ' + colorize('node', 'blue') + ' ──┐'));
+  diagram.push(createFlowLine('                    │           ├──► ' + colorize('api-server', 'blue') + ' ──┐'));
+  diagram.push(createFlowLine('                    │           └──► ' + colorize('showcase-webapp', 'magenta') + ' ────┼──► ' + colorize('ui-components', 'magenta')));
+  diagram.push(createFlowLine('                    │                             │'));
+  diagram.push(createFlowLine('                    └──► ' + colorize('ui-primitives', 'magenta') + ' ──────────┼──► ' + colorize('ui-components', 'magenta')));
+  diagram.push(createFlowLine('                                                      │'));
+  diagram.push(createFlowLine(''));
+  diagram.push('└─────────────────────────────────────────────────────────────────────────────────┘');
   diagram.push('');
 
   return diagram.join('\n');
@@ -742,14 +688,14 @@ function displayPackageMap(options = {}) {
     }, 0);
 
     console.log(colorize('📊 SUMMARY STATISTICS', 'cyan'));
-    
+
     // Create summary table
     const summaryData = [
       [`Total Packages: ${colorize(packages.length.toString(), 'green')}`],
       [`Total Type Exports: ${colorize(totalTypes.toString(), 'blue')}`],
-      [`Total Dependencies: ${colorize(totalDeps.toString(), 'yellow')}`]
+      [`Total Dependencies: ${colorize(totalDeps.toString(), 'yellow')}`],
     ];
-    
+
     const summaryTable = createTable(summaryData, ['Metric'], { maxWidth: 60 });
     console.log(summaryTable.join('\n'));
   }
