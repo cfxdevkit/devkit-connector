@@ -1,48 +1,72 @@
-import {
-  useNode,
-  useNodeControls,
-  useNodeMetrics,
-  useNodeStatus,
-} from '@conflux-devkit/ui-primitives';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import type { BrowserNodeStatus } from '@conflux-devkit/core';
 
-export function NodeControl() {
-  const { status, isRunning, isStarting, isStopping, error } = useNode();
-  const { start, stop, restart, canStart, canStop, canRestart } =
-    useNodeControls();
-  const { statusColor, statusText } = useNodeStatus();
-  const { metrics } = useNodeMetrics();
+interface NodeControlProps {
+  nodeStatus: BrowserNodeStatus | null;
+  onRefresh: () => void;
+}
 
+export function NodeControl({ nodeStatus, onRefresh }: NodeControlProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [isStarting, setIsStarting] = useState(false);
+  const [isStopping, setIsStopping] = useState(false);
+
+  const isRunning = nodeStatus?.running || false;
+  const status = nodeStatus;
+  const error = actionError; // Use action error instead of node status error
+  
+  const statusColor = isRunning ? 'online' : 'offline';
+  const statusText = isRunning ? 'Running' : 'Stopped';
+  
+  const metrics = {
+    blockNumber: nodeStatus?.blockNumber || '0',
+    peerCount: nodeStatus?.peerCount || '0',
+  };
+
+  const canStart = !isRunning && !isLoading;
+  const canStop = isRunning && !isLoading;
+  const canRestart = isRunning && !isLoading;
 
   const handleStart = async () => {
     setIsLoading(true);
+    setIsStarting(true);
     setActionError(null);
     try {
-      const success = await start();
-      if (!success) {
-        setActionError('Failed to start node');
+      const response = await fetch('/api/node/start', { method: 'POST' });
+      const result = await response.json();
+      if (!result.success) {
+        setActionError(result.error || 'Failed to start node');
+      } else {
+        // Refresh status after starting
+        setTimeout(() => onRefresh(), 1000);
       }
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Unknown error');
     } finally {
       setIsLoading(false);
+      setIsStarting(false);
     }
   };
 
   const handleStop = async () => {
     setIsLoading(true);
+    setIsStopping(true);
     setActionError(null);
     try {
-      const success = await stop();
-      if (!success) {
-        setActionError('Failed to stop node');
+      const response = await fetch('/api/node/stop', { method: 'POST' });
+      const result = await response.json();
+      if (!result.success) {
+        setActionError(result.error || 'Failed to stop node');
+      } else {
+        // Refresh status after stopping
+        setTimeout(() => onRefresh(), 1000);
       }
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Unknown error');
     } finally {
       setIsLoading(false);
+      setIsStopping(false);
     }
   };
 
@@ -50,9 +74,13 @@ export function NodeControl() {
     setIsLoading(true);
     setActionError(null);
     try {
-      const success = await restart();
-      if (!success) {
-        setActionError('Failed to restart node');
+      const response = await fetch('/api/node/restart', { method: 'POST' });
+      const result = await response.json();
+      if (!result.success) {
+        setActionError(result.error || 'Failed to restart node');
+      } else {
+        // Refresh status after restarting
+        setTimeout(() => onRefresh(), 2000);
       }
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Unknown error');

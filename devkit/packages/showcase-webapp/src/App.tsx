@@ -33,63 +33,96 @@ function App() {
     error: null,
   });
 
-  // Initialize DevKit services
-  useEffect(() => {
-    const initializeDevKit = async () => {
-      try {
-        setState(prev => ({ ...prev, isLoading: true, error: null }));
+  // Load all data
+  const loadAllData = async () => {
+    try {
+      setState(prev => ({ ...prev, isLoading: true, error: null }));
 
-        // Load networks
-        const networksResponse = await fetch('/api/networks');
-        const networksData = await networksResponse.json();
+      // Load networks
+      const networksResponse = await fetch('/api/networks');
+      const networksData = await networksResponse.json();
 
-        if (networksData.success) {
-          setState(prev => ({
-            ...prev,
-            networks: networksData.data,
-            currentNetwork: networksData.data[0] || null,
-          }));
-        }
-
-        // Load initial data
-        await Promise.all([loadWallets(), loadNodeStatus(), loadContracts()]);
-
-        setState(prev => ({ ...prev, isLoading: false }));
-      } catch (error) {
-        console.error('Failed to initialize DevKit:', error);
+      if (networksData.success) {
         setState(prev => ({
           ...prev,
-          isLoading: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          networks: networksData.data,
+          currentNetwork: prev.currentNetwork || networksData.data[0] || null,
         }));
       }
-    };
 
-    initializeDevKit();
+      // Load initial data
+      await Promise.all([loadWallets(), loadNodeStatus(), loadContracts()]);
+
+      setState(prev => ({ ...prev, isLoading: false }));
+    } catch (error) {
+      console.error('Failed to load DevKit data:', error);
+      setState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      }));
+    }
+  };
+
+  // Initialize DevKit services
+  useEffect(() => {
+    loadAllData();
+  }, []);
+
+  // Auto-refresh data every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadAllData();
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const loadWallets = async () => {
     try {
-      const response = await fetch('/api/wallet/info');
+      const response = await fetch('/api/wallet/list');
       const data = await response.json();
 
-      if (data.available) {
-        const wallet: BrowserWalletInfo = {
-          index: 0,
-          address: data.address,
-          privateKey: '', // Not exposed in API
-          balance: data.balance,
-          balanceFormatted: data.balance,
-          isMining: false,
-          isDefault: true,
-          name: data.name || 'Default Wallet',
-        };
+      if (data.success && data.wallets.length > 0) {
+        const wallets: BrowserWalletInfo[] = data.wallets.map((wallet: any) => ({
+          index: wallet.index,
+          address: wallet.address,
+          privateKey: wallet.privateKey || '', // Server wallets expose private keys
+          balance: wallet.balance,
+          balanceFormatted: wallet.balanceFormatted,
+          isMining: wallet.isMining,
+          isDefault: wallet.isDefault,
+          name: wallet.name,
+        }));
 
         setState(prev => ({
           ...prev,
-          wallets: [wallet],
-          activeWallet: wallet,
+          wallets: wallets,
+          activeWallet: wallets.find(w => w.isDefault) || wallets[0],
         }));
+      } else {
+        // Fallback to single wallet info
+        const infoResponse = await fetch('/api/wallet/info');
+        const infoData = await infoResponse.json();
+
+        if (infoData.available) {
+          const wallet: BrowserWalletInfo = {
+            index: infoData.index || 0,
+            address: infoData.address,
+            privateKey: '', // Not exposed in single wallet API
+            balance: infoData.balance,
+            balanceFormatted: infoData.balance,
+            isMining: infoData.isMining || false,
+            isDefault: true,
+            name: infoData.name || 'Default Wallet',
+          };
+
+          setState(prev => ({
+            ...prev,
+            wallets: [wallet],
+            activeWallet: wallet,
+          }));
+        }
       }
     } catch (error) {
       console.error('Failed to load wallets:', error);
@@ -101,26 +134,62 @@ function App() {
       const response = await fetch('/api/node/status');
       const data = await response.json();
 
-      if (data.running) {
-        const nodeStatus: BrowserNodeStatus = {
-          running: data.running,
-          corePort: '8080',
-          evmPort: '8545',
-          chainId: data.chainId?.toString() || '1',
-          evmChainId: data.evmChainId?.toString() || '1',
-          blockNumber: data.blockNumber?.toString() || '0',
-          peerCount: data.peerCount?.toString() || '0',
-          walletMode: 'mnemonic',
-          wallets: [],
-          miningAddress: null,
-          health: 'healthy',
-          lastHealthCheck: new Date().toISOString(),
-        };
+      const nodeStatus: BrowserNodeStatus = {
+        running: data.running || false,
+        corePort: '12537',
+        evmPort: '8545',
+        chainId: data.chainId?.toString() || '1',
+        evmChainId: data.evmChainId?.toString() || '71',
+        blockNumber: data.blockNumber?.toString() || '0',
+        peerCount: data.peerCount?.toString() || '0',
+        walletMode: 'mnemonic',
+        wallets: [],
+        miningAddress: null,
+        health: data.running ? 'healthy' : 'unhealthy',
+        lastHealthCheck: new Date().toISOString(),
+      };
 
-        setState(prev => ({ ...prev, nodeStatus }));
-      }
+      setState(prev => {
+        const newState = { ...prev, nodeStatus };
+        
+        // If node is running, automatically switch to local networks
+        if (data.running && prev.networks.length > 0) {
+          const localNetworks = prev.networks.filter(network => 
+            network.rpcUrl.includes('localhost') || 
+            (network.chainId === '2029' && network.networkType === 'core') ||
+            (network.chainId === '2030' && network.networkType === 'evm')
+          );
+          
+          if (localNetworks.length > 0) {
+            // Switch to the first local network (Core local)
+            const localCoreNetwork = localNetworks.find(n => n.networkType === 'core');
+            if (localCoreNetwork) {
+              newState.currentNetwork = localCoreNetwork;
+              console.log('🔄 Node started - automatically switched to local network:', localCoreNetwork.name);
+            }
+          }
+        }
+        
+        return newState;
+      });
     } catch (error) {
       console.error('Failed to load node status:', error);
+      // Set node as stopped if API fails
+      const nodeStatus: BrowserNodeStatus = {
+        running: false,
+        corePort: '12537',
+        evmPort: '8545',
+        chainId: '1',
+        evmChainId: '71',
+        blockNumber: '0',
+        peerCount: '0',
+        walletMode: 'mnemonic',
+        wallets: [],
+        miningAddress: null,
+        health: 'unhealthy',
+        lastHealthCheck: new Date().toISOString(),
+      };
+      setState(prev => ({ ...prev, nodeStatus }));
     }
   };
 
@@ -140,16 +209,21 @@ function App() {
             chainType: 'conflux',
             capabilities: {
               canRead: true,
-              canWrite: contract.deployed,
+              canWrite: true, // Assume deployed contracts can be written to
               hasEvents: true,
             },
           })
         );
 
+        console.log(`📋 Loaded ${contracts.length} contracts`);
         setState(prev => ({ ...prev, contracts }));
+      } else {
+        console.log('❌ Failed to load contracts:', data.error);
+        setState(prev => ({ ...prev, contracts: [] }));
       }
     } catch (error) {
       console.error('Failed to load contracts:', error);
+      setState(prev => ({ ...prev, contracts: [] }));
     }
   };
 
@@ -161,6 +235,10 @@ function App() {
 
   const handleWalletChange = (wallet: BrowserWalletInfo) => {
     setState(prev => ({ ...prev, activeWallet: wallet }));
+  };
+
+  const handleRefresh = () => {
+    loadAllData();
   };
 
   return (
@@ -194,22 +272,14 @@ function App() {
           state={state}
           onNetworkChange={handleNetworkChange}
           onWalletChange={handleWalletChange}
-          onRefresh={() => {
-            loadWallets();
-            loadNodeStatus();
-            loadContracts();
-          }}
+          onRefresh={handleRefresh}
         />
       ) : (
         <Dashboard
           state={state}
           onNetworkChange={handleNetworkChange}
           onWalletChange={handleWalletChange}
-          onRefresh={() => {
-            loadWallets();
-            loadNodeStatus();
-            loadContracts();
-          }}
+          onRefresh={handleRefresh}
         />
       )}
     </div>

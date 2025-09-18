@@ -177,24 +177,26 @@ export function Dashboard({
         return <OverviewTab state={state} onRefresh={onRefresh} />;
       case 'node':
         return (
-          <div className="placeholder-content">
-            <h3>Node Control</h3>
-            <p>Node control functionality will be implemented here.</p>
-          </div>
+          <NodeControl
+            nodeStatus={state.nodeStatus}
+            onRefresh={onRefresh}
+          />
         );
       case 'wallets':
         return (
-          <div className="placeholder-content">
-            <h3>Wallet Management</h3>
-            <p>Wallet management functionality will be implemented here.</p>
-          </div>
+          <WalletManagement
+            wallets={state.wallets}
+            activeWallet={state.activeWallet}
+            onWalletChange={onWalletChange}
+            onRefresh={onRefresh}
+          />
         );
       case 'contracts':
         return (
-          <div className="placeholder-content">
-            <h3>Contract Management</h3>
-            <p>Contract management functionality will be implemented here.</p>
-          </div>
+          <ContractManagement
+            contracts={state.contracts}
+            onRefresh={onRefresh}
+          />
         );
       case 'network':
         return (

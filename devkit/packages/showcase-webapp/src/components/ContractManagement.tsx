@@ -1,18 +1,14 @@
-import {
-  useContractDeployment,
-  useContracts,
-} from '@conflux-devkit/ui-primitives';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import type { BrowserContractOrchestrator } from '@conflux-devkit/core';
 
-export function ContractManagement() {
-  const {
-    contracts,
-    activeContract,
-    selectContract,
-    callMethod,
-    refreshContracts,
-  } = useContracts();
-  const { deploy, isDeploying } = useContractDeployment();
+interface ContractManagementProps {
+  contracts: BrowserContractOrchestrator[];
+  onRefresh: () => void;
+}
+
+export function ContractManagement({ contracts, onRefresh }: ContractManagementProps) {
+  const [activeContract, setActiveContract] = useState<BrowserContractOrchestrator | null>(null);
+  const [isDeploying, setIsDeploying] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -30,19 +26,36 @@ export function ContractManagement() {
     }
 
     setIsLoading(true);
+    setIsDeploying(true);
     setActionError(null);
     try {
       const args = constructorArgs.trim() ? JSON.parse(constructorArgs) : [];
-      await deploy(contractName, args);
-      setShowDeployForm(false);
-      setContractName('');
-      setConstructorArgs('');
+      
+      const response = await fetch('/api/contracts/deploy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: contractName,
+          constructorArgs: args,
+        }),
+      });
+      
+      const result = await response.json();
+      if (!result.success) {
+        setActionError(result.error || 'Failed to deploy contract');
+      } else {
+        setShowDeployForm(false);
+        setContractName('');
+        setConstructorArgs('');
+        onRefresh(); // Refresh contracts list
+      }
     } catch (error) {
       setActionError(
         error instanceof Error ? error.message : 'Failed to deploy contract'
       );
     } finally {
       setIsLoading(false);
+      setIsDeploying(false);
     }
   };
 
@@ -56,7 +69,8 @@ export function ContractManagement() {
     setActionError(null);
     try {
       const args = callArgs.trim() ? JSON.parse(callArgs) : [];
-      await callMethod(activeContract.address, callMethodName, args);
+      // TODO: Implement contract method calling via API
+      console.log('Calling method:', callMethodName, 'on contract:', activeContract.address, 'with args:', args);
       setShowCallForm(false);
       setCallMethodName('');
       setCallArgs('');
@@ -75,7 +89,7 @@ export function ContractManagement() {
     setIsLoading(true);
     setActionError(null);
     try {
-      await refreshContracts();
+      onRefresh();
     } catch (error) {
       setActionError(
         error instanceof Error ? error.message : 'Failed to refresh contracts'
@@ -283,7 +297,7 @@ export function ContractManagement() {
                 <div
                   key={contract.address}
                   className={`contract-item ${activeContract?.address === contract.address ? 'active' : ''}`}
-                  onClick={() => selectContract(contract.address)}
+                  onClick={() => setActiveContract(contract)}
                 >
                   <div className="contract-info">
                     <div className="contract-name">

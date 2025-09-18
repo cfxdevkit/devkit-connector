@@ -1,33 +1,126 @@
-import {
-  useWalletBalance,
-  useWalletCreation,
-  useWallets,
-} from '@conflux-devkit/ui-primitives';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import type { BrowserWalletInfo } from '@conflux-devkit/core';
 
-export function WalletManagement() {
-  const { wallets, activeWallet, selectWallet, refreshWallets } = useWallets();
-  const { balance } = useWalletBalance(activeWallet?.address || '');
-  const { create, isCreating } = useWalletCreation();
+// Extend Window interface for ethereum
+declare global {
+  interface Window {
+    ethereum?: {
+      request: (args: { method: string; params?: any[] }) => Promise<any>;
+    };
+  }
+}
+
+interface WalletManagementProps {
+  wallets: BrowserWalletInfo[];
+  activeWallet: BrowserWalletInfo | null;
+  onWalletChange: (wallet: BrowserWalletInfo) => void;
+  onRefresh: () => void;
+}
+
+interface BrowserWallet {
+  address: string;
+  name: string;
+  isConnected: boolean;
+  balance?: string;
+}
+
+export function WalletManagement({ 
+  wallets, 
+  activeWallet, 
+  onWalletChange, 
+  onRefresh 
+}: WalletManagementProps) {
+  const [browserWallets, setBrowserWallets] = useState<BrowserWallet[]>([]);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [mnemonic, setMnemonic] = useState('');
 
-  const handleCreateWallet = async () => {
-    setIsLoading(true);
+  // Detect browser wallets on mount
+  useEffect(() => {
+    detectBrowserWallets();
+  }, []);
+
+  const detectBrowserWallets = async () => {
+    try {
+      // Check for MetaMask
+      if (typeof window.ethereum !== 'undefined') {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) {
+          const browserWallets: BrowserWallet[] = accounts.map((address: string, index: number) => ({
+            address,
+            name: `MetaMask ${index + 1}`,
+            isConnected: true,
+          }));
+          setBrowserWallets(browserWallets);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to detect browser wallets:', error);
+    }
+  };
+
+  const connectBrowserWallet = async () => {
+    setIsConnecting(true);
     setActionError(null);
     try {
-      await create(mnemonic || undefined);
-      setShowCreateForm(false);
-      setMnemonic('');
+      if (typeof window.ethereum !== 'undefined') {
+        const accounts = await window.ethereum.request({ 
+          method: 'eth_requestAccounts' 
+        });
+        
+        const newWallets: BrowserWallet[] = accounts.map((address: string, index: number) => ({
+          address,
+          name: `MetaMask ${index + 1}`,
+          isConnected: true,
+        }));
+        
+        setBrowserWallets(prev => [...prev, ...newWallets]);
+      } else {
+        setActionError('No browser wallet detected. Please install MetaMask.');
+      }
+    } catch (error) {
+      setActionError('Failed to connect browser wallet');
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const selectWallet = (walletAddress: string) => {
+    const wallet = wallets.find(w => w.address === walletAddress);
+    if (wallet) {
+      onWalletChange(wallet);
+    }
+  };
+
+  const handleCreateWallet = async () => {
+    setIsLoading(true);
+    setIsCreating(true);
+    setActionError(null);
+    try {
+      const response = await fetch('/api/wallet/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mnemonic: mnemonic || undefined }),
+      });
+      const result = await response.json();
+      if (!result.success) {
+        setActionError(result.error || 'Failed to create wallet');
+      } else {
+        setShowCreateForm(false);
+        setMnemonic('');
+        onRefresh(); // Refresh wallets list
+      }
     } catch (error) {
       setActionError(
         error instanceof Error ? error.message : 'Failed to create wallet'
       );
     } finally {
       setIsLoading(false);
+      setIsCreating(false);
     }
   };
 
@@ -35,7 +128,7 @@ export function WalletManagement() {
     setIsLoading(true);
     setActionError(null);
     try {
-      await refreshWallets();
+      onRefresh();
     } catch (error) {
       setActionError(
         error instanceof Error ? error.message : 'Failed to refresh wallets'
@@ -50,8 +143,7 @@ export function WalletManagement() {
       setIsLoading(true);
       setActionError(null);
       try {
-        // Refresh wallets to get updated balance
-        await refreshWallets();
+        onRefresh(); // This will refresh all data including balance
       } catch (error) {
         setActionError(
           error instanceof Error ? error.message : 'Failed to refresh balance'
@@ -64,11 +156,71 @@ export function WalletManagement() {
 
   return (
     <div className="dashboard-grid">
+      {/* Browser Wallets */}
       <div className="dashboard-card">
         <div className="card-header">
           <h3 className="card-title">
-            <span className="card-icon">👛</span>
-            Wallet Management
+            <span className="card-icon">🌐</span>
+            Browser Wallets
+          </h3>
+          <span
+            className={`status-badge status-${browserWallets.length > 0 ? 'online' : 'offline'}`}
+          >
+            {browserWallets.length} connected
+          </span>
+        </div>
+        <div className="card-content">
+          <div className="wallet-controls">
+            <button
+              className="btn btn-primary"
+              onClick={connectBrowserWallet}
+              disabled={isConnecting}
+            >
+              {isConnecting ? <span className="spinner" /> : '🔗'}
+              Connect MetaMask
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={detectBrowserWallets}
+              disabled={isLoading}
+            >
+              {isLoading ? <span className="spinner" /> : '🔄'}
+              Refresh
+            </button>
+          </div>
+
+          {browserWallets.length > 0 ? (
+            <div className="wallet-list">
+              {browserWallets.map((wallet, index) => (
+                <div key={wallet.address} className="wallet-item">
+                  <div className="wallet-info">
+                    <div className="wallet-name">{wallet.name}</div>
+                    <div className="wallet-address">
+                      {wallet.address.slice(0, 8)}...{wallet.address.slice(-8)}
+                    </div>
+                    <div className="wallet-balance">{wallet.balance || '0'} CFX</div>
+                  </div>
+                  <div className="wallet-actions">
+                    <span className="connected-indicator">✓</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="no-wallets">
+              <p>No browser wallets connected</p>
+              <p className="text-muted">Connect MetaMask or other browser wallets</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Server Wallets */}
+      <div className="dashboard-card">
+        <div className="card-header">
+          <h3 className="card-title">
+            <span className="card-icon">🖥️</span>
+            Server Wallets
           </h3>
           <span
             className={`status-badge status-${wallets.length > 0 ? 'online' : 'offline'}`}
@@ -157,7 +309,7 @@ export function WalletManagement() {
                   {isLoading ? (
                     <span className="loading">Loading...</span>
                   ) : (
-                    `${balance || '0'} CFX`
+                    `${activeWallet.balance || '0'} CFX`
                   )}
                 </span>
               </div>
@@ -203,7 +355,7 @@ export function WalletManagement() {
                     <div className="wallet-address">
                       {wallet.address.slice(0, 8)}...{wallet.address.slice(-8)}
                     </div>
-                    <div className="wallet-balance">{balance || '0'} CFX</div>
+                    <div className="wallet-balance">{wallet.balance || '0'} CFX</div>
                   </div>
                   <div className="wallet-actions">
                     {activeWallet?.address === wallet.address && (
@@ -238,8 +390,8 @@ export function WalletManagement() {
               <div>
                 <conflux-wallet-card
                   address={activeWallet.address}
-                  balance={balance || '0'}
-                  balance-formatted={`${balance || '0'} CFX`}
+                  balance={activeWallet.balance || '0'}
+                  balance-formatted={`${activeWallet.balance || '0'} CFX`}
                   is-mining="false"
                   theme="light"
                 />

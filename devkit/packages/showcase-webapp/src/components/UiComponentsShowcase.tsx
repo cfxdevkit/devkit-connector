@@ -45,10 +45,15 @@ export function UiComponentsShowcase({
           <div className="component-container">
             <div className="mock-component">
               <select
-                value={state.currentNetwork?.chainId || ''}
+                value={
+                  state.currentNetwork
+                    ? `${state.currentNetwork.networkType}-${state.currentNetwork.chainId}`
+                    : ''
+                }
                 onChange={e => {
+                  const [networkType, chainId] = e.target.value.split('-');
                   const network = state.networks.find(
-                    n => n.chainId.toString() === e.target.value
+                    n => n.networkType === networkType && n.chainId === chainId
                   );
                   if (network) onNetworkChange(network);
                 }}
@@ -67,7 +72,7 @@ export function UiComponentsShowcase({
                     .map(network => (
                       <option
                         key={`main-${network.networkType}-${network.chainId}`}
-                        value={network.chainId}
+                        value={`${network.networkType}-${network.chainId}`}
                       >
                         {network.name} ({network.networkType.toUpperCase()})
                       </option>
@@ -85,7 +90,7 @@ export function UiComponentsShowcase({
                     .map(network => (
                       <option
                         key={`test-${network.networkType}-${network.chainId}`}
-                        value={network.chainId}
+                        value={`${network.networkType}-${network.chainId}`}
                       >
                         {network.name} ({network.networkType.toUpperCase()})
                       </option>
@@ -99,7 +104,7 @@ export function UiComponentsShowcase({
                     .map(network => (
                       <option
                         key={`local-${network.networkType}-${network.chainId}`}
-                        value={network.chainId}
+                        value={`${network.networkType}-${network.chainId}`}
                       >
                         {network.name} ({network.networkType.toUpperCase()})
                       </option>

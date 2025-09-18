@@ -98,18 +98,33 @@ try {
   // Initialize services
   if (WalletManager) {
     devKitServices.walletManager = new WalletManager();
+    console.log('✅ WalletManager initialized');
+  } else {
+    console.log('❌ WalletManager not available');
   }
   if (NetworkManager) {
     devKitServices.networkManager = NetworkManager.getInstance();
+    console.log('✅ NetworkManager initialized');
+  } else {
+    console.log('❌ NetworkManager not available');
   }
   if (ContractManager) {
     devKitServices.contractManager = new ContractManager();
+    console.log('✅ ContractManager initialized');
+  } else {
+    console.log('❌ ContractManager not available');
   }
   if (StateService) {
     devKitServices.stateService = new StateService();
+    console.log('✅ StateService initialized');
+  } else {
+    console.log('❌ StateService not available');
   }
   if (ConfluxNode) {
     devKitServices.confluxNode = new ConfluxNode();
+    console.log('✅ ConfluxNode initialized');
+  } else {
+    console.log('❌ ConfluxNode not available');
   }
 
   console.log('✅ DevKit services initialized successfully');
@@ -222,18 +237,40 @@ app.get('/api/packages', (_req, res) => {
 // Demo Checklist API endpoints
 app.get('/api/wallet/info', async (_req, res) => {
   try {
+    console.log('🔍 Checking wallet service availability...');
     if (!devKitServices.walletManager) {
+      console.log('❌ Wallet service not available');
       return res.status(503).json({
         available: false,
         error: 'Wallet service not available',
       });
     }
 
-    // Get real wallet information
-    const wallets = await devKitServices.walletManager.listWallets();
-    const activeWallet = wallets.find((w: any) => w.isActive) || wallets[0];
+    console.log('✅ Wallet service available, getting wallets...');
+    // Get real wallet information from the node
+    const nodeStatus = await devKitServices.confluxNode.getStatus();
+    console.log('📋 Node wallets found:', nodeStatus.wallets?.length || 0);
 
-    if (!activeWallet) {
+    if (nodeStatus.wallets && nodeStatus.wallets.length > 0) {
+      // Use the first wallet (mining wallet) as the active wallet
+      const activeWallet = nodeStatus.wallets[0];
+      console.log('✅ Active wallet found:', activeWallet.address);
+
+      // Get real balance
+      const balance = await devKitServices.walletManager.getBalance(
+        activeWallet.address
+      );
+
+      res.json({
+        available: true,
+        name: `Server Wallet ${activeWallet.index + 1}`,
+        address: activeWallet.address,
+        balance: `${balance} CFX`,
+        isMining: activeWallet.isMining,
+        index: activeWallet.index,
+      });
+    } else {
+      console.log('❌ No wallets found in node status');
       return res.json({
         available: false,
         name: null,
@@ -241,18 +278,6 @@ app.get('/api/wallet/info', async (_req, res) => {
         balance: null,
       });
     }
-
-    // Get real balance
-    const balance = await devKitServices.walletManager.getBalance(
-      activeWallet.address
-    );
-
-    res.json({
-      available: true,
-      name: activeWallet.name || 'Unnamed Wallet',
-      address: activeWallet.address,
-      balance: `${balance} CFX`,
-    });
   } catch (error) {
     console.error('Error getting wallet info:', error);
     res.status(500).json({
@@ -262,31 +287,284 @@ app.get('/api/wallet/info', async (_req, res) => {
   }
 });
 
+app.get('/api/wallet/list', async (_req, res) => {
+  try {
+    console.log('🔍 Getting all server wallets...');
+    if (!devKitServices.walletManager) {
+      return res.status(503).json({
+        success: false,
+        error: 'Wallet service not available',
+      });
+    }
+
+    // Get all wallets from the node status
+    const nodeStatus = await devKitServices.confluxNode.getStatus();
+    console.log('📊 Node status for wallets:', {
+      running: nodeStatus.running,
+      walletsCount: nodeStatus.wallets?.length || 0,
+      miningAddress: nodeStatus.miningAddress,
+    });
+
+    if (nodeStatus.wallets && nodeStatus.wallets.length > 0) {
+      // Get balances for all wallets
+      const walletsWithBalances = await Promise.all(
+        nodeStatus.wallets.map(async (wallet: any) => {
+          try {
+            // Try to get balance directly from EVM RPC
+            let balanceStr = '0';
+            try {
+              const rpcResponse = await fetch('http://localhost:8545', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  jsonrpc: '2.0',
+                  method: 'eth_getBalance',
+                  params: [wallet.address, 'latest'],
+                  id: 1,
+                }),
+              });
+              const rpcData = await rpcResponse.json();
+              if (rpcData.result) {
+                // Convert from Wei to CFX (1 CFX = 10^18 Wei)
+                const balanceInWei = BigInt(rpcData.result);
+                const balanceInCFX = Number(balanceInWei) / Math.pow(10, 18);
+                balanceStr = balanceInCFX.toFixed(4);
+              }
+            } catch (rpcError) {
+              console.error(
+                `RPC balance fetch failed for ${wallet.address}:`,
+                rpcError
+              );
+              // Fallback to wallet manager
+              try {
+                const balance = await devKitServices.walletManager.getBalance(
+                  wallet.address
+                );
+                balanceStr =
+                  typeof balance === 'string' ? balance : balance.toString();
+              } catch (walletError) {
+                console.error(
+                  `Wallet manager balance fetch failed for ${wallet.address}:`,
+                  walletError
+                );
+                balanceStr = '0';
+              }
+            }
+
+            // Remove any existing CFX suffix to avoid duplication
+            const cleanBalance = balanceStr.replace(/\s+CFX$/, '');
+            return {
+              index: wallet.index,
+              address: wallet.address,
+              privateKey: wallet.privateKey,
+              balance: cleanBalance,
+              balanceFormatted: `${cleanBalance} CFX`,
+              isMining: wallet.isMining,
+              isDefault: wallet.index === 0,
+              name: `Server Wallet ${wallet.index + 1}`,
+            };
+          } catch (error) {
+            console.error(
+              `Failed to get balance for wallet ${wallet.address}:`,
+              error
+            );
+            return {
+              index: wallet.index,
+              address: wallet.address,
+              privateKey: wallet.privateKey,
+              balance: '0',
+              balanceFormatted: '0 CFX',
+              isMining: wallet.isMining,
+              isDefault: wallet.index === 0,
+              name: `Server Wallet ${wallet.index + 1}`,
+            };
+          }
+        })
+      );
+
+      console.log(`✅ Returning ${walletsWithBalances.length} server wallets`);
+      res.json({
+        success: true,
+        wallets: walletsWithBalances,
+      });
+    } else {
+      console.log('❌ No wallets found in node status');
+      res.json({
+        success: true,
+        wallets: [],
+      });
+    }
+  } catch (error) {
+    console.error('Error getting wallet list:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get wallet list',
+    });
+  }
+});
+
 app.get('/api/node/status', async (_req, res) => {
   try {
+    console.log('🔍 Checking node service availability...');
     if (!devKitServices.confluxNode) {
+      console.log('❌ Node service not available');
       return res.status(503).json({
         running: false,
         error: 'Node service not available',
       });
     }
 
+    console.log('✅ Node service available, getting status...');
     // Get real node status
     const status = await devKitServices.confluxNode.getStatus();
+    console.log('📊 Node status:', status);
+
+    // Check if node is actually running by testing the RPC
+    let isActuallyRunning = false;
+    try {
+      // Try to get the latest block number to verify the node is responding
+      const response = await fetch('http://localhost:12537', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'cfx_getBlockByEpochNumber',
+          params: ['latest_mined', false],
+          id: 1,
+        }),
+      });
+      const data = await response.json();
+      isActuallyRunning = !data.error && data.result;
+    } catch (error) {
+      console.log(
+        '⚠️ Node RPC not responding:',
+        error instanceof Error ? error.message : String(error)
+      );
+    }
 
     res.json({
-      running: status.isRunning,
+      running: isActuallyRunning,
       name: 'Conflux Node',
       version: status.version || 'unknown',
       network: status.network || 'unknown',
       blockNumber: status.blockNumber?.toString() || '0',
       peerCount: status.peerCount,
+      chainId: status.chainId?.toString() || '2029',
+      evmChainId: status.evmChainId?.toString() || '2030',
+      corePort: '12537',
+      evmPort: '8545',
+      health: isActuallyRunning ? 'healthy' : 'unhealthy',
+      lastHealthCheck: new Date().toISOString(),
     });
   } catch (error) {
     console.error('Error getting node status:', error);
     res.status(500).json({
       running: false,
       error: 'Failed to get node status',
+    });
+  }
+});
+
+app.post('/api/wallet/create', async (req, res) => {
+  try {
+    console.log('👛 Creating wallet...');
+    if (!devKitServices.walletManager) {
+      return res.status(503).json({
+        success: false,
+        error: 'Wallet service not available',
+      });
+    }
+
+    const { mnemonic } = req.body;
+
+    // Create wallet with optional mnemonic
+    const wallet = await devKitServices.walletManager.createWallet(mnemonic);
+
+    console.log('✅ Wallet created successfully:', wallet.address);
+    res.json({
+      success: true,
+      wallet: {
+        address: wallet.address,
+        name: wallet.name || 'Unnamed Wallet',
+        index: wallet.index || 0,
+      },
+    });
+  } catch (error) {
+    console.error('Error creating wallet:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create wallet',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+app.get('/api/contracts/list', async (_req, res) => {
+  try {
+    console.log('📋 Getting deployed contracts...');
+    if (!devKitServices.contractManager) {
+      return res.status(503).json({
+        success: false,
+        error: 'Contract service not available',
+      });
+    }
+
+    // Get deployed contracts from the contract manager
+    const contracts = await devKitServices.contractManager.listContracts();
+    console.log(`✅ Found ${contracts.length} deployed contracts`);
+
+    res.json({
+      success: true,
+      contracts: contracts.map((contract: any) => ({
+        address: contract.address,
+        name: contract.name || 'Unnamed Contract',
+        abi: contract.abi,
+        deployedAt: contract.deployedAt || new Date().toISOString(),
+      })),
+    });
+  } catch (error) {
+    console.error('Error getting contracts list:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get contracts list',
+    });
+  }
+});
+
+app.post('/api/contracts/deploy', async (req, res) => {
+  try {
+    console.log('📦 Deploying contract...');
+    if (!devKitServices.contractManager) {
+      return res.status(503).json({
+        success: false,
+        error: 'Contract service not available',
+      });
+    }
+
+    const { name, constructorArgs = [] } = req.body;
+
+    // Deploy contract using the contract manager
+    const contract = await devKitServices.contractManager.deployContract(
+      name,
+      constructorArgs
+    );
+
+    console.log('✅ Contract deployed successfully:', contract.address);
+    res.json({
+      success: true,
+      contract: {
+        address: contract.address,
+        name: contract.name || name,
+        abi: contract.abi,
+        deployedAt: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error('Error deploying contract:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to deploy contract',
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
