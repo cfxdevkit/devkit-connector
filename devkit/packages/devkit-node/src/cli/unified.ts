@@ -482,7 +482,8 @@ export class UnifiedCLI {
 }
 
 // CLI entry point
-if (require.main === module) {
+// ESM equivalent of require.main === module
+if (import.meta.url === `file://${process.argv[1]}`) {
   const cli = new UnifiedCLI();
   cli.run().catch(console.error);
 }

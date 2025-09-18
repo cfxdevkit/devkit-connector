@@ -228,6 +228,25 @@ export class WalletManager {
   }
 
   /**
+   * List all wallets
+   */
+  listWallets(): WalletInfo[] {
+    return Array.from(this.wallets.values());
+  }
+
+  /**
+   * Get balance for a specific address
+   */
+  async getBalance(address: string): Promise<string> {
+    const wallet = this.wallets.get(address);
+    if (wallet) {
+      return wallet.balanceFormatted || '0.0 CFX';
+    }
+    // Return default balance if wallet not found
+    return '0.0 CFX';
+  }
+
+  /**
    * Validate mnemonic phrase
    */
   private isValidMnemonic(mnemonic: string): boolean {

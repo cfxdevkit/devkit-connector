@@ -4,6 +4,92 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Conflux DevKit Showcase</title>
+    <link rel="stylesheet" href="/App.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "lit": "/lit-with-decorators.js",
+          "lit/": "https://esm.sh/lit@3.1.0/",
+          "lit/index.js": "https://esm.sh/lit@3.1.0/index.js",
+          "lit/decorators.js": "https://esm.sh/lit@3.1.0/decorators.js",
+          "lit/decorators": "https://esm.sh/lit@3.1.0/decorators.js",
+          "react": "https://esm.sh/react@18.2.0",
+          "react/": "https://esm.sh/react@18.2.0/",
+          "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime",
+          "react-dom": "https://esm.sh/react-dom@18.2.0",
+          "react-dom/": "https://esm.sh/react-dom@18.2.0/",
+          "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+          "@conflux-devkit/core": "/packages/core/index.mjs",
+          "@conflux-devkit/blockchain": "/packages/blockchain/index.mjs",
+          "@conflux-devkit/node": "/packages/node/index.mjs",
+          "@conflux-devkit/state": "/packages/state/index.mjs",
+          "@conflux-devkit/ui-primitives": "/packages/ui-primitives/index.mjs",
+          "@conflux-devkit/ui-components": "/ui-components/index.mjs",
+          "lit-html": "https://esm.sh/lit-html@3.1.0",
+          "lit-html/": "https://esm.sh/lit-html@3.1.0/",
+          "lit-element": "https://esm.sh/lit-element@4.0.0",
+          "lit-element/": "https://esm.sh/lit-element@4.0.0/",
+          "lit-element/lit-element.js": "https://esm.sh/lit-element@4.0.0/lit-element.js",
+          "@lit/reactive-element": "https://esm.sh/@lit/reactive-element@3.0.0",
+          "@lit/reactive-element/": "https://esm.sh/@lit/reactive-element@3.0.0/",
+          "@lit/context": "https://esm.sh/@lit/context@1.1.0",
+          "@lit/context/": "https://esm.sh/@lit/context@1.1.0/",
+          "@lit/task": "https://esm.sh/@lit/task@1.0.0",
+          "@lit/task/": "https://esm.sh/@lit/task@1.0.0/",
+          "@lit/localize": "https://esm.sh/@lit/localize@0.12.0",
+          "@lit/localize/": "https://esm.sh/@lit/localize@0.12.0/",
+          "lit/decorators.js": "https://esm.sh/@lit/reactive-element@3.0.0/decorators.js",
+          "lit/decorators/": "https://esm.sh/@lit/reactive-element@3.0.0/decorators/",
+          "lit/decorators": "https://esm.sh/@lit/reactive-element@3.0.0/decorators.js"
+        }
+      }
+    </script>
+    <script type="module" src="/ui-components/index.mjs"></script>
+
+    <!-- Module Resolution Error Detection -->
+    <script>
+      // Monitor for module resolution errors
+      window.addEventListener('error', event => {
+        if (
+          event.message &&
+          event.message.includes('Failed to resolve module specifier')
+        ) {
+          console.error('🚨 MODULE RESOLUTION ERROR:', event.message);
+          console.error('📍 File:', event.filename);
+          console.error('📍 Line:', event.lineno);
+          console.error('📍 Column:', event.colno);
+
+          // Extract the module specifier from the error message
+          const match = event.message.match(
+            /Failed to resolve module specifier "([^"]+)"/
+          );
+          if (match) {
+            const moduleSpecifier = match[1];
+            console.error('🔍 Missing module:', moduleSpecifier);
+            console.error(
+              '💡 Add to import map:',
+              `"${moduleSpecifier}": "https://unpkg.com/${moduleSpecifier}@latest"`
+            );
+          }
+        }
+      });
+
+      // Monitor for unhandled promise rejections (often module loading errors)
+      window.addEventListener('unhandledrejection', event => {
+        if (
+          event.reason &&
+          event.reason.message &&
+          event.reason.message.includes('Failed to resolve module specifier')
+        ) {
+          console.error(
+            '🚨 MODULE RESOLUTION ERROR (Promise):',
+            event.reason.message
+          );
+        }
+      });
+
+      console.log('🔍 Module resolution error monitoring enabled');
+    </script>
     <style>
       * {
         margin: 0;
@@ -257,264 +343,7 @@
     </style>
   </head>
   <body>
-    <div class="container">
-      <div class="header">
-        <h1>🚀 Conflux DevKit Showcase</h1>
-        <p>Complete UI Ecosystem Demonstration</p>
-        <div style="margin-top: 20px">
-          <span class="status-indicator status-online"></span>
-          <span>API Server: <span id="api-status">Connecting...</span></span>
-        </div>
-      </div>
-
-      <div class="showcase-grid">
-        <div class="showcase-card">
-          <h2>📦 React Primitives</h2>
-          <p>
-            React hooks and context providers for seamless state management and
-            data access.
-          </p>
-          <div class="demo-area">
-            <div class="demo-area">
-              <h3>React Components</h3>
-              <p>Contract, Wallet, and Node management hooks</p>
-              <button class="btn" onclick="loadReactDemo()">Load Demo</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="showcase-card">
-          <h2>🧩 Vanilla Components</h2>
-          <p>
-            Framework-agnostic web components that work with any frontend
-            framework.
-          </p>
-          <div class="demo-area">
-            <div class="demo-area">
-              <h3>Web Components</h3>
-              <p>Custom elements for blockchain interactions</p>
-              <button class="btn" onclick="loadVanillaDemo()">Load Demo</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="showcase-card">
-          <h2>🔗 API Integration</h2>
-          <p>
-            Orchestrated API server with comprehensive endpoints for all
-            blockchain operations.
-          </p>
-          <div class="demo-area">
-            <div class="demo-area">
-              <h3>API Endpoints</h3>
-              <p>RESTful API with real-time updates</p>
-              <button class="btn" onclick="loadApiDemo()">Load Demo</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="showcase-card">
-          <h2>📊 State Management</h2>
-          <p>
-            Zustand-based state management with persistence and real-time
-            synchronization.
-          </p>
-          <div class="demo-area">
-            <div class="demo-area">
-              <h3>State Store</h3>
-              <p>Global state with automatic persistence</p>
-              <button class="btn" onclick="loadStateDemo()">Load Demo</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="features">
-        <h2>✨ Key Features</h2>
-        <div class="features-grid">
-          <div class="feature">
-            <div class="feature-icon">⚡</div>
-            <h3>Real-time Updates</h3>
-            <p>Live data synchronization across all components and services</p>
-          </div>
-          <div class="feature">
-            <div class="feature-icon">🔒</div>
-            <h3>Type Safety</h3>
-            <p>Full TypeScript support with comprehensive type definitions</p>
-          </div>
-          <div class="feature">
-            <div class="feature-icon">🎨</div>
-            <h3>Customizable UI</h3>
-            <p>Flexible theming and styling options for any design system</p>
-          </div>
-          <div class="feature">
-            <div class="feature-icon">🚀</div>
-            <h3>High Performance</h3>
-            <p>
-              Optimized for speed with efficient state management and rendering
-            </p>
-          </div>
-          <div class="feature">
-            <div class="feature-icon">🔧</div>
-            <h3>Easy Integration</h3>
-            <p>Simple setup and configuration for any project</p>
-          </div>
-          <div class="feature">
-            <div class="feature-icon">📱</div>
-            <h3>Responsive Design</h3>
-            <p>Mobile-first approach with adaptive layouts</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="integration-examples">
-        <h2>💻 Integration Examples</h2>
-
-        <h3 style="color: #4a5568; margin: 30px 0 15px 0">React Integration</h3>
-        <div class="code-example">
-          <span class="comment">// Install the packages</span>
-          npm install @conflux-devkit/ui-primitives @conflux-devkit/state
-
-          <span class="comment">// Use in your React app</span>
-          <span class="keyword">import</span> { UIProvider, useContracts,
-          useWallets } <span class="keyword">from</span>
-          <span class="string">'@conflux-devkit/ui-primitives'</span>;
-
-          <span class="keyword">function</span>
-          <span class="keyword">App</span>() {
-          <span class="keyword">return</span> ( &lt;UIProvider&gt; &lt;Dashboard
-          /&gt; &lt;/UIProvider&gt; ); }
-
-          <span class="keyword">function</span>
-          <span class="keyword">Dashboard</span>() {
-          <span class="keyword">const</span> { contracts, deployContract } =
-          <span class="keyword">useContracts</span>();
-          <span class="keyword">const</span> { wallets, createWallet } =
-          <span class="keyword">useWallets</span>();
-
-          <span class="keyword">return</span> ( &lt;div&gt; &lt;h1&gt;My Conflux
-          App&lt;/h1&gt; &lt;p&gt;Contracts: {contracts.length}&lt;/p&gt;
-          &lt;p&gt;Wallets: {wallets.length}&lt;/p&gt; &lt;/div&gt; ); }
-        </div>
-
-        <h3 style="color: #4a5568; margin: 30px 0 15px 0">
-          Vanilla Web Components
-        </h3>
-        <div class="code-example">
-          <span class="comment">// Include the web components</span>
-          &lt;script <span class="keyword">type</span>=<span class="string"
-            >"module"</span
-          >
-          <span class="keyword">src</span>=<span class="string"
-            >"@conflux-devkit/ui-components"</span
-          >&gt;&lt;/script&gt;
-
-          <span class="comment">// Use in your HTML</span>
-          &lt;conflux-contract-card
-          <span class="keyword">contract</span
-          >='{"name":"MyContract","address":"0x123..."}'
-          <span class="keyword">active</span>
-          <span class="keyword">show-actions</span>&gt;
-          &lt;/conflux-contract-card&gt; &lt;conflux-wallet-card
-          <span class="keyword">wallet</span
-          >='{"address":"0x456...","balance":"1000000000000000000"}'
-          <span class="keyword">active</span>&gt; &lt;/conflux-wallet-card&gt;
-          &lt;conflux-node-status
-          <span class="keyword">status</span
-          >='{"running":true,"health":"healthy"}'
-          <span class="keyword">show-actions</span>&gt;
-          &lt;/conflux-node-status&gt;
-        </div>
-
-        <h3 style="color: #4a5568; margin: 30px 0 15px 0">
-          API Server Integration
-        </h3>
-        <div class="code-example">
-          <span class="comment">// Start the orchestrated API server</span>
-          npm run dev:orchestrated
-
-          <span class="comment">// Use the API endpoints</span>
-          <span class="keyword">const</span> response =
-          <span class="keyword">await</span> fetch(<span class="string"
-            >'http://localhost:3001/api/contracts'</span
-          >); <span class="keyword">const</span> contracts =
-          <span class="keyword">await</span> response.json();
-
-          <span class="keyword">const</span> walletResponse =
-          <span class="keyword">await</span> fetch(<span class="string"
-            >'http://localhost:3001/api/wallets'</span
-          >); <span class="keyword">const</span> wallets =
-          <span class="keyword">await</span> walletResponse.json();
-
-          <span class="keyword">const</span> nodeResponse =
-          <span class="keyword">await</span> fetch(<span class="string"
-            >'http://localhost:3001/api/node/status'</span
-          >); <span class="keyword">const</span> nodeStatus =
-          <span class="keyword">await</span> nodeResponse.json();
-        </div>
-      </div>
-
-      <div class="footer">
-        <p>Built with ❤️ by the Conflux Development Team</p>
-        <p>
-          <a href="https://github.com/conflux-devkit" target="_blank">GitHub</a>
-          |
-          <a href="https://docs.conflux-devkit.com" target="_blank"
-            >Documentation</a
-          >
-          |
-          <a href="https://discord.gg/conflux" target="_blank">Discord</a>
-        </p>
-      </div>
-    </div>
-
-    <script type="module">
-      // Check API server status
-      async function checkApiStatus() {
-        try {
-          const response = await fetch('http://localhost:3001/api/health');
-          if (response.ok) {
-            document.getElementById('api-status').textContent = 'Online';
-            document.querySelector('.status-indicator').className =
-              'status-indicator status-online';
-          } else {
-            throw new Error('API not responding');
-          }
-        } catch (error) {
-          document.getElementById('api-status').textContent = 'Offline';
-          document.querySelector('.status-indicator').className =
-            'status-indicator status-offline';
-        }
-      }
-
-      // Check status on load and every 30 seconds
-      checkApiStatus();
-      setInterval(checkApiStatus, 30000);
-
-      // Demo functions
-      window.loadReactDemo = function () {
-        alert(
-          'React Demo: This would load a React component demonstration with hooks and context providers.'
-        );
-      };
-
-      window.loadVanillaDemo = function () {
-        alert(
-          'Vanilla Demo: This would load web components demonstrating contract cards, wallet cards, and node status.'
-        );
-      };
-
-      window.loadApiDemo = function () {
-        alert(
-          'API Demo: This would show live API calls to the orchestrated server with real-time data.'
-        );
-      };
-
-      window.loadStateDemo = function () {
-        alert(
-          'State Demo: This would demonstrate the Zustand store with persistence and real-time updates.'
-        );
-      };
-    </script>
+    <div id="root">Loading...</div>
+    <script type="module" src="/index.js"></script>
   </body>
 </html>

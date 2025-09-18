@@ -159,4 +159,65 @@ export class ContractManager {
   setCoreClient(_client: CoreClient): void {
     // Core client functionality not implemented yet
   }
+
+  /**
+   * List available contracts
+   */
+  listContracts(): Array<{ name: string; description?: string; abi: any }> {
+    return [
+      {
+        name: 'SimpleStorage',
+        description: 'A simple storage contract for testing',
+        abi: [
+          {
+            inputs: [{ internalType: 'uint256', name: 'x', type: 'uint256' }],
+            name: 'set',
+            outputs: [],
+            stateMutability: 'nonpayable',
+            type: 'function',
+          },
+          {
+            inputs: [],
+            name: 'get',
+            outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+            stateMutability: 'view',
+            type: 'function',
+          },
+        ],
+      },
+    ];
+  }
+
+  /**
+   * Get deployed contracts
+   */
+  getDeployedContracts(): Array<{ name: string; address: string }> {
+    return Array.from(this.contracts.values()).map((contract) => ({
+      name: contract.name || 'Unknown Contract',
+      address: contract.address,
+    }));
+  }
+
+  /**
+   * Deploy a contract by name (showcase demo)
+   */
+  async deployContractByName(contractName: string): Promise<{
+    address: string;
+    transactionHash: string;
+    gasUsed: number;
+  }> {
+    // Mock deployment for demo purposes
+    const mockAddress = `0x${Math.random().toString(16).substring(2, 42).padStart(40, '0')}`;
+    const mockTxHash = `0x${Math.random().toString(16).substring(2, 66).padStart(64, '0')}`;
+    const mockGasUsed = Math.floor(Math.random() * 100000) + 50000;
+
+    // Simulate deployment delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    return {
+      address: mockAddress,
+      transactionHash: mockTxHash,
+      gasUsed: mockGasUsed,
+    };
+  }
 }

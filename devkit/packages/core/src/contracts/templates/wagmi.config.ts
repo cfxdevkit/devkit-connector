@@ -3,7 +3,8 @@
 import { defineConfig } from '@wagmi/cli';
 import { react } from '@wagmi/cli/plugins';
 
-export default defineConfig({
+// Export configuration with explicit typing to avoid inference issues
+const wagmiConfig = defineConfig({
   out: 'src/generated/contracts.ts',
   contracts: [
     // EVM contracts will be added here automatically
@@ -17,3 +18,5 @@ export default defineConfig({
   ],
   plugins: [react()],
 });
+
+export default wagmiConfig;

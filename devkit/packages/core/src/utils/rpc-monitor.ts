@@ -242,7 +242,7 @@ export class RpcMonitor {
 // Global monitor instance
 export const rpcMonitor = new RpcMonitor();
 
-// Auto-start monitoring in development
-if (process.env.NODE_ENV === 'development') {
-  rpcMonitor.startPeriodicReporting(30000); // Report every 30 seconds in dev
-}
+// Auto-start monitoring in development (disabled for showcase)
+// if (process.env.NODE_ENV === 'development') {
+//   rpcMonitor.startPeriodicReporting(30000); // Report every 30 seconds in dev
+// }

@@ -10,5 +10,9 @@ export default defineConfig({
   external: ['react', 'react-dom'],
   esbuildOptions(options) {
     options.jsx = 'automatic';
+    options.platform = 'browser';
+    options.define = {
+      'process.env.NODE_ENV': '"production"',
+    };
   },
 });

@@ -1,4 +1,4 @@
-import { CoreClient, EvmClient } from '@conflux-devkit/blockchain';
+// Dynamic imports for ESM/CJS compatibility will be handled in the class methods
 import { createServer } from '@xcfx/node';
 import { BIP32Factory } from 'bip32';
 import { mnemonicToSeed, validateMnemonic } from 'bip39';
@@ -17,8 +17,8 @@ const bip32 = BIP32Factory(ecc);
 
 export class ConfluxNode {
   private server: unknown = null;
-  private coreClient: CoreClient | null = null;
-  private evmClient: EvmClient | null = null;
+  private coreClient: any = null;
+  private evmClient: any = null;
   private originalConsole: Record<string, unknown> = {};
   private isSilent: boolean = false;
   private wallets: WalletInfo[] = [];
@@ -329,10 +329,8 @@ export class ConfluxNode {
         devBlockIntervalMs: blockInterval,
         chainId,
         evmChainId,
-        genesisSecrets: this.wallets.map((w) => w.privateKey as `0x${string}`),
-        genesisEvmSecrets: this.wallets.map(
-          (w) => w.privateKey as `0x${string}`
-        ),
+        genesisSecrets: this.wallets.map(w => w.privateKey as `0x${string}`),
+        genesisEvmSecrets: this.wallets.map(w => w.privateKey as `0x${string}`),
         miningAuthor: this.miningWallet?.address,
         log: !silent,
         dataDir,
@@ -357,8 +355,21 @@ export class ConfluxNode {
         networkType: 'core' as const,
       };
 
-      this.coreClient = new CoreClient();
-      this.evmClient = new EvmClient(networkConfig);
+      // Dynamic import for ESM/CJS compatibility
+      try {
+        const blockchainModule = await import('@conflux-devkit/blockchain');
+        const CoreClientClass = blockchainModule.CoreClient || blockchainModule.default?.CoreClient;
+        const EvmClientClass = blockchainModule.EvmClient || blockchainModule.default?.EvmClient;
+
+        if (CoreClientClass && EvmClientClass) {
+          this.coreClient = new CoreClientClass();
+          this.evmClient = new EvmClientClass(networkConfig);
+        } else {
+          console.warn('CoreClient or EvmClient not found in blockchain module');
+        }
+      } catch (error) {
+        console.warn('Failed to load blockchain clients:', error);
+      }
 
       // Fund wallets if requested
       if (fundWallets) {
@@ -419,11 +430,11 @@ export class ConfluxNode {
     };
   }
 
-  getCoreClient(): CoreClient | null {
+  getCoreClient(): any {
     return this.coreClient;
   }
 
-  getEvmClient(): EvmClient | null {
+  getEvmClient(): any {
     return this.evmClient;
   }
 
@@ -437,7 +448,7 @@ export class ConfluxNode {
 
   getWalletByAddress(address: string): WalletInfo | undefined {
     return this.wallets.find(
-      (w) => w.address.toLowerCase() === address.toLowerCase()
+      w => w.address.toLowerCase() === address.toLowerCase()
     );
   }
 

@@ -7,8 +7,12 @@ export default defineConfig({
   splitting: false,
   sourcemap: true,
   clean: true,
-  external: ['react', 'react-dom'],
+  external: ['@conflux-devkit/core'],
   esbuildOptions(options) {
     options.jsx = 'automatic';
+    options.platform = 'browser';
+    options.define = {
+      'process.env.NODE_ENV': '"production"',
+    };
   },
 });

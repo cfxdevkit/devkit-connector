@@ -8,8 +8,8 @@
     "rootDir": "./src",
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
-    "composite": true,
-    "incremental": true
+    "composite": false,
+    "incremental": false
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
