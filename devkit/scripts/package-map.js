@@ -91,12 +91,12 @@ function createTable(data, headers, options = {}) {
         // Remove ANSI color codes for truncation calculation
         const cleanStr = cellStr.replace(/\x1b\[[0-9;]*m/g, '');
         let truncated = cellStr;
-        
+
         if (cleanStr.length > colWidths[index]) {
           // Find where to truncate while preserving color codes
           let visibleLength = 0;
           let truncateIndex = 0;
-          
+
           for (let i = 0; i < cellStr.length; i++) {
             if (cellStr[i] === '\x1b') {
               // Skip ANSI escape sequence
@@ -111,13 +111,15 @@ function createTable(data, headers, options = {}) {
               break;
             }
           }
-          
+
           if (truncateIndex > 0) {
             truncated = cellStr.substring(0, truncateIndex) + '...';
           }
         }
-        
-        const padded = truncated.padEnd(colWidths[index] + (cellStr.length - cleanStr.length));
+
+        const padded = truncated.padEnd(
+          colWidths[index] + (cellStr.length - cleanStr.length)
+        );
         return ' '.repeat(padding) + padded + ' '.repeat(padding);
       })
       .join('│');
@@ -445,9 +447,9 @@ function generateAsciiDiagram(packages) {
   diagram.push(
     colorize('│', 'cyan') +
       '                          │           └──► ' +
-      colorize('showcase', 'magenta') +
-      ' ────┼──► ' +
       colorize('showcase-webapp', 'magenta') +
+      ' ────┼──► ' +
+      colorize('ui-components', 'magenta') +
       '    ' +
       colorize('│', 'cyan')
   );
@@ -723,7 +725,7 @@ function displayPackageMap(options = {}) {
       ['Package', 'Version', 'License', 'Internal', 'External', 'Dev', 'Types'],
       { maxWidth: 150 }
     );
-    console.log(...detailsTable);
+    console.log(detailsTable.join('\n'));
     console.log('');
 
     // Summary statistics
@@ -740,39 +742,16 @@ function displayPackageMap(options = {}) {
     }, 0);
 
     console.log(colorize('📊 SUMMARY STATISTICS', 'cyan'));
-    console.log(
-      colorize(
-        '┌─────────────────────────────────────────────────────────────────────────────────┐',
-        'cyan'
-      )
-    );
-    console.log(
-      colorize('│', 'cyan') +
-        ` Total Packages: ${colorize(packages.length.toString(), 'green')}`.padEnd(
-          65
-        ) +
-        colorize('│', 'cyan')
-    );
-    console.log(
-      colorize('│', 'cyan') +
-        ` Total Type Exports: ${colorize(totalTypes.toString(), 'blue')}`.padEnd(
-          65
-        ) +
-        colorize('│', 'cyan')
-    );
-    console.log(
-      colorize('│', 'cyan') +
-        ` Total Dependencies: ${colorize(totalDeps.toString(), 'yellow')}`.padEnd(
-          65
-        ) +
-        colorize('│', 'cyan')
-    );
-    console.log(
-      colorize(
-        '└─────────────────────────────────────────────────────────────────────────────────┘',
-        'cyan'
-      )
-    );
+    
+    // Create summary table
+    const summaryData = [
+      [`Total Packages: ${colorize(packages.length.toString(), 'green')}`],
+      [`Total Type Exports: ${colorize(totalTypes.toString(), 'blue')}`],
+      [`Total Dependencies: ${colorize(totalDeps.toString(), 'yellow')}`]
+    ];
+    
+    const summaryTable = createTable(summaryData, ['Metric'], { maxWidth: 60 });
+    console.log(summaryTable.join('\n'));
   }
 }
 
