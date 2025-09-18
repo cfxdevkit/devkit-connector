@@ -86,8 +86,8 @@ export function buildContractCallResponse(
   return createBlockchainApiResponse(
     {
       result: JSON.stringify(result.result),
-      gasUsed: result.gasUsed.toString(),
-      blockNumber: result.blockNumber.toString(),
+      gasUsed: result.gasUsed?.toString() || '0',
+      blockNumber: result.blockNumber?.toString() || '0',
       method,
       contractAddress,
       success: true,

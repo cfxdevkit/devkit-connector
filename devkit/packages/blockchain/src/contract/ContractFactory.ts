@@ -292,14 +292,25 @@ function toCoreBrowserContractOrchestrator(
       networkType: contract.chainType,
     },
     methods: {
-      read: contract.methods.read.map((m) => m.name),
-      write: contract.methods.write.map((m) => m.name),
-      events: contract.methods.events.map((e) => e.name),
+      read: contract.methods.read
+        .map((m) => (typeof m === 'string' ? m : (m as any)?.name || ''))
+        .filter(Boolean),
+      write: contract.methods.write
+        .map((m) => (typeof m === 'string' ? m : (m as any)?.name || ''))
+        .filter(Boolean),
+      events: contract.methods.events
+        .map((e) => (typeof e === 'string' ? e : (e as any)?.name || ''))
+        .filter(Boolean),
     },
     capabilities: {
-      read: contract.capabilities.canRead,
-      write: contract.capabilities.canWrite,
-      events: contract.capabilities.hasEvents,
+      read:
+        contract.capabilities.canRead || contract.capabilities.read || false,
+      write:
+        contract.capabilities.canWrite || contract.capabilities.write || false,
+      events:
+        contract.capabilities.hasEvents ||
+        contract.capabilities.events ||
+        false,
     },
   };
 }

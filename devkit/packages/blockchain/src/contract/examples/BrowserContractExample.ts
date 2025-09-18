@@ -344,6 +344,7 @@ export function contractValidationExample() {
   const contracts = browserContractManager.listContracts();
 
   for (const contract of contracts) {
+    if (!contract.id) continue;
     const wrapper = browserContractManager.getContract(contract.id);
     if (!wrapper) continue;
 

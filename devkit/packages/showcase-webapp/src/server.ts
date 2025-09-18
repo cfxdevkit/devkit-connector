@@ -67,12 +67,14 @@ app.get('/', (_req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Start server
-app.listen(port, () => {
-  console.log(`🌐 Showcase WebApp running on port ${port}`);
-  console.log(`📱 Open: http://localhost:${port}`);
-  console.log(`🔗 API Proxy: http://localhost:${port}/api`);
-  console.log(`💚 Health: http://localhost:${port}/health`);
-});
+// Start server only if not in test mode
+if (process.env.NODE_ENV !== 'test' && require.main === module) {
+  app.listen(port, () => {
+    console.log(`🌐 Showcase WebApp running on port ${port}`);
+    console.log(`📱 Open: http://localhost:${port}`);
+    console.log(`🔗 API Proxy: http://localhost:${port}/api`);
+    console.log(`💚 Health: http://localhost:${port}/health`);
+  });
+}
 
 export default app;

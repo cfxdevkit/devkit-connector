@@ -112,7 +112,17 @@ export class BrowserContractWrapper {
       },
 
       network: {
-        ...this.orchestrator.network,
+        name: this.orchestrator.network.name,
+        rpcUrl: this.orchestrator.network.rpcUrl,
+        chainId: this.orchestrator.chainId?.toString() || '0',
+        evmChainId: this.orchestrator.evmChainId?.toString(),
+        isTestnet: this.orchestrator.network.isTestnet,
+        networkType: this.orchestrator.chainType,
+        currency: {
+          name: this.orchestrator.network.currency.name,
+          symbol: this.orchestrator.network.currency.symbol,
+          decimals: this.orchestrator.network.currency.decimals.toString(),
+        },
         blockExplorer: this.orchestrator.network.blockExplorer,
       },
     };
