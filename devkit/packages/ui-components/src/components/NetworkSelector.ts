@@ -189,9 +189,11 @@ export class NetworkSelector extends LitElement {
         @click=${this.toggleDropdown}
         ?disabled=${this.disabled || this.isLoading}
       >
-        ${this.isLoading
-          ? html` <div class="loading-spinner"></div> `
-          : html` <div class="network-icon">${this.getNetworkIcon()}</div> `}
+        ${
+          this.isLoading
+            ? html` <div class="loading-spinner"></div> `
+            : html` <div class="network-icon">${this.getNetworkIcon()}</div> `
+        }
 
         <div class="network-info">
           <h4 class="network-name">${this.getCurrentNetworkName()}</h4>
@@ -201,25 +203,29 @@ export class NetworkSelector extends LitElement {
         <div class="dropdown-arrow ${this.isOpen ? 'open' : ''}"></div>
       </div>
 
-      ${this.isOpen
-        ? html`
+      ${
+        this.isOpen
+          ? html`
             <div class="dropdown">
-              ${this.available.length > 0
-                ? this.renderNetworkList()
-                : this.renderEmptyState()}
+              ${
+                this.available.length > 0
+                  ? this.renderNetworkList()
+                  : this.renderEmptyState()
+              }
             </div>
           `
-        : ''}
+          : ''
+      }
     `;
   }
 
   private renderNetworkList() {
     return this.available.map(
-      network => html`
+      (network) => html`
         <div
-          class="dropdown-item ${this.isCurrentNetwork(network)
-            ? 'selected'
-            : ''}"
+          class="dropdown-item ${
+            this.isCurrentNetwork(network) ? 'selected' : ''
+          }"
           @click=${() => this.selectNetwork(network)}
         >
           <div class="item-icon">${this.getNetworkIcon(network)}</div>

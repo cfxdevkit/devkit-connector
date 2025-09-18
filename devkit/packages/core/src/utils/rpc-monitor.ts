@@ -61,7 +61,7 @@ export class RpcMonitor {
     };
 
     // Monitor rate limiting
-    rpcCache.onWarning(message => {
+    rpcCache.onWarning((message) => {
       this.metrics.warnings++;
       if (this.config.enableConsoleWarnings) {
         console.warn(`🚨 RPC Warning: ${message}`);
@@ -116,7 +116,7 @@ export class RpcMonitor {
    */
   getMethodStats(method: string): CallStats | null {
     const stats = rpcCache.getStats();
-    return stats.methodStats.find(s => s.method === method) || null;
+    return stats.methodStats.find((s) => s.method === method) || null;
   }
 
   /**
@@ -156,7 +156,7 @@ export class RpcMonitor {
       '',
       '📈 Method Statistics:',
       ...rateLimiting.methodStats.map(
-        stat =>
+        (stat) =>
           `  ${stat.method}: ${stat.calls} calls, last: ${new Date(stat.lastCall).toLocaleTimeString()}`
       ),
       '',
@@ -215,12 +215,12 @@ export class RpcMonitor {
     }
 
     // Check for methods near rate limit
-    const nearLimitMethods = metrics.rateLimiting.methodStats.filter(stat =>
+    const nearLimitMethods = metrics.rateLimiting.methodStats.filter((stat) =>
       this.isMethodNearLimit(stat.method)
     );
     if (nearLimitMethods.length > 0) {
       recommendations.push(
-        `⚠️ Methods approaching rate limit: ${nearLimitMethods.map(s => s.method).join(', ')}`
+        `⚠️ Methods approaching rate limit: ${nearLimitMethods.map((s) => s.method).join(', ')}`
       );
     }
 

@@ -88,7 +88,7 @@ export class ContractOrchestrationService {
   ): Promise<BrowserContractOrchestrator[]> {
     const allContracts = await this.getAllContracts();
     const pattern = new RegExp(namePattern, 'i');
-    return allContracts.filter(contract => pattern.test(contract.name || ''));
+    return allContracts.filter((contract) => pattern.test(contract.name || ''));
   }
 
   /**
@@ -98,7 +98,7 @@ export class ContractOrchestrationService {
     networkId: string
   ): Promise<BrowserContractOrchestrator[]> {
     const allContracts = await this.getAllContracts();
-    return allContracts.filter(contract => contract.chainId === networkId);
+    return allContracts.filter((contract) => contract.chainId === networkId);
   }
 
   /**
@@ -324,10 +324,10 @@ export class ContractOrchestrationService {
 
     const calls = contractData.calls;
     const readCalls = calls.filter(
-      call => call.method.includes('view') || call.method.includes('pure')
+      (call) => call.method.includes('view') || call.method.includes('pure')
     );
     const writeCalls = calls.filter(
-      call => !call.method.includes('view') && !call.method.includes('pure')
+      (call) => !call.method.includes('view') && !call.method.includes('pure')
     );
 
     return {

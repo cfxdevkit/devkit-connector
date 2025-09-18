@@ -46,18 +46,41 @@ function getGitCommitInfo() {
 
 function getPackageChanges() {
   try {
-    const changedFiles = execSync('git diff --name-only HEAD~1 HEAD', { encoding: 'utf8' })
-      .trim()
-      .split('\n')
-      .filter(file => file.startsWith('packages/'));
+    // First try to get changes from last commit
+    let changedFiles = [];
+    try {
+      changedFiles = execSync('git diff --name-only HEAD~1 HEAD', { encoding: 'utf8' })
+        .trim()
+        .split('\n')
+        .filter(file => file.includes('packages/'));
+    } catch (error) {
+      // If no previous commit, try to get uncommitted changes
+      changedFiles = execSync('git diff --name-only', { encoding: 'utf8' })
+        .trim()
+        .split('\n')
+        .filter(file => file.includes('packages/'));
+    }
+    
+    // If still no changes, try uncommitted changes
+    if (changedFiles.length === 0) {
+      changedFiles = execSync('git diff --name-only', { encoding: 'utf8' })
+        .trim()
+        .split('\n')
+        .filter(file => file.includes('packages/'));
+    }
     
     const packageChanges = {};
     changedFiles.forEach(file => {
-      const packageName = file.split('/')[1];
-      if (!packageChanges[packageName]) {
-        packageChanges[packageName] = [];
+      // Extract package name from path like "devkit/packages/core/src/..."
+      const pathParts = file.split('/');
+      const packagesIndex = pathParts.indexOf('packages');
+      if (packagesIndex !== -1 && packagesIndex + 1 < pathParts.length) {
+        const packageName = pathParts[packagesIndex + 1];
+        if (!packageChanges[packageName]) {
+          packageChanges[packageName] = [];
+        }
+        packageChanges[packageName].push(file);
       }
-      packageChanges[packageName].push(file);
     });
     
     return packageChanges;
@@ -120,12 +143,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   }
   
   const newEntry = generateChangelogEntry();
-  const updatedContent = existingContent.replace(
-    /^# Changelog\n\n.*?\n---\n\n/,
-    `# Changelog\n\nAll notable changes to this project will be documented in this file.\n\nThe format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),\nand this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\n\n---\n\n${newEntry}`
-  );
   
-  writeFileSync(changelogPath, updatedContent);
+  // If changelog is empty or only has header, add the new entry
+  if (existingContent.trim() === '' || existingContent.includes('---\n\n') && !existingContent.includes('## [')) {
+    const updatedContent = existingContent.replace(
+      /---\n\n$/,
+      `---\n\n${newEntry}`
+    );
+    writeFileSync(changelogPath, updatedContent);
+  } else {
+    // Insert new entry after the header
+    const updatedContent = existingContent.replace(
+      /---\n\n/,
+      `---\n\n${newEntry}`
+    );
+    writeFileSync(changelogPath, updatedContent);
+  }
+  
   console.log(`✅ Changelog updated: ${changelogPath}`);
 }
 

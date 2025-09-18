@@ -127,7 +127,7 @@ export const useAppStore = create<AppStore>()(
         // ====================================================================
 
         connect: async (config: Partial<NodeConfig>) => {
-          set(state => {
+          set((state) => {
             state.isConnecting = true;
             state.connectionError = null;
           });
@@ -143,7 +143,7 @@ export const useAppStore = create<AppStore>()(
               // Update network state
               const network = networkManager.getNetwork(networkId);
               if (network) {
-                set(state => {
+                set((state) => {
                   state.network.current = {
                     name: network.name,
                     chainId: network.chainId.toString(),
@@ -161,7 +161,7 @@ export const useAppStore = create<AppStore>()(
               }
             }
 
-            set(state => {
+            set((state) => {
               state.isConnected = true;
               state.isConnecting = false;
             });
@@ -170,7 +170,7 @@ export const useAppStore = create<AppStore>()(
           } catch (error) {
             const errorMessage =
               error instanceof Error ? error.message : 'Connection failed';
-            set(state => {
+            set((state) => {
               state.isConnected = false;
               state.isConnecting = false;
               state.connectionError = errorMessage;
@@ -180,7 +180,7 @@ export const useAppStore = create<AppStore>()(
         },
 
         disconnect: async () => {
-          set(state => {
+          set((state) => {
             state.isConnected = false;
             state.isConnecting = false;
             state.connectionError = null;
@@ -195,7 +195,7 @@ export const useAppStore = create<AppStore>()(
         },
 
         setConnectionError: (error: string | null) => {
-          set(state => {
+          set((state) => {
             state.connectionError = error;
           });
         },
@@ -205,7 +205,7 @@ export const useAppStore = create<AppStore>()(
         // ====================================================================
 
         startNode: async (config?: Partial<NodeConfig>) => {
-          set(state => {
+          set((state) => {
             state.node.isStarting = true;
             state.node.error = null;
           });
@@ -228,7 +228,7 @@ export const useAppStore = create<AppStore>()(
               lastHealthCheck: new Date().toISOString(),
             };
 
-            set(state => {
+            set((state) => {
               state.node.status = nodeStatus;
               state.node.isRunning = true;
               state.node.isStarting = false;
@@ -239,7 +239,7 @@ export const useAppStore = create<AppStore>()(
           } catch (error) {
             const errorMessage =
               error instanceof Error ? error.message : 'Failed to start node';
-            set(state => {
+            set((state) => {
               state.node.error = errorMessage;
               state.node.isStarting = false;
             });
@@ -248,14 +248,14 @@ export const useAppStore = create<AppStore>()(
         },
 
         stopNode: async () => {
-          set(state => {
+          set((state) => {
             state.node.isStopping = true;
           });
 
           try {
             // Real node stop logic - for now, simulate successful stop
             // In a real implementation, this would stop an actual Conflux node
-            set(state => {
+            set((state) => {
               state.node.isRunning = false;
               state.node.isStopping = false;
               state.node.status = null;
@@ -265,7 +265,7 @@ export const useAppStore = create<AppStore>()(
           } catch (error) {
             const errorMessage =
               error instanceof Error ? error.message : 'Failed to stop node';
-            set(state => {
+            set((state) => {
               state.node.error = errorMessage;
               state.node.isStopping = false;
             });
@@ -280,7 +280,7 @@ export const useAppStore = create<AppStore>()(
         },
 
         updateNodeStatus: (status: BrowserNodeStatus) => {
-          set(state => {
+          set((state) => {
             state.node.status = status;
             state.node.lastHealthCheck = new Date();
             // state.node.uptime = status.uptime || 0; // uptime not available in BrowserNodeStatus
@@ -288,7 +288,7 @@ export const useAppStore = create<AppStore>()(
         },
 
         setNodeError: (error: string | null) => {
-          set(state => {
+          set((state) => {
             state.node.error = error;
           });
         },
@@ -298,7 +298,7 @@ export const useAppStore = create<AppStore>()(
         // ====================================================================
 
         createWallet: async (mnemonic?: string): Promise<BrowserWalletInfo> => {
-          set(state => {
+          set((state) => {
             state.wallets.isCreating = true;
             state.wallets.error = null;
           });
@@ -313,7 +313,7 @@ export const useAppStore = create<AppStore>()(
             // Create real wallet using blockchain service
             const wallet = await realWalletService.createWallet(mnemonic);
 
-            set(state => {
+            set((state) => {
               state.wallets.wallets.push(wallet);
               state.wallets.isCreating = false;
             });
@@ -325,7 +325,7 @@ export const useAppStore = create<AppStore>()(
               error instanceof Error
                 ? error.message
                 : 'Failed to create wallet';
-            set(state => {
+            set((state) => {
               state.wallets.error = errorMessage;
               state.wallets.isCreating = false;
             });
@@ -337,7 +337,7 @@ export const useAppStore = create<AppStore>()(
         importWallet: async (
           privateKey: string
         ): Promise<BrowserWalletInfo> => {
-          set(state => {
+          set((state) => {
             state.wallets.isImporting = true;
             state.wallets.error = null;
           });
@@ -352,7 +352,7 @@ export const useAppStore = create<AppStore>()(
             // Import real wallet using blockchain service
             const wallet = await realWalletService.importWallet(privateKey);
 
-            set(state => {
+            set((state) => {
               state.wallets.wallets.push(wallet);
               state.wallets.isImporting = false;
             });
@@ -364,7 +364,7 @@ export const useAppStore = create<AppStore>()(
               error instanceof Error
                 ? error.message
                 : 'Failed to import wallet';
-            set(state => {
+            set((state) => {
               state.wallets.error = errorMessage;
               state.wallets.isImporting = false;
             });
@@ -374,9 +374,11 @@ export const useAppStore = create<AppStore>()(
         },
 
         selectWallet: (address: string) => {
-          const wallet = get().wallets.wallets.find(w => w.address === address);
+          const wallet = get().wallets.wallets.find(
+            (w) => w.address === address
+          );
           if (wallet) {
-            set(state => {
+            set((state) => {
               state.wallets.activeWallet = wallet;
             });
             stateEventEmitter.emit('state:wallet:selected', wallet);
@@ -384,7 +386,7 @@ export const useAppStore = create<AppStore>()(
         },
 
         refreshWalletBalance: async (address: string) => {
-          set(state => {
+          set((state) => {
             state.wallets.isRefreshing = true;
           });
 
@@ -400,13 +402,13 @@ export const useAppStore = create<AppStore>()(
             const formattedBalance =
               await realWalletService.getFormattedBalance(address);
 
-            set(state => {
+            set((state) => {
               state.wallets.balance = balance;
               state.wallets.isRefreshing = false;
 
               // Update the specific wallet's balance
               const wallet = state.wallets.wallets.find(
-                w => w.address === address
+                (w) => w.address === address
               );
               if (wallet) {
                 wallet.balance = balance;
@@ -418,7 +420,7 @@ export const useAppStore = create<AppStore>()(
               error instanceof Error
                 ? error.message
                 : 'Failed to refresh balance';
-            set(state => {
+            set((state) => {
               state.wallets.error = errorMessage;
               state.wallets.isRefreshing = false;
             });
@@ -427,7 +429,7 @@ export const useAppStore = create<AppStore>()(
         },
 
         setWalletError: (error: string | null) => {
-          set(state => {
+          set((state) => {
             state.wallets.error = error;
           });
         },
@@ -440,7 +442,7 @@ export const useAppStore = create<AppStore>()(
           contractName: string,
           args: unknown[] = []
         ): Promise<BrowserContractOrchestrator> => {
-          set(state => {
+          set((state) => {
             state.contracts.isDeploying = true;
             state.contracts.deploymentError = null;
           });
@@ -490,7 +492,7 @@ export const useAppStore = create<AppStore>()(
               activeWallet.privateKey
             );
 
-            set(state => {
+            set((state) => {
               state.contracts.deployed.push(contract);
               state.contracts.isDeploying = false;
             });
@@ -502,7 +504,7 @@ export const useAppStore = create<AppStore>()(
               error instanceof Error
                 ? error.message
                 : 'Failed to deploy contract';
-            set(state => {
+            set((state) => {
               state.contracts.deploymentError = errorMessage;
               state.contracts.isDeploying = false;
             });
@@ -513,10 +515,10 @@ export const useAppStore = create<AppStore>()(
 
         selectContract: (address: string) => {
           const contract = get().contracts.deployed.find(
-            c => c.address === address
+            (c) => c.address === address
           );
           if (contract) {
-            set(state => {
+            set((state) => {
               state.contracts.activeContract = contract;
             });
           }
@@ -539,7 +541,7 @@ export const useAppStore = create<AppStore>()(
             timestamp: new Date(),
           };
 
-          set(state => {
+          set((state) => {
             state.contracts.contractCalls.push(callState);
           });
 
@@ -565,9 +567,9 @@ export const useAppStore = create<AppStore>()(
               activeWallet.privateKey
             );
 
-            set(state => {
+            set((state) => {
               const call = state.contracts.contractCalls.find(
-                c => c.id === callId
+                (c) => c.id === callId
               );
               if (call) {
                 call.status = 'success';
@@ -582,9 +584,9 @@ export const useAppStore = create<AppStore>()(
           } catch (error) {
             const errorMessage =
               error instanceof Error ? error.message : 'Contract call failed';
-            set(state => {
+            set((state) => {
               const call = state.contracts.contractCalls.find(
-                c => c.id === callId
+                (c) => c.id === callId
               );
               if (call) {
                 call.status = 'error';
@@ -614,7 +616,7 @@ export const useAppStore = create<AppStore>()(
         },
 
         setContractError: (error: string | null) => {
-          set(state => {
+          set((state) => {
             state.contracts.deploymentError = error;
           });
         },
@@ -624,7 +626,7 @@ export const useAppStore = create<AppStore>()(
         // ====================================================================
 
         switchNetwork: async (networkId: string) => {
-          set(state => {
+          set((state) => {
             state.network.isSwitching = true;
             state.network.switchError = null;
           });
@@ -654,7 +656,7 @@ export const useAppStore = create<AppStore>()(
               networkType: 'evm',
             };
 
-            set(state => {
+            set((state) => {
               state.network.current = browserNetwork;
               state.network.isSwitching = false;
             });
@@ -665,7 +667,7 @@ export const useAppStore = create<AppStore>()(
               error instanceof Error
                 ? error.message
                 : 'Failed to switch network';
-            set(state => {
+            set((state) => {
               state.network.switchError = errorMessage;
               state.network.isSwitching = false;
             });
@@ -674,7 +676,7 @@ export const useAppStore = create<AppStore>()(
         },
 
         setNetworkError: (error: string | null) => {
-          set(state => {
+          set((state) => {
             state.network.switchError = error;
           });
         },
@@ -684,19 +686,19 @@ export const useAppStore = create<AppStore>()(
         // ====================================================================
 
         toggleSidebar: () => {
-          set(state => {
+          set((state) => {
             state.ui.sidebarOpen = !state.ui.sidebarOpen;
           });
         },
 
         setActiveTab: (tab: string) => {
-          set(state => {
+          set((state) => {
             state.ui.activeTab = tab;
           });
         },
 
         setTheme: (theme: 'light' | 'dark' | 'system') => {
-          set(state => {
+          set((state) => {
             state.ui.theme = theme;
           });
         },
@@ -712,7 +714,7 @@ export const useAppStore = create<AppStore>()(
             persistent: notification.persistent ?? false,
           };
 
-          set(state => {
+          set((state) => {
             state.ui.notifications.push(fullNotification);
 
             // Remove old notifications if we exceed the limit
@@ -732,9 +734,9 @@ export const useAppStore = create<AppStore>()(
         },
 
         removeNotification: (id: string) => {
-          set(state => {
+          set((state) => {
             state.ui.notifications = state.ui.notifications.filter(
-              n => n.id !== id
+              (n) => n.id !== id
             );
           });
         },
@@ -752,7 +754,7 @@ export const useAppStore = create<AppStore>()(
             size: 'medium',
           };
 
-          set(state => {
+          set((state) => {
             if (!Array.isArray(state.ui.modals)) {
               state.ui.modals = [];
             }
@@ -763,15 +765,15 @@ export const useAppStore = create<AppStore>()(
         },
 
         closeModal: (id: string) => {
-          set(state => {
+          set((state) => {
             if (Array.isArray(state.ui.modals)) {
-              state.ui.modals = state.ui.modals.filter(m => m.id !== id);
+              state.ui.modals = state.ui.modals.filter((m) => m.id !== id);
             }
           });
         },
 
         setLoading: (key: string, loading: boolean) => {
-          set(state => {
+          set((state) => {
             if (!state.ui.loading) {
               state.ui.loading = {};
             }
@@ -813,9 +815,9 @@ export const useAppStore = create<AppStore>()(
         // ====================================================================
 
         removeWallet: (address: string) => {
-          set(state => {
+          set((state) => {
             state.wallets.wallets = state.wallets.wallets.filter(
-              wallet => wallet.address !== address
+              (wallet) => wallet.address !== address
             );
             if (state.wallets.activeWallet?.address === address) {
               state.wallets.activeWallet = null;
@@ -824,15 +826,15 @@ export const useAppStore = create<AppStore>()(
         },
 
         addContract: (contract: BrowserContractOrchestrator) => {
-          set(state => {
+          set((state) => {
             state.contracts.deployed.push(contract);
           });
         },
 
         removeContract: (address: string) => {
-          set(state => {
+          set((state) => {
             state.contracts.deployed = state.contracts.deployed.filter(
-              contract => contract.address !== address
+              (contract) => contract.address !== address
             );
             if (state.contracts.activeContract?.address === address) {
               state.contracts.activeContract = null;
@@ -841,20 +843,20 @@ export const useAppStore = create<AppStore>()(
         },
 
         setCurrentNetwork: (network: BrowserNetworkConfig) => {
-          set(state => {
+          set((state) => {
             state.network.current = network;
           });
         },
 
         setError: (error: string) => {
-          set(state => {
+          set((state) => {
             state.error = error;
             state.ui.error = error;
           });
         },
 
         clearError: () => {
-          set(state => {
+          set((state) => {
             state.error = null;
             state.ui.error = null;
           });
@@ -862,13 +864,13 @@ export const useAppStore = create<AppStore>()(
       })),
       {
         name: 'conflux-devkit-state',
-        partialize: state => ({
+        partialize: (state) => ({
           ui: {
             sidebarOpen: state.ui.sidebarOpen,
             activeTab: state.ui.activeTab,
           },
           wallets: {
-            wallets: state.wallets.wallets.map(wallet => ({
+            wallets: state.wallets.wallets.map((wallet) => ({
               ...wallet,
               balance: wallet.balance?.toString(),
             })),
@@ -880,7 +882,7 @@ export const useAppStore = create<AppStore>()(
               : null,
           },
         }),
-        serialize: state => {
+        serialize: (state) => {
           return JSON.stringify(state, (_key, value) => {
             if (typeof value === 'bigint') {
               return value.toString();
@@ -888,7 +890,7 @@ export const useAppStore = create<AppStore>()(
             return value;
           });
         },
-        deserialize: str => {
+        deserialize: (str) => {
           return JSON.parse(str, (key, value) => {
             if (key === 'balance' && typeof value === 'string') {
               return BigInt(value);

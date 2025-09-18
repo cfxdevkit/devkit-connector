@@ -271,7 +271,7 @@ export class WalletOrchestrationService {
       { range: '100+ CFX', count: 0 },
     ];
 
-    balances.forEach(balance => {
+    balances.forEach((balance) => {
       const balanceNum = parseFloat(balance.balanceFormatted);
       if (balanceNum < 1) balanceDistribution[0].count++;
       else if (balanceNum < 10) balanceDistribution[1].count++;
