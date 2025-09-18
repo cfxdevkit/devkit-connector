@@ -531,44 +531,6 @@ app.get('/api/contracts/list', async (_req, res) => {
   }
 });
 
-app.post('/api/contracts/deploy', async (req, res) => {
-  try {
-    console.log('📦 Deploying contract...');
-    if (!devKitServices.contractManager) {
-      return res.status(503).json({
-        success: false,
-        error: 'Contract service not available',
-      });
-    }
-
-    const { name, constructorArgs = [] } = req.body;
-
-    // Deploy contract using the contract manager
-    const contract = await devKitServices.contractManager.deployContract(
-      name,
-      constructorArgs
-    );
-
-    console.log('✅ Contract deployed successfully:', contract.address);
-    res.json({
-      success: true,
-      contract: {
-        address: contract.address,
-        name: contract.name || name,
-        abi: contract.abi,
-        deployedAt: new Date().toISOString(),
-      },
-    });
-  } catch (error) {
-    console.error('Error deploying contract:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to deploy contract',
-      message: error instanceof Error ? error.message : 'Unknown error',
-    });
-  }
-});
-
 app.post('/api/node/start', async (_req, res) => {
   try {
     if (!devKitServices.confluxNode) {
@@ -677,7 +639,7 @@ app.get('/api/contracts/list', async (_req, res) => {
 });
 
 app.post('/api/contracts/deploy', async (req, res) => {
-  const { contracts } = req.body;
+  const { contracts, contractType = 'simple', constructorArgs = [] } = req.body;
 
   if (!contracts || !Array.isArray(contracts) || contracts.length === 0) {
     return res.status(400).json({
@@ -694,32 +656,73 @@ app.post('/api/contracts/deploy', async (req, res) => {
       });
     }
 
-    // Deploy real contracts
+    console.log('🚀 Deploying contracts with full DevKit potential...', {
+      contracts,
+      contractType,
+      constructorArgs,
+    });
+
+    // Deploy real contracts with enhanced capabilities
     const deployedContracts = [];
 
     for (const contractName of contracts) {
       try {
-        const deploymentResult =
-          await devKitServices.contractManager.deployContract(contractName);
-        deployedContracts.push({
+        let deploymentResult;
+
+        // Use the showcase demo method for contract deployment
+        // This demonstrates the full potential of the DevKit
+        const contractDisplayName = `${contractName}_${contractType}`;
+        deploymentResult =
+          await devKitServices.contractManager.deployContractByName(
+            contractDisplayName
+          );
+
+        console.log(
+          '🔍 Deployment result:',
+          JSON.stringify(deploymentResult, null, 2)
+        );
+
+        // Get additional contract information
+        const contractInfo = {
           name: contractName,
-          address: deploymentResult.address,
-          transactionHash: deploymentResult.transactionHash,
-          gasUsed: deploymentResult.gasUsed,
-        });
+          address: deploymentResult.address || 'N/A',
+          transactionHash: deploymentResult.transactionHash || 'N/A',
+          gasUsed: deploymentResult.gasUsed || 'N/A',
+          type: contractType,
+          deployedAt: new Date().toISOString(),
+          abi: deploymentResult.abi || 'N/A',
+          bytecode: deploymentResult.bytecode
+            ? '0x' + deploymentResult.bytecode.substring(0, 20) + '...'
+            : 'N/A',
+          network: 'Conflux Local',
+          capabilities: getContractCapabilities(contractType),
+        };
+
+        deployedContracts.push(contractInfo);
+        console.log(
+          `✅ Contract ${contractName} deployed:`,
+          contractInfo.address
+        );
       } catch (error) {
-        console.error(`Error deploying ${contractName}:`, error);
+        console.error(`❌ Error deploying ${contractName}:`, error);
         deployedContracts.push({
           name: contractName,
           error: error instanceof Error ? error.message : 'Deployment failed',
+          type: contractType,
         });
       }
     }
 
     res.json({
       success: true,
-      message: `Successfully deployed ${deployedContracts.length} contract(s)`,
+      message: `Successfully deployed ${deployedContracts.filter(c => !('error' in c)).length} contract(s)`,
       contracts: deployedContracts,
+      summary: {
+        total: deployedContracts.length,
+        successful: deployedContracts.filter(c => !('error' in c)).length,
+        failed: deployedContracts.filter(c => 'error' in c).length,
+        types: [...new Set(deployedContracts.map(c => c.type))],
+      },
     });
   } catch (error) {
     console.error('Error deploying contracts:', error);
@@ -730,6 +733,239 @@ app.post('/api/contracts/deploy', async (req, res) => {
     });
   }
 });
+
+// Contract interaction endpoints to show full potential
+app.post('/api/contracts/call', async (req, res) => {
+  try {
+    const { contractAddress, methodName, args = [], abi } = req.body;
+
+    if (!devKitServices.contractManager) {
+      return res.status(503).json({
+        success: false,
+        error: 'Contract service not available',
+      });
+    }
+
+    console.log('📞 Calling contract method:', {
+      contractAddress,
+      methodName,
+      args,
+    });
+
+    // Create a default network configuration for the call
+    const defaultNetwork = {
+      name: 'Conflux Local',
+      chainId: 2030,
+      rpcUrl: 'http://localhost:8545',
+      networkType: 'evm' as const,
+    };
+
+    // Call contract method using DevKit
+    const result = await devKitServices.contractManager.readContract(
+      contractAddress,
+      abi,
+      methodName,
+      args,
+      defaultNetwork
+    );
+
+    res.json({
+      success: true,
+      result,
+      method: methodName,
+      contract: contractAddress,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error calling contract method:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to call contract method',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+app.post('/api/contracts/send', async (req, res) => {
+  try {
+    const {
+      contractAddress,
+      methodName,
+      args = [],
+      abi,
+      fromAddress,
+    } = req.body;
+
+    if (!devKitServices.contractManager) {
+      return res.status(503).json({
+        success: false,
+        error: 'Contract service not available',
+      });
+    }
+
+    console.log('📤 Sending transaction to contract:', {
+      contractAddress,
+      methodName,
+      args,
+      fromAddress,
+    });
+
+    // Create a default network configuration for the transaction
+    const defaultNetwork = {
+      name: 'Conflux Local',
+      chainId: 2030,
+      rpcUrl: 'http://localhost:8545',
+      networkType: 'evm' as const,
+    };
+
+    // Send transaction using DevKit
+    const result = await devKitServices.contractManager.writeContract(
+      contractAddress,
+      abi,
+      methodName,
+      args,
+      0n, // value
+      defaultNetwork
+    );
+
+    res.json({
+      success: true,
+      transaction: result,
+      method: methodName,
+      contract: contractAddress,
+      from: fromAddress,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error sending transaction:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to send transaction',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+app.get('/api/contracts/:address/events', async (req, res) => {
+  try {
+    const { address } = req.params;
+    const { fromBlock = '0', toBlock = 'latest', topics = [] } = req.query;
+
+    if (!devKitServices.contractManager) {
+      return res.status(503).json({
+        success: false,
+        error: 'Contract service not available',
+      });
+    }
+
+    console.log('📋 Getting contract events:', {
+      address,
+      fromBlock,
+      toBlock,
+      topics,
+    });
+
+    // Get contract events using EVM RPC
+    const rpcResponse = await fetch('http://localhost:8545', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'eth_getLogs',
+        params: [
+          {
+            address: address,
+            fromBlock: fromBlock,
+            toBlock: toBlock,
+            topics: topics,
+          },
+        ],
+        id: 1,
+      }),
+    });
+
+    const rpcData = await rpcResponse.json();
+    const events = rpcData.result || [];
+
+    res.json({
+      success: true,
+      events,
+      contract: address,
+      fromBlock,
+      toBlock,
+      count: events.length,
+    });
+  } catch (error) {
+    console.error('Error getting contract events:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get contract events',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+app.get('/api/contracts/:address/balance', async (req, res) => {
+  try {
+    const { address } = req.params;
+
+    console.log('💰 Getting contract balance:', address);
+
+    // Get contract balance using EVM RPC
+    const rpcResponse = await fetch('http://localhost:8545', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'eth_getBalance',
+        params: [address, 'latest'],
+        id: 1,
+      }),
+    });
+
+    const rpcData = await rpcResponse.json();
+    let balance = '0';
+
+    if (rpcData.result) {
+      const balanceInWei = BigInt(rpcData.result);
+      const balanceInCFX = Number(balanceInWei) / Math.pow(10, 18);
+      balance = balanceInCFX.toFixed(4);
+    }
+
+    res.json({
+      success: true,
+      balance,
+      balanceFormatted: `${balance} CFX`,
+      contract: address,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error getting contract balance:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get contract balance',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// Helper function to get contract capabilities
+function getContractCapabilities(contractType: string): string[] {
+  const capabilities: Record<string, string[]> = {
+    erc20: ['Transfer', 'Approve', 'Mint', 'Burn', 'Balance Query'],
+    nft: ['Mint', 'Transfer', 'Approve', 'Owner Query', 'Metadata'],
+    voting: ['Propose', 'Vote', 'Execute', 'Delegate', 'Quorum Check'],
+    multisig: [
+      'Submit Transaction',
+      'Confirm Transaction',
+      'Execute Transaction',
+      'Add Owner',
+      'Remove Owner',
+    ],
+    simple: ['Read State', 'Write State', 'Events'],
+  };
+  return capabilities[contractType] || capabilities.simple;
+}
 
 // Catch-all for other API routes
 app.use('/api', (req, res) => {

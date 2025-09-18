@@ -6,8 +6,12 @@ interface ContractManagementProps {
   onRefresh: () => void;
 }
 
-export function ContractManagement({ contracts, onRefresh }: ContractManagementProps) {
-  const [activeContract, setActiveContract] = useState<BrowserContractOrchestrator | null>(null);
+export function ContractManagement({
+  contracts,
+  onRefresh,
+}: ContractManagementProps) {
+  const [activeContract, setActiveContract] =
+    useState<BrowserContractOrchestrator | null>(null);
   const [isDeploying, setIsDeploying] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -15,9 +19,37 @@ export function ContractManagement({ contracts, onRefresh }: ContractManagementP
   const [showDeployForm, setShowDeployForm] = useState(false);
   const [contractName, setContractName] = useState('');
   const [constructorArgs, setConstructorArgs] = useState('');
+  const [contractType, setContractType] = useState('simple');
   const [showCallForm, setShowCallForm] = useState(false);
   const [callMethodName, setCallMethodName] = useState('');
   const [callArgs, setCallArgs] = useState('');
+  const [interactionResult, setInteractionResult] = useState<any>(null);
+  const [contractBalance, setContractBalance] = useState<string>('0');
+  const [showEvents, setShowEvents] = useState(false);
+
+  const contractTypes = [
+    {
+      value: 'simple',
+      label: 'Simple Contract',
+      description: 'Basic state management',
+    },
+    {
+      value: 'erc20',
+      label: 'ERC20 Token',
+      description: 'Fungible token with transfers',
+    },
+    { value: 'nft', label: 'NFT Contract', description: 'Non-fungible token' },
+    {
+      value: 'voting',
+      label: 'Voting Contract',
+      description: 'Governance and voting',
+    },
+    {
+      value: 'multisig',
+      label: 'Multisig Wallet',
+      description: 'Multi-signature wallet',
+    },
+  ];
 
   const handleDeployContract = async () => {
     if (!contractName.trim()) {
@@ -30,20 +62,22 @@ export function ContractManagement({ contracts, onRefresh }: ContractManagementP
     setActionError(null);
     try {
       const args = constructorArgs.trim() ? JSON.parse(constructorArgs) : [];
-      
+
       const response = await fetch('/api/contracts/deploy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: contractName,
+          contracts: [contractName],
+          contractType,
           constructorArgs: args,
         }),
       });
-      
+
       const result = await response.json();
       if (!result.success) {
         setActionError(result.error || 'Failed to deploy contract');
       } else {
+        console.log('✅ Contract deployed with full potential:', result);
         setShowDeployForm(false);
         setContractName('');
         setConstructorArgs('');
@@ -69,11 +103,21 @@ export function ContractManagement({ contracts, onRefresh }: ContractManagementP
     setActionError(null);
     try {
       const args = callArgs.trim() ? JSON.parse(callArgs) : [];
-      // TODO: Implement contract method calling via API
-      console.log('Calling method:', callMethodName, 'on contract:', activeContract.address, 'with args:', args);
-      setShowCallForm(false);
-      setCallMethodName('');
-      setCallArgs('');
+
+      const response = await fetch('/api/contracts/call', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contractAddress: activeContract.address,
+          methodName: callMethodName,
+          args: args,
+          abi: activeContract.abi,
+        }),
+      });
+
+      const result = await response.json();
+      setInteractionResult(result);
+      console.log('📞 Method call result:', result);
     } catch (error) {
       setActionError(
         error instanceof Error
@@ -82,6 +126,70 @@ export function ContractManagement({ contracts, onRefresh }: ContractManagementP
       );
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSendTransaction = async () => {
+    if (!activeContract || !callMethodName.trim()) {
+      setActionError('Active contract and method name are required');
+      return;
+    }
+
+    setIsLoading(true);
+    setActionError(null);
+    try {
+      const args = callArgs.trim() ? JSON.parse(callArgs) : [];
+
+      const response = await fetch('/api/contracts/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contractAddress: activeContract.address,
+          methodName: callMethodName,
+          args: args,
+          abi: activeContract.abi,
+          fromAddress: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6', // Use first wallet
+        }),
+      });
+
+      const result = await response.json();
+      setInteractionResult(result);
+      console.log('📤 Transaction result:', result);
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : 'Failed to send transaction'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadContractBalance = async (address: string) => {
+    try {
+      const response = await fetch(`/api/contracts/${address}/balance`);
+      const data = await response.json();
+      if (data.success) {
+        setContractBalance(data.balanceFormatted);
+      }
+    } catch (error) {
+      console.error('Failed to load contract balance:', error);
+    }
+  };
+
+  const loadContractEvents = async (address: string) => {
+    try {
+      const response = await fetch(`/api/contracts/${address}/events`);
+      const data = await response.json();
+      if (data.success) {
+        setInteractionResult({
+          success: true,
+          events: data.events,
+          count: data.count,
+        });
+        setShowEvents(true);
+      }
+    } catch (error) {
+      console.error('Failed to load contract events:', error);
     }
   };
 
@@ -137,12 +245,27 @@ export function ContractManagement({ contracts, onRefresh }: ContractManagementP
             <div className="deploy-contract-form">
               <h4>Deploy New Contract</h4>
               <div className="form-group">
+                <label htmlFor="contractType">Contract Type:</label>
+                <select
+                  id="contractType"
+                  value={contractType}
+                  onChange={e => setContractType(e.target.value)}
+                  className="form-input"
+                >
+                  {contractTypes.map(type => (
+                    <option key={type.value} value={type.value}>
+                      {type.label} - {type.description}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
                 <label htmlFor="contractName">Contract Name:</label>
                 <input
                   id="contractName"
                   type="text"
                   value={contractName}
-                  onChange={(e) => setContractName(e.target.value)}
+                  onChange={e => setContractName(e.target.value)}
                   placeholder="e.g., MyToken"
                   className="form-input"
                 />
@@ -155,7 +278,7 @@ export function ContractManagement({ contracts, onRefresh }: ContractManagementP
                   id="constructorArgs"
                   type="text"
                   value={constructorArgs}
-                  onChange={(e) => setConstructorArgs(e.target.value)}
+                  onChange={e => setConstructorArgs(e.target.value)}
                   placeholder='e.g., ["arg1", "arg2"]'
                   className="form-input"
                 />
@@ -167,7 +290,8 @@ export function ContractManagement({ contracts, onRefresh }: ContractManagementP
                   disabled={isDeploying || isLoading || !contractName.trim()}
                 >
                   {isDeploying ? <span className="spinner" /> : '✨'}
-                  Deploy Contract
+                  Deploy{' '}
+                  {contractTypes.find(t => t.value === contractType)?.label}
                 </button>
                 <button
                   className="btn btn-secondary"
@@ -230,15 +354,15 @@ export function ContractManagement({ contracts, onRefresh }: ContractManagementP
 
               {showCallForm && (
                 <div className="call-method-form">
-                  <h4>Call Contract Method</h4>
+                  <h4>Contract Interaction</h4>
                   <div className="form-group">
                     <label htmlFor="callMethodName">Method Name:</label>
                     <input
                       id="callMethodName"
                       type="text"
                       value={callMethodName}
-                      onChange={(e) => setCallMethodName(e.target.value)}
-                      placeholder="e.g., transfer"
+                      onChange={e => setCallMethodName(e.target.value)}
+                      placeholder="e.g., transfer, balanceOf, mint"
                       className="form-input"
                     />
                   </div>
@@ -248,19 +372,43 @@ export function ContractManagement({ contracts, onRefresh }: ContractManagementP
                       id="callArgs"
                       type="text"
                       value={callArgs}
-                      onChange={(e) => setCallArgs(e.target.value)}
+                      onChange={e => setCallArgs(e.target.value)}
                       placeholder='e.g., ["0x123...", "100"]'
                       className="form-input"
                     />
                   </div>
                   <div className="form-actions">
                     <button
-                      className="btn btn-success"
+                      className="btn btn-primary"
                       onClick={handleCallMethod}
                       disabled={isLoading || !callMethodName.trim()}
                     >
-                      {isLoading ? <span className="spinner" /> : '▶️'}
-                      Call Method
+                      {isLoading ? <span className="spinner" /> : '📞'}
+                      Call Method (Read)
+                    </button>
+                    <button
+                      className="btn btn-warning"
+                      onClick={handleSendTransaction}
+                      disabled={isLoading || !callMethodName.trim()}
+                    >
+                      {isLoading ? <span className="spinner" /> : '📤'}
+                      Send Transaction (Write)
+                    </button>
+                    <button
+                      className="btn btn-info"
+                      onClick={() =>
+                        loadContractBalance(activeContract.address)
+                      }
+                      disabled={isLoading}
+                    >
+                      💰 Get Balance
+                    </button>
+                    <button
+                      className="btn btn-info"
+                      onClick={() => loadContractEvents(activeContract.address)}
+                      disabled={isLoading}
+                    >
+                      📋 Get Events
                     </button>
                     <button
                       className="btn btn-secondary"
@@ -269,6 +417,65 @@ export function ContractManagement({ contracts, onRefresh }: ContractManagementP
                       Cancel
                     </button>
                   </div>
+                </div>
+              )}
+
+              {interactionResult && (
+                <div className="interaction-result">
+                  <h4>Interaction Result</h4>
+                  <div className="result-content">
+                    <pre>{JSON.stringify(interactionResult, null, 2)}</pre>
+                  </div>
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => setInteractionResult(null)}
+                  >
+                    Clear Result
+                  </button>
+                </div>
+              )}
+
+              {contractBalance !== '0' && (
+                <div className="contract-balance">
+                  <h4>Contract Balance</h4>
+                  <p className="balance-amount">{contractBalance}</p>
+                </div>
+              )}
+
+              {showEvents && interactionResult?.events && (
+                <div className="contract-events">
+                  <h4>Contract Events ({interactionResult.count})</h4>
+                  <div className="events-list">
+                    {interactionResult.events.map(
+                      (event: any, index: number) => (
+                        <div key={index} className="event-item">
+                          <div className="event-header">
+                            <span className="event-name">
+                              {event.event || 'Unknown Event'}
+                            </span>
+                            <span className="event-block">
+                              Block: {event.blockNumber}
+                            </span>
+                          </div>
+                          <div className="event-data">
+                            <pre>
+                              {JSON.stringify(
+                                event.args || event.data,
+                                null,
+                                2
+                              )}
+                            </pre>
+                          </div>
+                        </div>
+                      )
+                    )}
+                  </div>
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => setShowEvents(false)}
+                  >
+                    Hide Events
+                  </button>
                 </div>
               )}
             </div>
@@ -515,6 +722,135 @@ const contractStyles = `
 
 .full-width {
   grid-column: 1 / -1;
+}
+
+.interaction-result {
+  background: #f0f9ff;
+  border: 1px solid #0ea5e9;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.interaction-result h4 {
+  margin-bottom: 0.5rem;
+  color: #0c4a6e;
+}
+
+.result-content {
+  background: #1e293b;
+  color: #f1f5f9;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.result-content pre {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.contract-balance {
+  background: #f0fdf4;
+  border: 1px solid #22c55e;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.contract-balance h4 {
+  margin-bottom: 0.5rem;
+  color: #166534;
+}
+
+.balance-amount {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #15803d;
+  margin: 0;
+}
+
+.contract-events {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.contract-events h4 {
+  margin-bottom: 0.5rem;
+  color: #92400e;
+}
+
+.events-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+
+.event-item {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.event-name {
+  font-weight: 600;
+  color: #374151;
+}
+
+.event-block {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.event-data {
+  background: #f9fafb;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.event-data pre {
+  margin: 0;
+  color: #374151;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.btn-info {
+  background: #0ea5e9;
+  color: white;
+  border: 1px solid #0284c7;
+}
+
+.btn-info:hover {
+  background: #0284c7;
+}
+
+.btn-warning {
+  background: #f59e0b;
+  color: white;
+  border: 1px solid #d97706;
+}
+
+.btn-warning:hover {
+  background: #d97706;
 }
 `;
 
