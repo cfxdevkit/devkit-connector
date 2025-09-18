@@ -226,10 +226,7 @@ app.get('/api/packages', (_req, res) => {
         '@conflux-devkit/api-server',
         '@conflux-devkit/devkit-node',
       ],
-      browser: [
-        '@conflux-devkit/ui-primitives',
-        '@conflux-devkit/ui-components',
-      ],
+      browser: ['@conflux-devkit/ui-primitives'],
     },
   });
 });
@@ -967,6 +964,261 @@ function getContractCapabilities(contractType: string): string[] {
   return capabilities[contractType] || capabilities.simple;
 }
 
+// Hardhat API endpoints
+app.get('/api/hardhat/status', async (req, res) => {
+  try {
+    if (!devKitServices.contractManager) {
+      return res.status(503).json({
+        success: false,
+        error: 'Contract service not available',
+      });
+    }
+
+    const status = devKitServices.contractManager.getHardhatStatus();
+    res.json({
+      success: true,
+      status,
+    });
+  } catch (error) {
+    console.error('Error getting Hardhat status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get Hardhat status',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+app.post('/api/hardhat/compile', async (req, res) => {
+  try {
+    if (!devKitServices.contractManager) {
+      return res.status(503).json({
+        success: false,
+        error: 'Contract service not available',
+      });
+    }
+
+    console.log('🔨 Compiling contracts with Hardhat...');
+    const result = await devKitServices.contractManager.compileWithHardhat();
+
+    res.json({
+      success: result.success,
+      result,
+      message: result.success ? 'Compilation completed' : 'Compilation failed',
+    });
+  } catch (error) {
+    console.error('Error compiling contracts:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to compile contracts',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+app.post('/api/hardhat/deploy', async (req, res) => {
+  try {
+    const {
+      contractNames,
+      network = 'confluxESpaceLocal',
+      constructorArgs = {},
+    } = req.body;
+
+    if (!devKitServices.contractManager) {
+      return res.status(503).json({
+        success: false,
+        error: 'Contract service not available',
+      });
+    }
+
+    if (
+      !contractNames ||
+      !Array.isArray(contractNames) ||
+      contractNames.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'No contracts specified for deployment',
+      });
+    }
+
+    // Check if deploying to local network and node is not running
+    const isLocalNetwork =
+      network === 'confluxESpaceLocal' || network === 'hardhat';
+    if (isLocalNetwork) {
+      try {
+        // Check if node is running by testing RPC connection
+        const nodeStatusResponse = await fetch('http://localhost:8545', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            method: 'eth_chainId',
+            params: [],
+            id: 1,
+          }),
+        });
+
+        if (!nodeStatusResponse.ok) {
+          throw new Error('Node not responding');
+        }
+      } catch (error) {
+        console.log(
+          '🔄 Local node not running, starting node for deployment...'
+        );
+
+        // Start the local node
+        try {
+          const startResponse = await fetch(
+            'http://localhost:3002/api/node/start-local',
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+            }
+          );
+
+          if (startResponse.ok) {
+            console.log(
+              '✅ Local node startup initiated, waiting for node to be ready...'
+            );
+            // Wait longer for the node to fully start
+            await new Promise(resolve => setTimeout(resolve, 15000));
+          }
+        } catch (startError) {
+          console.error('Failed to start local node:', startError);
+          return res.status(500).json({
+            success: false,
+            error: 'Failed to start local node for deployment',
+            message: 'Could not start Conflux node for local deployment',
+          });
+        }
+      }
+    }
+
+    console.log('🚀 Deploying contracts with Hardhat...', {
+      contractNames,
+      network,
+      constructorArgs,
+    });
+
+    const deployments = await devKitServices.contractManager.deployWithHardhat(
+      contractNames,
+      network,
+      constructorArgs
+    );
+
+    res.json({
+      success: true,
+      message: `Successfully deployed ${deployments.length} contract(s)`,
+      deployments,
+      summary: {
+        total: deployments.length,
+        successful: deployments.filter((d: any) => d.address).length,
+        failed: deployments.filter((d: any) => !d.address).length,
+        network,
+      },
+    });
+  } catch (error) {
+    console.error('Error deploying contracts with Hardhat:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to deploy contracts',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+app.get('/api/hardhat/deployments', async (req, res) => {
+  try {
+    if (!devKitServices.contractManager) {
+      return res.status(503).json({
+        success: false,
+        error: 'Contract service not available',
+      });
+    }
+
+    const deployments =
+      await devKitServices.contractManager.loadHardhatDeployments();
+
+    res.json({
+      success: true,
+      deployments,
+      count: deployments.length,
+    });
+  } catch (error) {
+    console.error('Error loading Hardhat deployments:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to load deployments',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+app.get('/api/hardhat/setup', async (req, res) => {
+  try {
+    if (!devKitServices.contractManager) {
+      return res.status(503).json({
+        success: false,
+        error: 'Contract service not available',
+      });
+    }
+
+    const setup = await devKitServices.contractManager.checkHardhatSetup();
+
+    res.json({
+      success: true,
+      setup,
+    });
+  } catch (error) {
+    console.error('Error checking Hardhat setup:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to check setup',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// Node startup endpoint for local deployments
+app.post('/api/node/start-local', async (req, res) => {
+  try {
+    console.log('🚀 Starting local Conflux node for deployment...');
+
+    // Import child_process for spawning the node
+    const { spawn } = await import('child_process');
+    const path = await import('path');
+
+    // Start the Conflux node in the background
+    const nodeProcess = spawn('pnpm', ['run', 'conflux-node:dev'], {
+      cwd: path.join(process.cwd(), '../../..'), // Go up to /workspace
+      detached: true,
+      stdio: 'ignore',
+    });
+
+    // Unref to allow the parent process to exit
+    nodeProcess.unref();
+
+    console.log('✅ Conflux node startup initiated');
+
+    // Wait a bit for the node to start
+    await new Promise(resolve => setTimeout(resolve, 10000));
+
+    res.json({
+      success: true,
+      message: 'Local Conflux node startup initiated',
+      pid: nodeProcess.pid,
+    });
+  } catch (error) {
+    console.error('Error starting local node:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to start local node',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
 // Catch-all for other API routes
 app.use('/api', (req, res) => {
   res.status(404).json({
@@ -982,8 +1234,14 @@ app.use('/api', (req, res) => {
       '/api/node/status',
       '/api/node/start',
       '/api/node/stop',
+      '/api/node/start-local',
       '/api/contracts/list',
       '/api/contracts/deploy',
+      '/api/hardhat/status',
+      '/api/hardhat/compile',
+      '/api/hardhat/deploy',
+      '/api/hardhat/deployments',
+      '/api/hardhat/setup',
     ],
   });
 });

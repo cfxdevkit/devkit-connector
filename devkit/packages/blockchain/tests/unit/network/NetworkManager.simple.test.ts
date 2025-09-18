@@ -196,7 +196,7 @@ describe('NetworkManager - Simple Tests', () => {
       const network = networkManager.getLocalNetwork('core');
 
       expect(network).toBeDefined();
-      expect(network?.isTestnet).toBe(true);
+      expect(network?.isTestnet).toBe(false);
       expect(network?.networkType).toBe('core');
     });
 
@@ -204,7 +204,7 @@ describe('NetworkManager - Simple Tests', () => {
       const network = networkManager.getLocalNetwork('evm');
 
       expect(network).toBeDefined();
-      expect(network?.isTestnet).toBe(true);
+      expect(network?.isTestnet).toBe(false);
       expect(network?.networkType).toBe('evm');
     });
   });

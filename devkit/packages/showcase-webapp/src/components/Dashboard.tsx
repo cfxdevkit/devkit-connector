@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { ApiIntegration } from './ApiIntegration.js';
 import { ContractManagement } from './ContractManagement.js';
+import { HardhatDeploymentStatus } from './HardhatDeploymentStatus.js';
 import { NetworkControl } from './NetworkControl.js';
 import { NodeControl } from './NodeControl.js';
 import { WalletManagement } from './WalletManagement.js';
-import { UiComponentsShowcase } from './UiComponentsShowcase.js';
 import type {
   BrowserNetworkConfig,
   BrowserWalletInfo,
@@ -17,9 +17,9 @@ type TabType =
   | 'node'
   | 'wallets'
   | 'contracts'
+  | 'hardhat'
   | 'network'
-  | 'api'
-  | 'ui-components';
+  | 'api';
 
 interface ShowcaseState {
   networks: BrowserNetworkConfig[];
@@ -161,14 +161,168 @@ export function Dashboard({
 }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
 
+  const [hardhatStatus, setHardhatStatus] = useState<{
+    status: 'idle' | 'compiling' | 'deploying' | 'completed' | 'error';
+    progress: number;
+    currentStep: string;
+    contracts: any[];
+    errors: string[];
+    startTime?: Date;
+    endTime?: Date;
+  }>({
+    status: 'idle',
+    progress: 0,
+    currentStep: 'Ready',
+    contracts: [],
+    errors: [],
+  });
+
+  // Hardhat handlers
+  const handleHardhatDeploy = async (
+    contractNames: string[],
+    network: string,
+    constructorArgs: { [key: string]: any[] }
+  ) => {
+    setHardhatStatus(prev => ({
+      ...prev,
+      status: 'deploying',
+      progress: 0,
+      currentStep: 'Preparing deployment...',
+      errors: [],
+      startTime: new Date(),
+    }));
+
+    // Check if it's a local network and show appropriate message
+    const isLocalNetwork =
+      network === 'confluxESpaceLocal' || network === 'hardhat';
+    if (isLocalNetwork) {
+      setHardhatStatus(prev => ({
+        ...prev,
+        currentStep: 'Checking local node status...',
+        progress: 10,
+      }));
+    }
+
+    try {
+      const response = await fetch('/api/hardhat/deploy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contractNames, network, constructorArgs }),
+      });
+      const result = await response.json();
+      console.log('Deployment result:', result);
+
+      if (result.success) {
+        setHardhatStatus(prev => ({
+          ...prev,
+          status: 'completed',
+          progress: 100,
+          currentStep: `Successfully deployed ${result.deployments.length} contract(s)`,
+          contracts: result.deployments,
+          endTime: new Date(),
+        }));
+        onRefresh(); // Refresh contracts list
+      } else {
+        setHardhatStatus(prev => ({
+          ...prev,
+          status: 'error',
+          currentStep: 'Deployment failed',
+          errors: [result.error || 'Unknown deployment error'],
+          endTime: new Date(),
+        }));
+      }
+    } catch (error) {
+      console.error('Hardhat deployment failed:', error);
+      setHardhatStatus(prev => ({
+        ...prev,
+        status: 'error',
+        currentStep: 'Deployment failed',
+        errors: [error instanceof Error ? error.message : 'Network error'],
+        endTime: new Date(),
+      }));
+    }
+  };
+
+  const handleHardhatCompile = async () => {
+    setHardhatStatus(prev => ({
+      ...prev,
+      status: 'compiling',
+      progress: 0,
+      currentStep: 'Compiling contracts...',
+      errors: [],
+      startTime: new Date(),
+    }));
+
+    try {
+      const response = await fetch('/api/hardhat/compile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const result = await response.json();
+      console.log('Compilation result:', result);
+
+      if (result.success) {
+        setHardhatStatus(prev => ({
+          ...prev,
+          status: 'completed',
+          progress: 100,
+          currentStep: 'Compilation completed successfully',
+          endTime: new Date(),
+        }));
+      } else {
+        setHardhatStatus(prev => ({
+          ...prev,
+          status: 'error',
+          currentStep: 'Compilation failed',
+          errors: [result.error || 'Unknown compilation error'],
+          endTime: new Date(),
+        }));
+      }
+    } catch (error) {
+      console.error('Hardhat compilation failed:', error);
+      setHardhatStatus(prev => ({
+        ...prev,
+        status: 'error',
+        currentStep: 'Compilation failed',
+        errors: [error instanceof Error ? error.message : 'Network error'],
+        endTime: new Date(),
+      }));
+    }
+  };
+
+  const handleHardhatReset = () => {
+    setHardhatStatus({
+      status: 'idle',
+      progress: 0,
+      currentStep: 'Ready',
+      contracts: [],
+      errors: [],
+    });
+  };
+
+  const handleLoadDeployments = async () => {
+    try {
+      const response = await fetch('/api/hardhat/deployments');
+      const result = await response.json();
+      if (result.success) {
+        setHardhatStatus(prev => ({
+          ...prev,
+          contracts: result.deployments,
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to load deployments:', error);
+    }
+  };
+
   const tabs = [
     { id: 'overview' as TabType, label: 'Overview', icon: '📊' },
     { id: 'node' as TabType, label: 'Node Control', icon: '🖥️' },
     { id: 'wallets' as TabType, label: 'Wallets', icon: '👛' },
     { id: 'contracts' as TabType, label: 'Contracts', icon: '📦' },
+    { id: 'hardhat' as TabType, label: 'Hardhat', icon: '🔨' },
     { id: 'network' as TabType, label: 'Network', icon: '🌐' },
     { id: 'api' as TabType, label: 'API Integration', icon: '🔗' },
-    { id: 'ui-components' as TabType, label: 'UI Components', icon: '🎨' },
   ];
 
   const renderTabContent = () => {
@@ -177,10 +331,7 @@ export function Dashboard({
         return <OverviewTab state={state} onRefresh={onRefresh} />;
       case 'node':
         return (
-          <NodeControl
-            nodeStatus={state.nodeStatus}
-            onRefresh={onRefresh}
-          />
+          <NodeControl nodeStatus={state.nodeStatus} onRefresh={onRefresh} />
         );
       case 'wallets':
         return (
@@ -198,6 +349,16 @@ export function Dashboard({
             onRefresh={onRefresh}
           />
         );
+      case 'hardhat':
+        return (
+          <HardhatDeploymentStatus
+            status={hardhatStatus}
+            onDeploy={handleHardhatDeploy}
+            onCompile={handleHardhatCompile}
+            onReset={handleHardhatReset}
+            onLoadDeployments={handleLoadDeployments}
+          />
+        );
       case 'network':
         return (
           <div className="placeholder-content">
@@ -211,15 +372,6 @@ export function Dashboard({
             <h3>API Integration</h3>
             <p>API integration functionality will be implemented here.</p>
           </div>
-        );
-      case 'ui-components':
-        return (
-          <UiComponentsShowcase
-            state={state}
-            onNetworkChange={onNetworkChange}
-            onWalletChange={onWalletChange}
-            onRefresh={onRefresh}
-          />
         );
       default:
         return <OverviewTab state={state} onRefresh={onRefresh} />;

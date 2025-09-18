@@ -84,16 +84,18 @@ function App() {
       const data = await response.json();
 
       if (data.success && data.wallets.length > 0) {
-        const wallets: BrowserWalletInfo[] = data.wallets.map((wallet: any) => ({
-          index: wallet.index,
-          address: wallet.address,
-          privateKey: wallet.privateKey || '', // Server wallets expose private keys
-          balance: wallet.balance,
-          balanceFormatted: wallet.balanceFormatted,
-          isMining: wallet.isMining,
-          isDefault: wallet.isDefault,
-          name: wallet.name,
-        }));
+        const wallets: BrowserWalletInfo[] = data.wallets.map(
+          (wallet: any) => ({
+            index: wallet.index,
+            address: wallet.address,
+            privateKey: wallet.privateKey || '', // Server wallets expose private keys
+            balance: wallet.balance,
+            balanceFormatted: wallet.balanceFormatted,
+            isMining: wallet.isMining,
+            isDefault: wallet.isDefault,
+            name: wallet.name,
+          })
+        );
 
         setState(prev => ({
           ...prev,
@@ -151,25 +153,31 @@ function App() {
 
       setState(prev => {
         const newState = { ...prev, nodeStatus };
-        
+
         // If node is running, automatically switch to local networks
         if (data.running && prev.networks.length > 0) {
-          const localNetworks = prev.networks.filter(network => 
-            network.rpcUrl.includes('localhost') || 
-            (network.chainId === '2029' && network.networkType === 'core') ||
-            (network.chainId === '2030' && network.networkType === 'evm')
+          const localNetworks = prev.networks.filter(
+            network =>
+              network.rpcUrl.includes('localhost') ||
+              (network.chainId === '2029' && network.networkType === 'core') ||
+              (network.chainId === '2030' && network.networkType === 'evm')
           );
-          
+
           if (localNetworks.length > 0) {
             // Switch to the first local network (Core local)
-            const localCoreNetwork = localNetworks.find(n => n.networkType === 'core');
+            const localCoreNetwork = localNetworks.find(
+              n => n.networkType === 'core'
+            );
             if (localCoreNetwork) {
               newState.currentNetwork = localCoreNetwork;
-              console.log('🔄 Node started - automatically switched to local network:', localCoreNetwork.name);
+              console.log(
+                '🔄 Node started - automatically switched to local network:',
+                localCoreNetwork.name
+              );
             }
           }
         }
-        
+
         return newState;
       });
     } catch (error) {

@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc && mkdir -p dist/public && cp src/index.html dist/public/ && cp dist/index.js dist/public/ && cp dist/App.js dist/public/ && cp src/App.css dist/public/ && cp -r dist/components dist/public/ && cp -r ../ui-components/dist dist/public/ui-components && mkdir -p dist/public/packages && cp -r ../core/dist dist/public/packages/core && cp -r ../blockchain/dist dist/public/packages/blockchain && cp -r ../state/dist dist/public/packages/state && cp -r ../ui-primitives/dist dist/public/packages/ui-primitives",
+    "build": "tsc && mkdir -p dist/public && cp src/index.html dist/public/ && cp dist/index.js dist/public/ && cp dist/App.js dist/public/ && cp src/App.css dist/public/ && cp -r dist/components dist/public/ && mkdir -p dist/public/packages && cp -r ../core/dist dist/public/packages/core && cp -r ../blockchain/dist dist/public/packages/blockchain && cp -r ../state/dist dist/public/packages/state && cp -r ../ui-primitives/dist dist/public/packages/ui-primitives",
     "dev": "tsc && concurrently \"tsc --watch\" \"nodemon --watch dist --exec node dist/dev.js\"",
     "dev:simple": "tsc && node dist/dev.js",
     "type-check": "tsc --noEmit",
@@ -33,7 +33,6 @@
     "@conflux-devkit/node": "workspace:*",
     "@conflux-devkit/state": "workspace:*",
     "@conflux-devkit/ui-primitives": "workspace:*",
-    "@conflux-devkit/ui-components": "workspace:*",
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "helmet": "^7.1.0",

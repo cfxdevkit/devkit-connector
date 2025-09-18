@@ -12,7 +12,6 @@ The showcase webapp is a comprehensive demonstration application that showcases 
 
 ## ✨ Features
 
-- **🎨 UI Components Demo**: Live demonstration of all Web Components
 - **📱 React Integration**: Examples of React hooks and context usage
 - **🔌 API Integration**: Real-time API server integration
 - **💼 Wallet Management**: Complete wallet creation and management flow
@@ -103,48 +102,7 @@ function ReactDemo() {
 }
 ```
 
-### 2. Web Components Demo
-
-Demonstrates the usage of `@conflux-devkit/ui-components` Web Components.
-
-**Features:**
-
-- Wallet cards and lists
-- Contract cards and interaction
-- Network selectors
-- Node status displays
-
-**HTML Example:**
-
-```html
-<!-- Wallet Card -->
-<conflux-wallet-card
-  address="0x1234567890abcdef..."
-  balance="1.5"
-  balance-formatted="1.5 CFX"
-  is-mining="false"
-  theme="light"
-></conflux-wallet-card>
-
-<!-- Contract Card -->
-<conflux-contract-card
-  name="DemoToken"
-  address="0x5678901234abcdef..."
-  chain-type="evm"
-  network-id="2030"
-  methods='{"read":["totalSupply"],"write":["transfer"]}'
-  theme="light"
-></conflux-contract-card>
-
-<!-- Network Selector -->
-<conflux-network-selector
-  current-network="2030"
-  available-networks='[{"name":"Conflux Mainnet EVM","chainId":"2030"}]'
-  theme="light"
-></conflux-network-selector>
-```
-
-### 3. API Endpoints Demo
+### 2. API Endpoints Demo
 
 Demonstrates the usage of `@conflux-devkit/api-server` RESTful API endpoints.
 
@@ -388,7 +346,6 @@ pnpm run type-check   # Check TypeScript types
 - **@conflux-devkit/state**: State management
 - **@conflux-devkit/api-server**: API server integration
 - **@conflux-devkit/ui-primitives**: React hooks and context
-- **@conflux-devkit/ui-components**: Web Components
 
 ## 📊 Bundle Size
 

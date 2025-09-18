@@ -1,9 +1,9 @@
 // Auto-generated contract configuration
-// Generated: 2025-09-18T18:53:26.530Z
+// Generated: 2025-09-18T20:13:49.295Z
 
 module.exports = {
   "metadata": {
-    "generated": "2025-09-18T18:53:26.530Z",
+    "generated": "2025-09-18T20:13:49.295Z",
     "version": "1.0.0",
     "sources": [
       "legacy",

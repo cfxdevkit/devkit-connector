@@ -9,13 +9,25 @@ import type {
   NetworkConfig,
 } from '@conflux-devkit/core';
 import { createContractError, createNetworkError } from '@conflux-devkit/core';
+import {
+  HardhatManager,
+  type HardhatDeployment,
+  type HardhatDeploymentStatus,
+  type HardhatCompilationResult,
+} from '../hardhat/HardhatManager';
 
 export class ContractManager {
   private evmClient: EvmClient | null = null;
   private contracts: Map<string, ContractInfo> = new Map();
+  private hardhatManager: HardhatManager;
 
-  constructor(evmClient?: EvmClient, _coreClient?: CoreClient) {
+  constructor(
+    evmClient?: EvmClient,
+    _coreClient?: CoreClient,
+    hardhatPath?: string
+  ) {
     this.evmClient = evmClient || null;
+    this.hardhatManager = new HardhatManager(hardhatPath);
   }
 
   /**
@@ -192,7 +204,7 @@ export class ContractManager {
    * Get deployed contracts
    */
   getDeployedContracts(): Array<{ name: string; address: string }> {
-    return Array.from(this.contracts.values()).map((contract) => ({
+    return Array.from(this.contracts.values()).map(contract => ({
       name: contract.name || 'Unknown Contract',
       address: contract.address,
     }));
@@ -219,5 +231,55 @@ export class ContractManager {
       transactionHash: mockTxHash,
       gasUsed: mockGasUsed,
     };
+  }
+
+  /**
+   * Deploy contracts using Hardhat
+   */
+  async deployWithHardhat(
+    contractNames: string[],
+    network: string = 'confluxESpaceLocal',
+    constructorArgs: { [contractName: string]: any[] } = {}
+  ): Promise<HardhatDeployment[]> {
+    return this.hardhatManager.deployContracts(
+      contractNames,
+      network,
+      constructorArgs
+    );
+  }
+
+  /**
+   * Compile contracts using Hardhat
+   */
+  async compileWithHardhat(): Promise<HardhatCompilationResult> {
+    return this.hardhatManager.compileContracts();
+  }
+
+  /**
+   * Get Hardhat deployment status
+   */
+  getHardhatStatus(): HardhatDeploymentStatus {
+    return this.hardhatManager.getStatus();
+  }
+
+  /**
+   * Subscribe to Hardhat status updates
+   */
+  onHardhatStatusUpdate(callback: (status: HardhatDeploymentStatus) => void) {
+    this.hardhatManager.onStatusUpdate(callback);
+  }
+
+  /**
+   * Check Hardhat setup
+   */
+  async checkHardhatSetup(): Promise<{ valid: boolean; errors: string[] }> {
+    return this.hardhatManager.checkHardhatSetup();
+  }
+
+  /**
+   * Load existing Hardhat deployments
+   */
+  async loadHardhatDeployments(): Promise<HardhatDeployment[]> {
+    return this.hardhatManager.loadDeployments();
   }
 }

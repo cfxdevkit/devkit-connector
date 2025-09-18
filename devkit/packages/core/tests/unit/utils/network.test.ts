@@ -17,12 +17,12 @@ import { expectValidNetworkConfig } from '../../helpers/assertions';
 
 describe('Network Management Utilities', () => {
   describe('getNetworkByChainId', () => {
-    it('should return mainnet Core network for chain ID 2029', () => {
+    it('should return local Core network for chain ID 2029', () => {
       const network = getNetworkByChainId(2029);
       expect(network).toBeDefined();
       expect(network?.name).toBe('Conflux Core Local');
       expect(network?.chainId).toBe(2029);
-      expect(network?.isTestnet).toBe(true);
+      expect(network?.isTestnet).toBe(false);
     });
 
     it('should return undefined for invalid chain ID', () => {
@@ -47,12 +47,12 @@ describe('Network Management Utilities', () => {
   });
 
   describe('getNetworkByEvmChainId', () => {
-    it('should return mainnet EVM network for EVM chain ID 2030', () => {
+    it('should return local EVM network for EVM chain ID 2030', () => {
       const network = getNetworkByEvmChainId(2030);
       expect(network).toBeDefined();
       expect(network?.name).toBe('Conflux eSpace Local');
       expect(network?.evmChainId).toBe(2030);
-      expect(network?.isTestnet).toBe(true);
+      expect(network?.isTestnet).toBe(false);
     });
 
     it('should return undefined for invalid EVM chain ID', () => {
@@ -98,7 +98,7 @@ describe('Network Management Utilities', () => {
     it('should return local network', () => {
       const network = getNetworkByName('Conflux Core Local');
       expect(network).toBeDefined();
-      expect(network?.isTestnet).toBe(true);
+      expect(network?.isTestnet).toBe(false);
     });
 
     it('should return undefined for invalid name', () => {

@@ -30,10 +30,12 @@
     "bip32": "^4.0.0",
     "bip39": "^3.1.0",
     "cive": "^0.8.1",
+    "fs-extra": "^11.2.0",
     "tiny-secp256k1": "^2.2.4",
     "viem": "^2.21.0"
   },
   "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.0.0",
     "@vitest/ui": "^3.2.4",
     "c8": "^10.1.3",

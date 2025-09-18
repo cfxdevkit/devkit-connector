@@ -7,10 +7,10 @@ export default defineConfig({
   splitting: false,
   sourcemap: true,
   clean: true,
-  external: ['@conflux-devkit/core'],
+  external: ['@conflux-devkit/core', 'child_process', 'path', 'fs-extra'],
   esbuildOptions(options) {
     options.jsx = 'automatic';
-    options.platform = 'browser';
+    options.platform = 'node';
     options.define = {
       'process.env.NODE_ENV': '"production"',
     };
