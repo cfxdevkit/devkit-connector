@@ -77,7 +77,10 @@ async function checkpoint() {
   }
 
   // Step 5: Validate changelog
-  const changelogResult = runCommand('pnpm changelog show', 'Checking changelog status');
+  const changelogResult = runCommand(
+    'pnpm changelog show',
+    'Checking changelog status'
+  );
   if (!changelogResult.success) {
     console.log(
       '\n❌ Changelog check failed. Please ensure changelog is accessible.'
@@ -93,11 +96,11 @@ async function checkpoint() {
     const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
     const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
     const todayStr = today.toISOString().split('T')[0];
-    
+
     // Look for recent changelog entries - check for any date pattern in the last 7 days
     const datePattern = /\d{4}-\d{2}-\d{2}/g;
     const dates = changelogContent.match(datePattern) || [];
-    
+
     let hasRecentEntry = false;
     for (const date of dates) {
       const entryDate = new Date(date);
@@ -106,13 +109,14 @@ async function checkpoint() {
         break;
       }
     }
-    
+
     // Also check for today's date specifically
     if (!hasRecentEntry) {
-      hasRecentEntry = changelogContent.includes(todayStr) || 
-                      changelogContent.includes(sevenDaysAgoStr);
+      hasRecentEntry =
+        changelogContent.includes(todayStr) ||
+        changelogContent.includes(sevenDaysAgoStr);
     }
-    
+
     if (!hasRecentEntry) {
       console.log('\n⚠️  Warning: No recent changelog entries found.');
       console.log('   Consider running: pnpm changelog add');
@@ -122,7 +126,9 @@ async function checkpoint() {
     }
   } catch (error) {
     console.log('\n⚠️  Warning: Could not validate changelog dates.');
-    console.log('   This will not fail the checkpoint but consider running: pnpm changelog add');
+    console.log(
+      '   This will not fail the checkpoint but consider running: pnpm changelog add'
+    );
   }
 
   console.log('\n✅ All diagnostic steps completed successfully!');

@@ -51,16 +51,56 @@ function getPackageInfo(packageName) {
 }
 
 function getTypeReferences(packageName) {
-  const typesPath = join(PACKAGES_DIR, packageName, 'dist', 'index.d.ts');
+  const distPath = join(PACKAGES_DIR, packageName, 'dist');
   
-  if (!existsSync(typesPath)) {
+  if (!existsSync(distPath)) {
     return 'No type definitions available (run build first)';
   }
   
   try {
-    const typesContent = readFileSync(typesPath, 'utf8');
-    const exports = typesContent.match(/export\s+(interface|type|class|function|const)\s+(\w+)/g) || [];
-    return exports.slice(0, 10).join('\n  '); // Show first 10 exports
+    // Find all .d.ts files in the dist directory
+    const findDtsFiles = (dir) => {
+      const files = [];
+      const items = readdirSync(dir, { withFileTypes: true });
+      
+      for (const item of items) {
+        const fullPath = join(dir, item.name);
+        if (item.isDirectory()) {
+          files.push(...findDtsFiles(fullPath));
+        } else if (item.name.endsWith('.d.ts')) {
+          files.push(fullPath);
+        }
+      }
+      return files;
+    };
+    
+    const dtsFiles = findDtsFiles(distPath);
+    
+    if (dtsFiles.length === 0) {
+      return 'No type definitions available (run build first)';
+    }
+    
+    const exports = [];
+    
+    // Process each .d.ts file
+    for (const filePath of dtsFiles) {
+      try {
+        const typesContent = readFileSync(filePath, 'utf8');
+        const fileExports = typesContent.match(/export\s+(interface|type|class|function|const)\s+(\w+)/g) || [];
+        exports.push(...fileExports);
+      } catch (error) {
+        // Skip files that can't be read
+        continue;
+      }
+    }
+    
+    if (exports.length === 0) {
+      return 'No type definitions available (run build first)';
+    }
+    
+    // Remove duplicates and show first 10
+    const uniqueExports = [...new Set(exports)];
+    return uniqueExports.slice(0, 10).join('\n  '); // Show first 10 exports
   } catch (error) {
     return 'Error reading type definitions';
   }
