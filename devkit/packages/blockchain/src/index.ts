@@ -4,6 +4,7 @@ export * from './contract';
 // Export specific classes that are imported by other packages
 export { ContractManager } from './contract/ContractManager';
 export * from './examples';
+export * from './hardhat';
 export * from './network';
 export * from './rpc';
 export * from './transaction';

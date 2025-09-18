@@ -1,8 +1,10 @@
 import { Router, Request, Response } from "express";
 import HardhatService from "../services/hardhat-service";
+import { HREDeploymentService } from "../services/hre-deployment-service";
 
 const router: Router = Router();
 const hardhatService = new HardhatService();
+const hreService = new HREDeploymentService(process.cwd());
 
 interface IgnitionModule {
   name: string;
@@ -25,7 +27,7 @@ interface DeploymentResult {
 // Get available Ignition modules
 router.get("/modules", async (req: Request, res: Response) => {
   try {
-    const modules = await hardhatService.getModules();
+    const modules = await hreService.getModules();
 
     res.json({
       success: true,
@@ -56,8 +58,8 @@ router.post("/deploy", async (req: Request, res: Response) => {
       `🚀 Deploying Ignition module: ${module} to network: ${network}`
     );
 
-    // Deploy using Hardhat service
-    const deploymentResult = await hardhatService.deployModule(module, network);
+    // Deploy using HRE service (library approach with reset support)
+    const deploymentResult = await hreService.deployModule(module, network);
 
     if (deploymentResult.success) {
       res.json({

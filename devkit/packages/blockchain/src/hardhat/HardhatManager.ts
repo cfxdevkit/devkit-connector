@@ -1,8 +1,10 @@
 // Hardhat Manager for programmatic contract deployment and management
 import { spawn, ChildProcess } from 'child_process';
-import path from 'path';
-import fs from 'fs-extra';
+import * as path from 'path';
+import * as fs from 'fs-extra';
 import type { ContractInfo, NetworkConfig } from '@conflux-devkit/core';
+import { HREDeploymentService } from './HREDeploymentService';
+import { DevkitHREDeploymentService } from './DevkitHREDeploymentService';
 
 export interface HardhatDeployment {
   contractName: string;
@@ -46,11 +48,15 @@ export class HardhatManager {
   private deploymentsPath: string;
   private status: HardhatDeploymentStatus;
   private statusCallbacks: ((status: HardhatDeploymentStatus) => void)[] = [];
+  private hreService: HREDeploymentService;
+  private devkitHreService: DevkitHREDeploymentService;
 
   constructor(hardhatPath?: string) {
     this.hardhatPath =
       hardhatPath || path.join(process.cwd(), '../../../contracts');
     this.deploymentsPath = path.join(this.hardhatPath, 'deployments');
+    this.hreService = new HREDeploymentService(this.hardhatPath);
+    this.devkitHreService = new DevkitHREDeploymentService(this.hardhatPath);
     this.status = {
       status: 'idle',
       progress: 0,
@@ -263,12 +269,49 @@ export class HardhatManager {
         });
 
         try {
-          const deployment = await this.deployWithIgnition(
-            contractName,
-            network,
-            constructorArgs[contractName] || [],
-            compilation.contracts[contractName]
-          );
+          // Try Devkit HRE service first, fallback to script-based approach
+          let hreResult;
+          try {
+            const isHardhatAvailable =
+              await this.devkitHreService.isHardhatAvailable();
+            if (isHardhatAvailable) {
+              console.log(`📦 Using Devkit HRE service for ${contractName}`);
+              hreResult = await this.devkitHreService.deployContract(
+                contractName,
+                network,
+                constructorArgs[contractName] || [],
+                compilation.contracts[contractName]
+              );
+            } else {
+              throw new Error(
+                'Hardhat not available, falling back to script approach'
+              );
+            }
+          } catch (error) {
+            console.log(
+              `📦 Falling back to script-based HRE service for ${contractName}`
+            );
+            hreResult = await this.hreService.deployContract(
+              contractName,
+              network,
+              constructorArgs[contractName] || [],
+              compilation.contracts[contractName]
+            );
+          }
+
+          // Convert HREDeploymentResult to HardhatDeployment
+          const deployment: HardhatDeployment = {
+            contractName: hreResult.contractName,
+            address: hreResult.address,
+            transactionHash: hreResult.transactionHash,
+            gasUsed: hreResult.gasUsed,
+            deployedAt: hreResult.deployedAt,
+            network: hreResult.network,
+            abi: hreResult.abi,
+            bytecode: hreResult.bytecode,
+            constructorArgs: hreResult.constructorArgs,
+            verified: hreResult.verified,
+          };
 
           deployments.push(deployment);
 
@@ -329,11 +372,22 @@ export class HardhatManager {
         return;
       }
 
-      const process = spawn(
+      // Determine if we're in development mode
+      const isDevelopment: boolean =
+        process.env.NODE_ENV === 'development' ||
+        process.env.NODE_ENV === 'dev' ||
+        !process.env.NODE_ENV ||
+        network === 'confluxESpaceLocal' ||
+        network === 'hardhat';
+
+      // Add --reset parameter for development deployments
+      const resetParam: string = isDevelopment ? '--reset' : '';
+
+      const childProcess = spawn(
         'sh',
         [
           '-c',
-          `yes | npx hardhat ignition deploy ${modulePath} --network ${network}`,
+          `yes | npx hardhat ignition deploy ${modulePath} --network ${network} ${resetParam}`.trim(),
         ],
         {
           cwd: this.hardhatPath,
@@ -344,17 +398,17 @@ export class HardhatManager {
       let output = '';
       let errorOutput = '';
 
-      process.stdout?.on('data', data => {
+      childProcess.stdout?.on('data', (data: Buffer) => {
         output += data.toString();
         console.log(`Deploy ${contractName} output:`, data.toString());
       });
 
-      process.stderr?.on('data', data => {
+      childProcess.stderr?.on('data', (data: Buffer) => {
         errorOutput += data.toString();
         console.error(`Deploy ${contractName} error:`, data.toString());
       });
 
-      process.on('close', code => {
+      childProcess.on('close', (code: number | null) => {
         if (code === 0) {
           try {
             // Parse deployment result from Ignition output

@@ -144,8 +144,18 @@ class HardhatService {
         console.log(`📁 Current working directory: ${process.cwd()}`);
         console.log(`📁 Contracts directory: ${this.contractsDir}`);
 
+        // Determine if we're in development mode
+        const isDevelopment = process.env.NODE_ENV === 'development' || 
+                             process.env.NODE_ENV === 'dev' || 
+                             !process.env.NODE_ENV ||
+                             network === 'confluxESpaceLocal' ||
+                             network === 'hardhat';
+
+        // Add --reset parameter for development deployments
+        const resetParam = isDevelopment ? '--reset' : '';
+
         // Execute the ignition deploy command using the contracts directory hardhat config
-        const command = `yes | npx hardhat --config ${path.join(this.contractsDir, "hardhat.config.ts")} ignition deploy ./ignition/modules/${moduleName}.ts --network ${network}`;
+        const command = `yes | npx hardhat --config ${path.join(this.contractsDir, "hardhat.config.ts")} ignition deploy ./ignition/modules/${moduleName}.ts --network ${network} ${resetParam}`.trim();
         console.log(`🔧 Running command: ${command}`);
 
         const { stdout, stderr } = await execAsync(command, { timeout: 30000 }); // 30 second timeout

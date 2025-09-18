@@ -7,7 +7,13 @@ export default defineConfig({
   splitting: false,
   sourcemap: true,
   clean: true,
-  external: ['@conflux-devkit/core', 'child_process', 'path', 'fs-extra'],
+  external: [
+    '@conflux-devkit/core',
+    'child_process',
+    'path',
+    'fs-extra',
+    'hardhat',
+  ],
   esbuildOptions(options) {
     options.jsx = 'automatic';
     options.platform = 'node';
