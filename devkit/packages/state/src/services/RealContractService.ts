@@ -6,6 +6,13 @@ import type {
   NetworkConfig,
 } from '@conflux-devkit/core';
 import { privateKeyToAccount } from 'viem/accounts';
+import type {
+  AbiEvent,
+  AbiFunction,
+  ContractAbi,
+  ContractCallResult,
+  ContractInfo,
+} from '../types/state';
 
 export class RealContractService {
   private evmClient: EvmClient | null = null;
@@ -35,7 +42,7 @@ export class RealContractService {
   async deployContract(
     contractName: string,
     bytecode: `0x${string}`,
-    abi: any[],
+    abi: ContractAbi,
     _constructorArgs: unknown[] = [],
     privateKey: string
   ): Promise<BrowserContractOrchestrator> {
@@ -73,38 +80,38 @@ export class RealContractService {
         methods: {
           read: abi
             .filter(
-              item =>
+              (item): item is AbiFunction =>
                 item.type === 'function' &&
                 (item.stateMutability === 'view' ||
                   item.stateMutability === 'pure')
             )
-            .map(item => item.name),
+            .map((item) => item.name),
           write: abi
             .filter(
-              item =>
+              (item): item is AbiFunction =>
                 item.type === 'function' &&
                 (item.stateMutability === 'nonpayable' ||
                   item.stateMutability === 'payable')
             )
-            .map(item => item.name),
+            .map((item) => item.name),
           events: abi
-            .filter(item => item.type === 'event')
-            .map(item => item.name),
+            .filter((item): item is AbiEvent => item.type === 'event')
+            .map((item) => item.name),
         },
         capabilities: {
           read: abi.some(
-            item =>
+            (item) =>
               item.type === 'function' &&
               (item.stateMutability === 'view' ||
                 item.stateMutability === 'pure')
           ),
           write: abi.some(
-            item =>
+            (item) =>
               item.type === 'function' &&
               (item.stateMutability === 'nonpayable' ||
                 item.stateMutability === 'payable')
           ),
-          events: abi.some(item => item.type === 'event'),
+          events: abi.some((item) => item.type === 'event'),
         },
         network: {
           name: this.currentNetwork.name,
@@ -137,7 +144,7 @@ export class RealContractService {
     methodName: string,
     args: unknown[] = [],
     privateKey?: string
-  ): Promise<any> {
+  ): Promise<ContractCallResult> {
     if (!this.evmClient || !this.currentNetwork) {
       throw new Error('EVM client not initialized');
     }
@@ -149,19 +156,27 @@ export class RealContractService {
           this.currentNetwork,
           privateKey as `0x${string}`
         );
-        return await evmClientWithWallet.readContract({
+        const result = await evmClientWithWallet.readContract({
           address: contractAddress as `0x${string}`,
           abi: [], // Would need to pass ABI in real implementation
           functionName: methodName,
           args,
         });
+        return {
+          success: true,
+          result,
+        };
       } else {
-        return await this.evmClient.readContract({
+        const result = await this.evmClient.readContract({
           address: contractAddress as `0x${string}`,
           abi: [], // Would need to pass ABI in real implementation
           functionName: methodName,
           args,
         });
+        return {
+          success: true,
+          result,
+        };
       }
     } catch (error) {
       throw new Error(
@@ -234,7 +249,7 @@ export class RealContractService {
     methodName: string,
     args: unknown[] = [],
     privateKey?: string
-  ): Promise<any> {
+  ): Promise<ContractCallResult> {
     return this.callContractMethod(
       contractAddress,
       methodName,
@@ -246,7 +261,7 @@ export class RealContractService {
   /**
    * Get all contracts (placeholder implementation)
    */
-  async getContracts(): Promise<any[]> {
+  async getContracts(): Promise<ContractInfo[]> {
     // This would typically return stored contracts
     // For now, return empty array as this is a placeholder
     return [];

@@ -1,12 +1,15 @@
 // Contract Orchestration Service - Manages contract operations with state integration
 // This service provides high-level contract management using the state store
 
-import { getStateIntegrationService } from './StateIntegrationService';
-import type { StateIntegrationService } from './StateIntegrationService';
 import type {
+  AbiItem,
   BrowserContractOrchestrator,
-  BrowserNetworkConfig,
+  ContractEvent,
 } from '@conflux-devkit/core';
+
+import type { StateIntegrationService } from './StateIntegrationService';
+import { getStateIntegrationService } from './StateIntegrationService';
+
 // Note: These types will be imported from @conflux-devkit/state when available
 // For now, we'll define them locally
 interface ContractCallParams {
@@ -17,7 +20,7 @@ interface ContractCallParams {
   from?: string;
 }
 
-interface ContractCallState {
+export interface ContractCallState {
   callId: string;
   contractAddress: string;
   method: string;
@@ -44,7 +47,7 @@ export interface ContractCallRequest {
 export interface ContractEventSubscription {
   contractAddress: string;
   eventName?: string;
-  callback?: (event: any) => void;
+  callback?: (event: ContractEvent) => void;
 }
 
 export class ContractOrchestrationService {
@@ -71,7 +74,7 @@ export class ContractOrchestrationService {
   async getContract(contractAddress: string): Promise<{
     contract: BrowserContractOrchestrator;
     calls: ContractCallState[];
-    events: any[];
+    events: ContractEvent[];
     isActive: boolean;
   } | null> {
     return this.stateIntegration.getContractDataForAPI(contractAddress);
@@ -85,7 +88,7 @@ export class ContractOrchestrationService {
   ): Promise<BrowserContractOrchestrator[]> {
     const allContracts = await this.getAllContracts();
     const pattern = new RegExp(namePattern, 'i');
-    return allContracts.filter(contract => pattern.test(contract.name || ''));
+    return allContracts.filter((contract) => pattern.test(contract.name || ''));
   }
 
   /**
@@ -95,7 +98,7 @@ export class ContractOrchestrationService {
     networkId: string
   ): Promise<BrowserContractOrchestrator[]> {
     const allContracts = await this.getAllContracts();
-    return allContracts.filter(contract => contract.chainId === networkId);
+    return allContracts.filter((contract) => contract.chainId === networkId);
   }
 
   /**
@@ -235,7 +238,7 @@ export class ContractOrchestrationService {
   /**
    * Get contract events history
    */
-  async getContractEvents(contractAddress: string): Promise<any[]> {
+  async getContractEvents(contractAddress: string): Promise<ContractEvent[]> {
     const contractData = await this.getContract(contractAddress);
     return contractData?.events || [];
   }
@@ -259,9 +262,9 @@ export class ContractOrchestrationService {
       isOwnable: boolean;
     };
     methods: {
-      read: any[];
-      write: any[];
-      events: any[];
+      read: string[];
+      write: string[];
+      events: string[];
     };
     stats: {
       totalMethods: number;
@@ -280,23 +283,14 @@ export class ContractOrchestrationService {
 
     return {
       capabilities: {
-        canRead:
-          (contract.capabilities as any)?.canRead ||
-          contract.capabilities?.read ||
-          false,
-        canWrite:
-          (contract.capabilities as any)?.canWrite ||
-          contract.capabilities?.write ||
-          false,
-        canReceive: (contract.capabilities as any)?.canReceive || false,
-        canFallback: (contract.capabilities as any)?.canFallback || false,
-        hasEvents:
-          (contract.capabilities as any)?.hasEvents ||
-          contract.capabilities?.events ||
-          false,
-        isUpgradeable: (contract.capabilities as any)?.isUpgradeable || false,
-        isPausable: (contract.capabilities as any)?.isPausable || false,
-        isOwnable: (contract.capabilities as any)?.isOwnable || false,
+        canRead: contract.capabilities.read || false,
+        canWrite: contract.capabilities.write || false,
+        canReceive: false, // Not available in core capabilities
+        canFallback: false, // Not available in core capabilities
+        hasEvents: contract.capabilities.events || false,
+        isUpgradeable: false, // Not available in core capabilities
+        isPausable: false, // Not available in core capabilities
+        isOwnable: false, // Not available in core capabilities
       },
       methods: {
         read: methods.read || [],
@@ -330,10 +324,10 @@ export class ContractOrchestrationService {
 
     const calls = contractData.calls;
     const readCalls = calls.filter(
-      call => call.method.includes('view') || call.method.includes('pure')
+      (call) => call.method.includes('view') || call.method.includes('pure')
     );
     const writeCalls = calls.filter(
-      call => !call.method.includes('view') && !call.method.includes('pure')
+      (call) => !call.method.includes('view') && !call.method.includes('pure')
     );
 
     return {
@@ -359,12 +353,12 @@ export class ContractOrchestrationService {
   /**
    * Get contract ABI for external use
    */
-  async getContractABI(contractAddress: string): Promise<any[]> {
+  async getContractABI(contractAddress: string): Promise<AbiItem[]> {
     const contractData = await this.getContract(contractAddress);
     if (!contractData) {
       throw new Error('Contract not found');
     }
-    return (contractData.contract.abi as unknown as any[]) || [];
+    return JSON.parse(contractData.contract.abi) as AbiItem[];
   }
 
   /**

@@ -5,7 +5,53 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import ora from 'ora';
 import { NodeService } from '../services/NodeService';
-import type { NodeConfig, WorkflowCommandOptions } from '../types/unified';
+import type {
+  WorkflowResult as LocalWorkflowResult,
+  NodeConfig,
+  TypedDeploymentResult,
+  ValidationResult,
+  WorkflowCommandOptions,
+} from '../types/unified';
+
+interface StartOptions {
+  config?: string;
+  port?: number;
+  network?: string;
+  [key: string]: unknown;
+}
+
+interface RestartOptions {
+  config?: string;
+  port?: number;
+  network?: string;
+  [key: string]: unknown;
+}
+
+interface WorkflowOptions {
+  config?: string;
+  contracts?: string[];
+  tests?: boolean;
+  [key: string]: unknown;
+}
+
+interface DeployOptions {
+  contracts?: string[];
+  config?: string;
+  [key: string]: unknown;
+}
+
+interface ValidateOptions {
+  contracts?: string[];
+  config?: string;
+  [key: string]: unknown;
+}
+
+interface TestOptions {
+  config?: string;
+  [key: string]: unknown;
+}
+
+// Removed unused interfaces - using types from core package
 
 export class UnifiedCLI {
   private program: Command;
@@ -107,18 +153,26 @@ export class UnifiedCLI {
       });
   }
 
-  private async handleStart(options: any): Promise<void> {
+  private async handleStart(options: StartOptions): Promise<void> {
     const spinner = ora('Starting Conflux node...').start();
 
     try {
       const config: Partial<NodeConfig> = {
-        corePort: parseInt(options.port, 10),
-        evmPort: parseInt(options.ethPort, 10),
-        chainId: parseInt(options.chainId, 10),
-        evmChainId: parseInt(options.evmChainId, 10),
-        silent: options.silent,
-        fundWallets: options.fundWallets,
-        walletCount: parseInt(options.walletCount, 10),
+        corePort: options.port ? parseInt(String(options.port), 10) : undefined,
+        evmPort: options.ethPort
+          ? parseInt(String(options.ethPort), 10)
+          : undefined,
+        chainId: options.chainId
+          ? parseInt(String(options.chainId), 10)
+          : undefined,
+        evmChainId: options.evmChainId
+          ? parseInt(String(options.evmChainId), 10)
+          : undefined,
+        silent: options.silent as boolean | undefined,
+        fundWallets: options.fundWallets as boolean | undefined,
+        walletCount: options.walletCount
+          ? parseInt(String(options.walletCount), 10)
+          : undefined,
       };
 
       const defaultConfig = createDefaultXcfxConfig();
@@ -156,7 +210,7 @@ export class UnifiedCLI {
     }
   }
 
-  private async handleRestart(options: any): Promise<void> {
+  private async handleRestart(options: RestartOptions): Promise<void> {
     const spinner = ora('Restarting Conflux node...').start();
 
     try {
@@ -165,8 +219,10 @@ export class UnifiedCLI {
       }
 
       const config: Partial<NodeConfig> = {
-        corePort: parseInt(options.port, 10),
-        evmPort: parseInt(options.ethPort, 10),
+        corePort: options.port ? parseInt(String(options.port), 10) : undefined,
+        evmPort: options.ethPort
+          ? parseInt(String(options.ethPort), 10)
+          : undefined,
       };
 
       await this.nodeService.restart(config);
@@ -219,17 +275,17 @@ export class UnifiedCLI {
     }
   }
 
-  private async handleWorkflow(options: any): Promise<void> {
+  private async handleWorkflow(options: WorkflowOptions): Promise<void> {
     const spinner = ora('Running complete workflow...').start();
 
     try {
       const workflowOptions: WorkflowCommandOptions = {
-        network: options.network,
-        persistent: options.persistent,
-        dev: options.dev,
-        contracts: options.contracts,
-        silent: options.silent,
-        verbose: options.verbose,
+        network: options.network as 'mainnet' | 'testnet' | 'local' | undefined,
+        persistent: options.persistent as boolean | undefined,
+        dev: options.dev as boolean | undefined,
+        contracts: options.contracts as string[] | undefined,
+        silent: options.silent as boolean | undefined,
+        verbose: options.verbose as boolean | undefined,
       };
 
       const defaultConfig = createDefaultXcfxConfig();
@@ -255,7 +311,7 @@ export class UnifiedCLI {
     }
   }
 
-  private async handleDeploy(options: any): Promise<void> {
+  private async handleDeploy(options: DeployOptions): Promise<void> {
     const spinner = ora('Deploying contracts...').start();
 
     try {
@@ -264,9 +320,9 @@ export class UnifiedCLI {
       }
 
       const _workflowOptions: WorkflowCommandOptions = {
-        network: options.network,
-        contracts: options.contracts,
-        silent: options.silent,
+        network: options.network as 'mainnet' | 'testnet' | 'local' | undefined,
+        contracts: options.contracts as string[] | undefined,
+        silent: options.silent as boolean | undefined,
       };
 
       const defaultConfig = createDefaultXcfxConfig();
@@ -293,7 +349,7 @@ export class UnifiedCLI {
     }
   }
 
-  private async handleValidate(options: any): Promise<void> {
+  private async handleValidate(options: ValidateOptions): Promise<void> {
     const spinner = ora('Validating contracts...').start();
 
     try {
@@ -319,7 +375,7 @@ export class UnifiedCLI {
     }
   }
 
-  private async handleTest(_options: any): Promise<void> {
+  private async handleTest(_options: TestOptions): Promise<void> {
     const spinner = ora('Running tests...').start();
 
     try {
@@ -340,7 +396,7 @@ export class UnifiedCLI {
     console.log(`  EVM Chain ID: ${chalk.cyan('2030')}`);
   }
 
-  private logWorkflowResult(result: any): void {
+  private logWorkflowResult(result: LocalWorkflowResult): void {
     console.log(chalk.blue('\n📊 Workflow Results:'));
     console.log(`  Duration: ${chalk.cyan(`${result.duration}ms`)}`);
     console.log(`  Wallets: ${chalk.cyan(result.wallets.length.toString())}`);
@@ -355,28 +411,28 @@ export class UnifiedCLI {
     );
   }
 
-  private logDeploymentResults(deployments: any[]): void {
+  private logDeploymentResults(deployments: TypedDeploymentResult[]): void {
     console.log(chalk.blue('\n📦 Deployment Results:'));
     deployments.forEach((deployment, index) => {
       console.log(`  ${index + 1}. ${chalk.cyan(deployment.contractName)}`);
       console.log(`     Address: ${chalk.cyan(deployment.address)}`);
-      console.log(`     TX Hash: ${chalk.cyan(deployment.txHash)}`);
+      console.log(`     TX Hash: ${chalk.cyan(deployment.transactionHash)}`);
     });
   }
 
-  private logValidationResults(validations: any[]): void {
+  private logValidationResults(validations: ValidationResult[]): void {
     console.log(chalk.blue('\n✅ Validation Results:'));
     validations.forEach((validation, index) => {
       const status = validation.isValid ? chalk.green('✓') : chalk.red('✗');
       console.log(
         `  ${index + 1}. ${status} ${chalk.cyan(validation.contractId)}`
       );
-      if (validation.errors.length > 0) {
+      if (validation.errors && validation.errors.length > 0) {
         validation.errors.forEach((error: string) => {
           console.log(`     ${chalk.red('Error:')} ${error}`);
         });
       }
-      if (validation.warnings.length > 0) {
+      if (validation.warnings && validation.warnings.length > 0) {
         validation.warnings.forEach((warning: string) => {
           console.log(`     ${chalk.yellow('Warning:')} ${warning}`);
         });

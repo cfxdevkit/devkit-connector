@@ -3,11 +3,38 @@
 
 import type {
   BrowserContractOrchestrator,
+  BrowserNetworkConfig,
   BrowserNodeStatus,
   BrowserWalletInfo,
-  BrowserNetworkConfig,
+  ContractEvent,
   NodeConfig,
 } from '@conflux-devkit/core';
+import type { NotificationState } from '@conflux-devkit/state';
+import type { ContractCallState } from './ContractOrchestrationService';
+
+// API State Types
+export interface ApiState {
+  contracts: {
+    deployed: BrowserContractOrchestrator[];
+  };
+  wallets: {
+    wallets: BrowserWalletInfo[];
+  };
+  connection: {
+    isConnected: boolean;
+  };
+  node: {
+    status: BrowserNodeStatus | null;
+    isRunning: boolean;
+    isStarting: boolean;
+    isStopping: boolean;
+  };
+  network: {
+    current: BrowserNetworkConfig | null;
+  };
+}
+
+// Additional types for API responses
 
 // Note: These types will be imported from @conflux-devkit/state when available
 // For now, we'll define them locally
@@ -17,31 +44,6 @@ interface ContractCallParams {
   args?: unknown[];
   value?: bigint;
   from?: string;
-}
-
-interface ContractCallState {
-  callId: string;
-  contractAddress: string;
-  method: string;
-  args: unknown[];
-  result: unknown;
-  timestamp: string;
-  error?: string;
-}
-
-interface NotificationState {
-  id: string;
-  type: 'info' | 'success' | 'warning' | 'error';
-  message: string;
-  description?: string;
-  timestamp: string;
-  duration?: number;
-}
-
-interface ModalState {
-  id: string;
-  type: string;
-  props?: Record<string, unknown>;
 }
 
 interface StateService {
@@ -76,21 +78,34 @@ interface StateService {
   setLoading: (key: string, loading: boolean) => void;
   reset: () => void;
   refreshAll: () => Promise<void>;
-  getStateForAPI: () => any;
-  getContractDataForAPI: (contractAddress: string) => any;
-  getWalletDataForAPI: (address: string) => any;
+  getStateForAPI: () => ApiState;
+  getContractDataForAPI: (contractAddress: string) => {
+    contract: BrowserContractOrchestrator;
+    calls: ContractCallState[];
+    events: ContractEvent[];
+    isActive: boolean;
+  } | null;
+  getWalletDataForAPI: (address: string) => BrowserWalletInfo | null;
   getAllWalletsDataForAPI: () => BrowserWalletInfo[];
   getAllContractsDataForAPI: () => BrowserContractOrchestrator[];
-  on: (event: string, callback: (...args: any[]) => void) => void;
-  off: (event: string, callback: (...args: any[]) => void) => void;
-  emit: (event: string, ...args: any[]) => void;
-  getStore: () => any;
-  getConnectionState: () => any;
-  getNodeState: () => any;
-  getWalletState: () => any;
-  getContractState: () => any;
-  getNetworkState: () => any;
-  getUIState: () => any;
+  on: (event: string, callback: (...args: unknown[]) => void) => void;
+  off: (event: string, callback: (...args: unknown[]) => void) => void;
+  emit: (event: string, ...args: unknown[]) => void;
+  getStore: () => unknown;
+  getConnectionState: () => { isConnected: boolean };
+  getNodeState: () => {
+    status: BrowserNodeStatus | null;
+    isRunning: boolean;
+    isStarting: boolean;
+    isStopping: boolean;
+  };
+  getWalletState: () => { wallets: BrowserWalletInfo[] };
+  getContractState: () => {
+    deployed: BrowserContractOrchestrator[];
+    activeContract: BrowserContractOrchestrator | null;
+  };
+  getNetworkState: () => { current: BrowserNetworkConfig | null };
+  getUIState: () => unknown;
 }
 
 // Real state service integration
@@ -137,10 +152,7 @@ const getStateService = (): StateService => {
     addNotification: (
       notification: Omit<NotificationState, 'id' | 'timestamp'>
     ) => {
-      store.addNotification({
-        ...notification,
-        title: (notification as any).title || 'Notification',
-      });
+      store.addNotification(notification);
     },
     removeNotification: store.removeNotification,
     openModal: store.openModal,
@@ -148,9 +160,31 @@ const getStateService = (): StateService => {
     setLoading: store.setLoading,
     reset: store.reset,
     refreshAll: store.refreshAll,
-    getStateForAPI: () => store,
-    getContractDataForAPI: () => store.contracts,
-    getWalletDataForAPI: () => store.wallets,
+    getStateForAPI: () => ({
+      contracts: { deployed: store.contracts.deployed || [] },
+      wallets: { wallets: store.wallets.wallets || [] },
+      connection: { isConnected: store.isConnected || false },
+      node: {
+        status: store.node.status || null,
+        isRunning: store.node.isRunning || false,
+        isStarting: store.node.isStarting || false,
+        isStopping: store.node.isStopping || false,
+      },
+      network: { current: store.network.current || null },
+    }),
+    getContractDataForAPI: () => {
+      const activeContract = store.contracts.activeContract;
+      if (!activeContract) {
+        return null;
+      }
+      return {
+        contract: activeContract,
+        calls: [],
+        events: [],
+        isActive: true,
+      };
+    },
+    getWalletDataForAPI: () => store.wallets.activeWallet || null,
     getAllWalletsDataForAPI: () => store.wallets.wallets,
     getAllContractsDataForAPI: () => store.contracts.deployed,
     on: () => {},
@@ -185,8 +219,8 @@ export class StateIntegrationService {
     return this.stateService.disconnect();
   }
 
-  getConnectionState() {
-    return this.stateService.getConnectionState();
+  getConnectionState(): { isConnected: boolean } {
+    return this.stateService.getConnectionState() as { isConnected: boolean };
   }
 
   // ========================================================================
@@ -205,8 +239,18 @@ export class StateIntegrationService {
     return this.stateService.restartNode(config);
   }
 
-  getNodeState() {
-    return this.stateService.getNodeState();
+  getNodeState(): {
+    status: BrowserNodeStatus | null;
+    isRunning: boolean;
+    isStarting: boolean;
+    isStopping: boolean;
+  } {
+    return this.stateService.getNodeState() as {
+      status: BrowserNodeStatus | null;
+      isRunning: boolean;
+      isStarting: boolean;
+      isStopping: boolean;
+    };
   }
 
   // ========================================================================
@@ -229,8 +273,10 @@ export class StateIntegrationService {
     return this.stateService.refreshWalletBalance(address);
   }
 
-  getWalletState() {
-    return this.stateService.getWalletState();
+  getWalletState(): { wallets: BrowserWalletInfo[] } {
+    return this.stateService.getWalletState() as {
+      wallets: BrowserWalletInfo[];
+    };
   }
 
   // ========================================================================
@@ -262,8 +308,14 @@ export class StateIntegrationService {
     this.stateService.unsubscribeFromEvents(contractAddress, eventName);
   }
 
-  getContractState() {
-    return this.stateService.getContractState();
+  getContractState(): {
+    deployed: BrowserContractOrchestrator[];
+    activeContract: BrowserContractOrchestrator | null;
+  } {
+    return this.stateService.getContractState() as {
+      deployed: BrowserContractOrchestrator[];
+      activeContract: BrowserContractOrchestrator | null;
+    };
   }
 
   // ========================================================================
@@ -274,8 +326,10 @@ export class StateIntegrationService {
     return this.stateService.switchNetwork(networkId);
   }
 
-  getNetworkState() {
-    return this.stateService.getNetworkState();
+  getNetworkState(): { current: BrowserNetworkConfig | null } {
+    return this.stateService.getNetworkState() as {
+      current: BrowserNetworkConfig | null;
+    };
   }
 
   // ========================================================================
@@ -323,29 +377,69 @@ export class StateIntegrationService {
   /**
    * Get complete state for API responses
    */
-  getStateForAPI() {
-    return this.stateService.getStateForAPI();
+  getStateForAPI(): ApiState {
+    const store = this.stateService.getStateForAPI() as {
+      contracts?: { deployed?: BrowserContractOrchestrator[] };
+      wallets?: { wallets?: BrowserWalletInfo[] };
+      connection?: { isConnected?: boolean };
+      node?: {
+        status?: BrowserNodeStatus | null;
+        isRunning?: boolean;
+        isStarting?: boolean;
+        isStopping?: boolean;
+      };
+      network?: { current?: BrowserNetworkConfig | null };
+    };
+    return {
+      contracts: {
+        deployed: store.contracts?.deployed || [],
+      },
+      wallets: {
+        wallets: store.wallets?.wallets || [],
+      },
+      connection: {
+        isConnected: store.connection?.isConnected || false,
+      },
+      node: {
+        status: store.node?.status || null,
+        isRunning: store.node?.isRunning || false,
+        isStarting: store.node?.isStarting || false,
+        isStopping: store.node?.isStopping || false,
+      },
+      network: {
+        current: store.network?.current || null,
+      },
+    };
   }
 
   /**
    * Get contract data with calls and events for API
    */
   getContractDataForAPI(contractAddress: string) {
-    return this.stateService.getContractDataForAPI(contractAddress);
+    return this.stateService.getContractDataForAPI(contractAddress) as {
+      contract: BrowserContractOrchestrator;
+      calls: ContractCallState[];
+      events: ContractEvent[];
+      isActive: boolean;
+    } | null;
   }
 
   /**
    * Get wallet data for API
    */
-  getWalletDataForAPI(address: string) {
-    return this.stateService.getWalletDataForAPI(address);
+  getWalletDataForAPI(address: string): BrowserWalletInfo | null {
+    return this.stateService.getWalletDataForAPI(
+      address
+    ) as BrowserWalletInfo | null;
   }
 
   /**
    * Get all wallets data for API
    */
   getAllWalletsDataForAPI() {
-    const walletState = this.getWalletState();
+    const walletState = this.getWalletState() as {
+      wallets: BrowserWalletInfo[];
+    };
     return walletState.wallets;
   }
 
@@ -353,7 +447,9 @@ export class StateIntegrationService {
    * Get all contracts data for API
    */
   getAllContractsDataForAPI() {
-    const contractState = this.getContractState();
+    const contractState = this.getContractState() as {
+      deployed: BrowserContractOrchestrator[];
+    };
     return contractState.deployed;
   }
 
@@ -361,16 +457,19 @@ export class StateIntegrationService {
   // Event Management
   // ========================================================================
 
-  on<K extends keyof any>(event: K, callback: (...args: any[]) => void): void {
-    this.stateService.on(event as string, callback);
+  on<K extends string>(event: K, callback: (...args: unknown[]) => void): void {
+    this.stateService.on(event, callback);
   }
 
-  off<K extends keyof any>(event: K, callback: (...args: any[]) => void): void {
-    this.stateService.off(event as string, callback);
+  off<K extends string>(
+    event: K,
+    callback: (...args: unknown[]) => void
+  ): void {
+    this.stateService.off(event, callback);
   }
 
-  emit<K extends keyof any>(event: K, ...args: any[]): void {
-    this.stateService.emit(event as string, ...args);
+  emit<K extends string>(event: K, ...args: unknown[]): void {
+    this.stateService.emit(event, ...args);
   }
 
   // ========================================================================

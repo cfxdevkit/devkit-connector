@@ -1,8 +1,8 @@
 // Contract Data Hook - Provides contract data and actions
 
-import { useCallback, useMemo } from 'react';
 import { useAppStore } from '@conflux-devkit/state';
-import type { UseContractsReturn, ContractContextData } from '../types/ui';
+import { useCallback, useMemo } from 'react';
+import type { ContractContextData, UseContractsReturn } from '../types/ui';
 
 export function useContracts(): UseContractsReturn {
   const store = useAppStore();
@@ -72,7 +72,7 @@ export function useContracts(): UseContractsReturn {
       store.setLoading('refreshContracts', true);
       // Refresh contracts from API
       // This would call the API server to get updated contract data
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Mock delay
     } catch (error) {
       console.error('Failed to refresh contracts:', error);
       throw error;
@@ -87,8 +87,8 @@ export function useContracts(): UseContractsReturn {
 
   const contractsByNetwork = useMemo(() => {
     const grouped: Record<string, typeof contractData.contracts> = {};
-    contractData.contracts.forEach(contract => {
-      const network = (contract as any).network || 'unknown';
+    contractData.contracts.forEach((contract) => {
+      const network = contract.network?.name || 'unknown';
       if (!grouped[network]) {
         grouped[network] = [];
       }
@@ -113,7 +113,7 @@ export function useContracts(): UseContractsReturn {
 export function useContract(address: string) {
   const { contracts, selectContract, callMethod } = useContracts();
 
-  const contract = contracts.find(c => c.address === address);
+  const contract = contracts.find((c) => c.address === address);
 
   const callContractMethod = useCallback(
     (method: string, args: unknown[] = []) => {
@@ -128,7 +128,8 @@ export function useContract(address: string) {
   return {
     contract,
     isActive:
-      contract?.address === contracts.find(c => c.address === address)?.address,
+      contract?.address ===
+      contracts.find((c) => c.address === address)?.address,
     select: () => selectContract(address),
     call: callContractMethod,
     isLoading: false, // Would be based on specific contract loading state

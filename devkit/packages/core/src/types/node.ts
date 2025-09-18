@@ -114,6 +114,8 @@ export interface NodeStatus {
   miningAddress?: `0x${string}`;
   uptime?: number;
   lastBlockTime?: Date;
+  health?: 'healthy' | 'unhealthy' | 'unknown' | 'starting' | 'stopping';
+  lastHealthCheck?: Date;
 }
 
 // Import WalletInfo from blockchain types

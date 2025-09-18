@@ -25,7 +25,7 @@ pnpm run build
 echo "🌟 Starting development services..."
 echo "   - DevKit Node: http://localhost:12537"
 echo "   - API Server: http://localhost:3001"
-echo "   - Dashboard: http://localhost:3000"
+echo "   - Showcase WebApp: http://localhost:3000"
 echo ""
 echo "Press Ctrl+C to stop all services"
 

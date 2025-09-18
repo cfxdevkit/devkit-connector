@@ -14,6 +14,10 @@
       "dependsOn": ["build"],
       "outputs": ["coverage/**"]
     },
+    "type-check": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
     "lint": {
       "dependsOn": ["^build"],
       "outputs": []
@@ -35,6 +39,10 @@
       "outputs": []
     },
     "check:fix": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "check:fix:unsafe": {
       "dependsOn": ["^build"],
       "outputs": []
     },

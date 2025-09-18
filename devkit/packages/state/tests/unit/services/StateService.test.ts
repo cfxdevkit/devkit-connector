@@ -256,7 +256,8 @@ describe('StateService', () => {
         contractName,
         bytecode,
         abi,
-        constructorArgs
+        constructorArgs,
+        ''
       );
       expect(result).toEqual(mockContract);
     });
@@ -284,7 +285,7 @@ describe('StateService', () => {
         methodName,
         args
       );
-      expect(result).toEqual(mockResult);
+      expect(result).toEqual(mockResult.result);
     });
 
     it('should get contracts', async () => {
@@ -309,7 +310,42 @@ describe('StateService', () => {
       const contracts = await stateService.getContracts();
 
       expect(realContractService.getContracts).toHaveBeenCalled();
-      expect(contracts).toEqual(mockContracts);
+      expect(contracts).toEqual([
+        {
+          name: 'TestContract',
+          address: '0x1234567890abcdef1234567890abcdef12345678',
+          abi: '[]',
+          bytecode: '0x1234',
+          deployedBytecode: '',
+          chainType: 'evm',
+          networkId: '1',
+          chainId: '1',
+          evmChainId: '1',
+          network: {
+            name: 'Ethereum',
+            rpcUrl: 'https://mainnet.infura.io/v3/your-key',
+            chainId: '1',
+            evmChainId: '1',
+            currency: {
+              name: 'Ether',
+              symbol: 'ETH',
+              decimals: '18',
+            },
+            isTestnet: false,
+            networkType: 'evm',
+          },
+          methods: {
+            read: [],
+            write: [],
+            events: [],
+          },
+          capabilities: {
+            read: true,
+            write: true,
+            events: true,
+          },
+        },
+      ]);
     });
   });
 

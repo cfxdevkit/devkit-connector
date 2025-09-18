@@ -12,7 +12,7 @@ const orchestrator = getServiceOrchestrator();
 // ========================================================================
 
 // Get all contracts with full state
-router.get('/', async (req, res) => {
+router.get('/', async (_req, res) => {
   try {
     orchestrator.trackRequest();
     const contracts = await orchestrator.getContractService().getAllContracts();
@@ -108,7 +108,7 @@ router.get('/network/:networkId', async (req, res) => {
 });
 
 // Get active contract
-router.get('/active/current', async (req, res) => {
+router.get('/active/current', async (_req, res) => {
   try {
     orchestrator.trackRequest();
     const contract = await orchestrator

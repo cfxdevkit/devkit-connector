@@ -106,3 +106,14 @@ Thumbs.db
 data/
 logs/
 *.log
+
+# Ignore all dot files and folders (except important ones)
+.*
+!.eslintrc.js
+!.prettierrc
+!.npmrc
+!.vscode/
+!.vscode/extensions.json
+
+# Turbo cache (should be ignored)
+.turbo/

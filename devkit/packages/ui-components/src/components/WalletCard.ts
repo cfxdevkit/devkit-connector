@@ -3,6 +3,14 @@
 import { css, html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
+interface WalletInfo {
+  address: string;
+  balance?: string;
+  isDefault?: boolean;
+  name?: string;
+  network?: string;
+}
+
 @customElement('conflux-wallet-card')
 export class WalletCard extends LitElement {
   static properties = {
@@ -14,11 +22,11 @@ export class WalletCard extends LitElement {
   };
 
   // Property declarations for TypeScript
-  wallet: any = null;
-  active: boolean = false;
-  showActions: boolean = true;
-  compact: boolean = false;
-  isExpanded: boolean = false;
+  declare wallet: WalletInfo | null;
+  declare active: boolean;
+  declare showActions: boolean;
+  declare compact: boolean;
+  declare isExpanded: boolean;
 
   constructor() {
     super();
@@ -207,19 +215,19 @@ export class WalletCard extends LitElement {
       </div>
 
       <div
-        class="card-content ${this.compact ? 'compact' : ''} ${this.isExpanded
-          ? 'expanded'
-          : 'collapsed'}"
+        class="card-content ${this.compact ? 'compact' : ''} ${
+          this.isExpanded ? 'expanded' : 'collapsed'
+        }"
       >
         <div class="wallet-info">
           <div class="balance">
-            ${this.formatBalance(this.wallet.balance)}
+            ${this.formatBalance(this.wallet?.balance)}
             <div class="balance-label">CFX</div>
           </div>
 
           <div class="info-row">
             <span class="info-label">Address:</span>
-            <span class="address">${this.wallet.address}</span>
+            <span class="address">${this.wallet?.address || 'Unknown'}</span>
           </div>
 
           <div class="info-row">
@@ -231,8 +239,9 @@ export class WalletCard extends LitElement {
         </div>
       </div>
 
-      ${this.showActions
-        ? html`
+      ${
+        this.showActions
+          ? html`
             <div class="card-actions">
               <button class="btn" @click=${this.handleSelect}>Select</button>
               <button class="btn primary" @click=${this.handleRefresh}>
@@ -240,14 +249,15 @@ export class WalletCard extends LitElement {
               </button>
             </div>
           `
-        : ''}
+          : ''
+      }
     `;
   }
 
   private renderBadges() {
     const badges = [];
 
-    if ((this.wallet as any).isDefault) {
+    if (this.wallet?.isDefault) {
       badges.push(html`<span class="badge default">Default</span>`);
     }
 
@@ -258,7 +268,8 @@ export class WalletCard extends LitElement {
     return badges;
   }
 
-  private formatBalance(balance: string): string {
+  private formatBalance(balance?: string): string {
+    if (!balance) return '0.0000';
     const num = BigInt(balance);
     const cfx = Number(num) / 1e18;
     return cfx.toFixed(4);

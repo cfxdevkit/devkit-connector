@@ -3,14 +3,17 @@
 import { createInternalError } from '@conflux-devkit/core';
 import cors from 'cors';
 import express from 'express';
-import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import { getServiceOrchestrator } from '../services/ServiceOrchestrator';
-import { orchestratedContractRoutes } from './routes/orchestrated-contract';
-import { orchestratedWalletRoutes } from './routes/orchestrated-wallet';
-import { orchestratedNodeRoutes } from './routes/orchestrated-node';
-import { systemRoutes } from './routes/system';
+import helmet from 'helmet';
+import {
+  getServiceOrchestrator,
+  type ServiceHealth,
+} from '../services/ServiceOrchestrator';
 import { healthRoutes } from './routes/health';
+import { orchestratedContractRoutes } from './routes/orchestrated-contract';
+import { orchestratedNodeRoutes } from './routes/orchestrated-node';
+import { orchestratedWalletRoutes } from './routes/orchestrated-wallet';
+import { systemRoutes } from './routes/system';
 
 export class OrchestratedApiServer {
   private app: express.Application;
@@ -247,7 +250,7 @@ export class OrchestratedApiServer {
    */
   async getHealthStatus(): Promise<{
     server: 'running' | 'stopped';
-    services: any;
+    services: ServiceHealth;
     uptime: number;
   }> {
     try {
@@ -259,10 +262,17 @@ export class OrchestratedApiServer {
         services: health,
         uptime: metrics.uptime,
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         server: 'stopped',
-        services: { overall: 'unhealthy' },
+        services: {
+          state: 'unhealthy',
+          contracts: 'unhealthy',
+          wallets: 'unhealthy',
+          node: 'unhealthy',
+          overall: 'unhealthy',
+          lastCheck: new Date().toISOString(),
+        },
         uptime: 0,
       };
     }

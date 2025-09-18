@@ -17,6 +17,7 @@ import {
   expectValidRpcResponse,
   expectValidRpcError,
 } from '../../helpers/assertions';
+import { rpcCache } from '@conflux-devkit/core';
 
 // Mock viem
 vi.mock('viem', () => ({
@@ -47,6 +48,9 @@ describe('EvmClient', () => {
   beforeEach(async () => {
     // Reset mocks
     vi.clearAllMocks();
+    
+    // Clear RPC cache to ensure fresh state for each test
+    rpcCache.clear();
 
     // Mock public client
     mockPublicClient = {
@@ -92,6 +96,8 @@ describe('EvmClient', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    // Clear RPC cache after each test
+    rpcCache.clear();
   });
 
   describe('Constructor', () => {
@@ -395,7 +401,10 @@ describe('EvmClient', () => {
       const expectedResult =
         '0x0000000000000000000000000000000000000000000000000000000000000064';
 
-      mockPublicClient.call.mockResolvedValue(expectedResult);
+      mockPublicClient.call.mockResolvedValue({
+        data: expectedResult,
+        status: 'success',
+      });
 
       const result = await client.call({ to, data });
 

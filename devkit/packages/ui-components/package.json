@@ -9,8 +9,10 @@
   "scripts": {
     "build": "tsup src/**/*.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "type-check": "tsc --noEmit",
     "check": "biome check src/",
     "check:fix": "biome check --write src/",
+    "check:fix:unsafe": "biome check --write --unsafe src/",
     "lint": "biome lint src/",
     "lint:fix": "biome lint --write src/",
     "format": "biome format src/",

@@ -318,7 +318,8 @@ describe('AppStore', () => {
       expect(state.ui.modals).toHaveLength(1);
       expect(state.ui.modals[0].id).toBe(modalId);
       expect(state.ui.modals[0].type).toBe('wallet');
-      expect(state.ui.modals[0].isOpen).toBe(true);
+      expect(state.ui.modals[0].closable).toBe(true);
+      expect(state.ui.modals[0].size).toBe('medium');
     });
 
     it('should close modal', () => {

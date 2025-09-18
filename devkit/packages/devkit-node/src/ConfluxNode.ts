@@ -357,7 +357,7 @@ export class ConfluxNode {
         networkType: 'core' as const,
       };
 
-      this.coreClient = new CoreClient(networkConfig);
+      this.coreClient = new CoreClient();
       this.evmClient = new EvmClient(networkConfig);
 
       // Fund wallets if requested

@@ -62,6 +62,7 @@ export interface ContractState {
   activeContract: BrowserContractOrchestrator | null;
   contractCalls: ContractCallState[];
   events: ContractEventState[];
+  error: string | null;
 }
 
 export interface ContractCallState {
@@ -97,6 +98,7 @@ export interface NetworkState {
 }
 
 export interface UIState {
+  theme: 'light' | 'dark' | 'system';
   sidebarOpen: boolean;
   activeTab: string;
   notifications: NotificationState[];
@@ -110,8 +112,10 @@ export interface NotificationState {
   type: 'success' | 'error' | 'warning' | 'info';
   title: string;
   message: string;
-  timestamp: Date;
+  description?: string;
+  timestamp: string;
   duration?: number;
+  persistent: boolean;
   actions?: NotificationAction[];
 }
 
@@ -124,8 +128,10 @@ export interface NotificationAction {
 export interface ModalState {
   id: string;
   type: string;
-  props: Record<string, unknown>;
-  isOpen: boolean;
+  title?: string;
+  props?: Record<string, unknown>;
+  closable: boolean;
+  size: 'small' | 'medium' | 'large' | 'fullscreen';
 }
 
 // ============================================================================
@@ -151,6 +157,7 @@ export interface AppActions {
   selectWallet: (address: string) => void;
   refreshWalletBalance: (address: string) => Promise<void>;
   setWalletError: (error: string | null) => void;
+  removeWallet: (address: string) => void;
 
   // Contract actions
   deployContract: (
@@ -164,6 +171,7 @@ export interface AppActions {
   subscribeToEvents: (contractAddress: string, eventName?: string) => void;
   unsubscribeFromEvents: (contractAddress: string, eventName?: string) => void;
   setContractError: (error: string | null) => void;
+  addContract: (contract: BrowserContractOrchestrator) => void;
 
   // Network actions
   switchNetwork: (networkId: string) => Promise<void>;
@@ -172,6 +180,7 @@ export interface AppActions {
   // UI actions
   toggleSidebar: () => void;
   setActiveTab: (tab: string) => void;
+  setTheme: (theme: 'light' | 'dark' | 'system') => void;
   addNotification: (
     notification: Omit<NotificationState, 'id' | 'timestamp'>
   ) => void;
@@ -310,7 +319,7 @@ export interface StateEvents {
 
 export interface IStateService {
   // Store management
-  getStore: () => AppStore;
+  getStore: () => ReturnType<typeof import('../stores/appStore').useAppStore>;
   subscribe: <T>(
     selector: (state: AppStore) => T,
     callback: (value: T) => void
@@ -338,6 +347,84 @@ export interface IStateService {
   // Lifecycle
   initialize: (config?: Partial<StoreConfig>) => Promise<void>;
   destroy: () => void;
+}
+
+// ============================================================================
+// ABI and Contract Types
+// ============================================================================
+
+export interface AbiFunction {
+  type: 'function';
+  name: string;
+  inputs: AbiParameter[];
+  outputs: AbiParameter[];
+  stateMutability: 'pure' | 'view' | 'nonpayable' | 'payable';
+}
+
+export interface AbiEvent {
+  type: 'event';
+  name: string;
+  inputs: AbiParameter[];
+  anonymous: boolean;
+}
+
+export interface AbiConstructor {
+  type: 'constructor';
+  inputs: AbiParameter[];
+  stateMutability: 'payable' | 'nonpayable';
+}
+
+export interface AbiFallback {
+  type: 'fallback';
+  stateMutability: 'payable' | 'nonpayable';
+}
+
+export interface AbiReceive {
+  type: 'receive';
+  stateMutability: 'payable';
+}
+
+export interface AbiParameter {
+  name: string;
+  type: string;
+  indexed?: boolean;
+  internalType?: string;
+  components?: AbiParameter[];
+}
+
+export type AbiItem =
+  | AbiFunction
+  | AbiEvent
+  | AbiConstructor
+  | AbiFallback
+  | AbiReceive;
+
+export type ContractAbi = AbiItem[];
+
+export interface ContractDeploymentResult {
+  address: string;
+  transactionHash: string;
+  gasUsed: string;
+  contractName: string;
+  abi: ContractAbi;
+  bytecode: string;
+}
+
+export interface ContractCallResult {
+  success: boolean;
+  result?: unknown;
+  error?: string;
+  gasUsed?: string;
+  transactionHash?: string;
+}
+
+export interface ContractInfo {
+  address: string;
+  name: string;
+  abi: ContractAbi;
+  bytecode?: string;
+  deployedAt: Date;
+  networkId: string;
 }
 
 // ============================================================================

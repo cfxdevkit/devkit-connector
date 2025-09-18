@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Start only the Dashboard
+# Start only the Showcase WebApp (frontend)
 
-echo "🎨 Starting Conflux DevKit Dashboard..."
+echo "🎨 Starting Conflux DevKit Showcase WebApp..."
 
-cd packages/dashboard
+cd packages/showcase-webapp
 pnpm run dev

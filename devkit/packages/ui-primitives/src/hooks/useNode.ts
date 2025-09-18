@@ -1,8 +1,9 @@
 // Node Data Hook - Provides node data and actions
 
-import { useCallback, useMemo } from 'react';
+import type { NodeConfig } from '@conflux-devkit/core';
 import { useAppStore } from '@conflux-devkit/state';
-import type { UseNodeReturn, NodeContextData } from '../types/ui';
+import { useCallback, useMemo } from 'react';
+import type { NodeContextData, UseNodeReturn } from '../types/ui';
 
 export function useNode(): UseNodeReturn {
   const store = useAppStore();
@@ -28,7 +29,7 @@ export function useNode(): UseNodeReturn {
 
   // Actions
   const startNode = useCallback(
-    async (config?: any) => {
+    async (config?: NodeConfig) => {
       try {
         store.setLoading('startNode', true);
         await store.startNode(config);
@@ -55,7 +56,7 @@ export function useNode(): UseNodeReturn {
   }, [store]);
 
   const restartNode = useCallback(
-    async (config?: any) => {
+    async (config?: NodeConfig) => {
       try {
         store.setLoading('restartNode', true);
         // This would need to be implemented in the store
@@ -76,7 +77,7 @@ export function useNode(): UseNodeReturn {
       store.setLoading('refreshNodeStatus', true);
       // Refresh node status from API
       // This would call the API server to get updated node status
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Mock delay
     } catch (error) {
       console.error('Failed to refresh node status:', error);
       throw error;
@@ -154,7 +155,7 @@ export function useNodeControls() {
   const canRestart = isRunning && !isStarting && !isStopping;
 
   const start = useCallback(
-    async (config?: any) => {
+    async (config?: NodeConfig) => {
       if (!canStart) return false;
       try {
         await startNode(config);
@@ -179,7 +180,7 @@ export function useNodeControls() {
   }, [canStop, stopNode]);
 
   const restart = useCallback(
-    async (config?: any) => {
+    async (config?: NodeConfig) => {
       if (!canRestart) return false;
       try {
         await restartNode(config);

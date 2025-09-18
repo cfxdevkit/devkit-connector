@@ -1,14 +1,14 @@
 // UI Context Provider - Provides UI state and actions to all components
 
-import React, { createContext, useContext, useCallback, useMemo } from 'react';
 import { useAppStore } from '@conflux-devkit/state';
+import type React from 'react';
+import { createContext, useCallback, useContext, useMemo } from 'react';
 import type {
-  UIState,
-  UIPreferences,
   NotificationState,
-  ModalState,
   UIEvents,
+  UIPreferences,
   UIPrimitivesConfig,
+  UIState,
 } from '../types/ui';
 
 // ============================================================================
@@ -75,7 +75,7 @@ interface UIProviderProps {
   config?: Partial<UIPrimitivesConfig>;
 }
 
-export function UIProvider({ children, config }: UIProviderProps) {
+export function UIProvider({ children }: UIProviderProps) {
   const store = useAppStore();
 
   // Get UI state from store
@@ -139,11 +139,7 @@ export function UIProvider({ children, config }: UIProviderProps) {
   // Notification actions
   const addNotification = useCallback(
     (notification: Omit<NotificationState, 'id' | 'timestamp'>) => {
-      store.addNotification({
-        ...notification,
-        id: Math.random().toString(36).substring(2, 15),
-        timestamp: new Date().toISOString(),
-      });
+      store.addNotification(notification);
     },
     [store]
   );
@@ -157,7 +153,7 @@ export function UIProvider({ children, config }: UIProviderProps) {
 
   const clearNotifications = useCallback(() => {
     // Clear all notifications
-    store.ui.notifications.forEach(notification => {
+    store.ui.notifications.forEach((notification) => {
       store.removeNotification(notification.id);
     });
   }, [store]);
@@ -167,7 +163,7 @@ export function UIProvider({ children, config }: UIProviderProps) {
     (
       type: string,
       props?: Record<string, unknown>,
-      options?: {
+      _options?: {
         title?: string;
         closable?: boolean;
         size?: 'small' | 'medium' | 'large' | 'fullscreen';
@@ -187,7 +183,7 @@ export function UIProvider({ children, config }: UIProviderProps) {
   );
 
   const closeAllModals = useCallback(() => {
-    store.ui.modals.forEach(modal => {
+    store.ui.modals.forEach((modal) => {
       store.closeModal(modal.id);
     });
   }, [store, store.ui.modals]);
@@ -221,7 +217,7 @@ export function UIProvider({ children, config }: UIProviderProps) {
   const on = useCallback(
     <K extends keyof UIEvents>(
       event: K,
-      callback: (...args: UIEvents[K]) => void
+      _callback: (...args: UIEvents[K]) => void
     ) => {
       // Event system would be implemented here
       console.log('Register event listener:', event);
@@ -232,7 +228,7 @@ export function UIProvider({ children, config }: UIProviderProps) {
   const off = useCallback(
     <K extends keyof UIEvents>(
       event: K,
-      callback: (...args: UIEvents[K]) => void
+      _callback: (...args: UIEvents[K]) => void
     ) => {
       // Event system would be implemented here
       console.log('Remove event listener:', event);

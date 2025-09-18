@@ -77,53 +77,14 @@ async function checkpoint() {
   }
 
   console.log('\n✅ All diagnostic steps completed successfully!');
-
-  // Step 5: Get commit message
-  const commitMessage = await askQuestion('\n📝 Enter commit message: ');
-  if (!commitMessage.trim()) {
-    console.log('\n❌ Commit message cannot be empty.');
-    rl.close();
-    process.exit(1);
-  }
-
-  // Step 6: Commit changes
-  console.log('\n💾 Committing changes...');
-  try {
-    execSync('git add .', { stdio: 'inherit' });
-    execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
-    console.log('✅ Changes committed successfully');
-  } catch (error) {
-    console.error('❌ Failed to commit changes:', error.message);
-    rl.close();
-    process.exit(1);
-  }
-
-  // Step 7: Push changes
-  const shouldPush = await askQuestion('\n🚀 Push changes to remote? (y/N): ');
-  if (shouldPush.toLowerCase() === 'y' || shouldPush.toLowerCase() === 'yes') {
-    console.log('\n📤 Pushing changes...');
-    try {
-      execSync('git push', { stdio: 'inherit' });
-      console.log('✅ Changes pushed successfully');
-    } catch (error) {
-      console.error('❌ Failed to push changes:', error.message);
-      rl.close();
-      process.exit(1);
-    }
-  } else {
-    console.log('\n⏸️  Skipping push. Changes are committed locally.');
-  }
-
   console.log('\n🎉 Checkpoint completed successfully!');
   console.log('📊 Summary:');
   console.log('  ✅ Biome checks passed');
   console.log('  ✅ All packages built successfully');
   console.log('  ✅ All tests passed');
   console.log('  ✅ Final checks passed');
-  console.log('  ✅ Changes committed');
-  if (shouldPush.toLowerCase() === 'y' || shouldPush.toLowerCase() === 'yes') {
-    console.log('  ✅ Changes pushed to remote');
-  }
+  console.log('\n💡 Ready for manual commit!');
+  console.log('   Run: git add . && git commit -m "your message"');
 
   rl.close();
 }

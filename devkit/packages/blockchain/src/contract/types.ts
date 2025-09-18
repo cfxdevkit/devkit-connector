@@ -46,18 +46,36 @@ export interface BrowserContractEventLog {
   removed: boolean;
 }
 
-// Browser-safe contract orchestrator
-export interface BrowserContractOrchestrator {
-  // Basic contract information
+// Import BrowserContractOrchestrator from core package
+import type { BrowserContractOrchestrator as CoreBrowserContractOrchestrator } from '@conflux-devkit/core';
+
+// Extended BrowserContractOrchestrator with additional blockchain-specific properties
+export interface BrowserContractOrchestrator
+  extends Omit<
+    CoreBrowserContractOrchestrator,
+    'abi' | 'chainId' | 'evmChainId' | 'methods' | 'capabilities' | 'network'
+  > {
+  // Additional blockchain-specific properties
   id: string;
-  name: string;
-  address: string;
-  chainType: 'core' | 'evm';
-  networkId: string;
   chainId: number;
   evmChainId?: number;
-
-  // Contract metadata
+  abi: AbiItem[]; // Full ABI, not stringified
+  methods: {
+    read: BrowserContractMethod[];
+    write: BrowserContractMethod[];
+    events: BrowserContractEvent[];
+    constructor: BrowserContractMethod | null;
+  };
+  capabilities: {
+    canRead: boolean;
+    canWrite: boolean;
+    canReceive: boolean;
+    canFallback: boolean;
+    hasEvents: boolean;
+    isUpgradeable: boolean;
+    isPausable: boolean;
+    isOwnable: boolean;
+  };
   metadata: {
     name: string;
     version?: string;
@@ -72,21 +90,6 @@ export interface BrowserContractOrchestrator {
     website?: string;
     documentation?: string;
   };
-
-  // Contract interface
-  abi: AbiItem[];
-  bytecode: string;
-  deployedBytecode: string;
-
-  // Organized methods and events
-  methods: {
-    read: BrowserContractMethod[];
-    write: BrowserContractMethod[];
-    events: BrowserContractEvent[];
-    constructor: BrowserContractMethod | null;
-  };
-
-  // Contract status and deployment info
   deployment: {
     transactionHash: string;
     blockNumber: string;
@@ -95,16 +98,12 @@ export interface BrowserContractOrchestrator {
     isVerified: boolean;
     verificationStatus?: 'pending' | 'verified' | 'failed';
   };
-
-  // Type generation status
   types: {
     generated: boolean;
     generatedAt?: string; // ISO string
     error?: string;
     generatedTypes?: Record<string, unknown>;
   };
-
-  // UI-friendly information
   ui: {
     displayName: string;
     description: string;
@@ -116,20 +115,6 @@ export interface BrowserContractOrchestrator {
     lastUsed?: string; // ISO string
     usageCount: number;
   };
-
-  // Contract capabilities
-  capabilities: {
-    canRead: boolean;
-    canWrite: boolean;
-    canReceive: boolean;
-    canFallback: boolean;
-    hasEvents: boolean;
-    isUpgradeable: boolean;
-    isPausable: boolean;
-    isOwnable: boolean;
-  };
-
-  // Network information
   network: {
     name: string;
     rpcUrl: string;

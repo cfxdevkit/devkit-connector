@@ -1,8 +1,8 @@
 // Network Data Hook - Provides network data and actions
 
-import { useCallback, useMemo } from 'react';
 import { useAppStore } from '@conflux-devkit/state';
-import type { UseNetworkReturn, NetworkContextData } from '../types/ui';
+import { useCallback, useMemo } from 'react';
+import type { NetworkContextData, UseNetworkReturn } from '../types/ui';
 
 export function useNetwork(): UseNetworkReturn {
   const store = useAppStore();
@@ -43,7 +43,7 @@ export function useNetwork(): UseNetworkReturn {
       store.setLoading('refreshNetworks', true);
       // Refresh networks from API
       // This would call the API server to get available networks
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Mock delay
     } catch (error) {
       console.error('Failed to refresh networks:', error);
       throw error;
@@ -94,7 +94,7 @@ export function useCurrentNetwork() {
       rpcUrl: current.rpcUrl,
       currency: current.currency,
       isTestnet: current.isTestnet,
-      networkType: (current as any).networkType || 'unknown',
+      networkType: current.networkType || 'unknown',
     };
   }, [current]);
 

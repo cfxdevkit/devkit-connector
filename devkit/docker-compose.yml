@@ -29,20 +29,20 @@ services:
     networks:
       - devkit-network
 
-  dashboard:
-    build:
-      context: ./packages/dashboard
-      dockerfile: Dockerfile
-    ports:
-      - '3000:3000'
-    environment:
-      - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://localhost:3001
-      - NEXT_PUBLIC_RPC_URL=http://localhost:12537
-    depends_on:
-      - server
-    networks:
-      - devkit-network
+  # dashboard:
+  #   build:
+  #     context: ./packages/.dashboard
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - '3000:3000'
+  #   environment:
+  #     - NODE_ENV=development
+  #     - NEXT_PUBLIC_API_URL=http://localhost:3001
+  #     - NEXT_PUBLIC_RPC_URL=http://localhost:12537
+  #   depends_on:
+  #     - server
+  #   networks:
+  #     - devkit-network
 
 volumes:
   devkit-node-data:

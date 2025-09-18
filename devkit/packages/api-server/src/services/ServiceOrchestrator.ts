@@ -1,12 +1,12 @@
 // Service Orchestrator - Coordinates all API services with state management
 // This is the main service that orchestrates all other services
 
-import { getStateIntegrationService } from './StateIntegrationService';
+import type { NodeConfig } from '@conflux-devkit/core';
 import { ContractOrchestrationService } from './ContractOrchestrationService';
-import { WalletOrchestrationService } from './WalletOrchestrationService';
 import { NodeOrchestrationService } from './NodeOrchestrationService';
 import type { StateIntegrationService } from './StateIntegrationService';
-import type { NodeConfig } from '@conflux-devkit/core';
+import { getStateIntegrationService } from './StateIntegrationService';
+import { WalletOrchestrationService } from './WalletOrchestrationService';
 
 export interface ServiceHealth {
   state: 'healthy' | 'unhealthy';
@@ -263,7 +263,7 @@ export class ServiceOrchestrator {
   async getSystemStatus(): Promise<{
     health: ServiceHealth;
     metrics: ServiceMetrics;
-    state: any;
+    state: unknown;
   }> {
     const [health, metrics, state] = await Promise.all([
       this.getServiceHealth(),
@@ -308,7 +308,7 @@ export class ServiceOrchestrator {
       console.log('ServiceOrchestrator: Disconnected from Conflux network');
     });
 
-    this.stateIntegration.on('state:node:started', status => {
+    this.stateIntegration.on('state:node:started', (status) => {
       console.log('ServiceOrchestrator: Node started', status);
     });
 
@@ -316,12 +316,18 @@ export class ServiceOrchestrator {
       console.log('ServiceOrchestrator: Node stopped');
     });
 
-    this.stateIntegration.on('state:wallet:created', wallet => {
-      console.log('ServiceOrchestrator: Wallet created', wallet.address);
+    this.stateIntegration.on('state:wallet:created', (wallet) => {
+      console.log(
+        'ServiceOrchestrator: Wallet created',
+        (wallet as { address: string }).address
+      );
     });
 
-    this.stateIntegration.on('state:contract:deployed', contract => {
-      console.log('ServiceOrchestrator: Contract deployed', contract.address);
+    this.stateIntegration.on('state:contract:deployed', (contract) => {
+      console.log(
+        'ServiceOrchestrator: Contract deployed',
+        (contract as { address: string }).address
+      );
     });
 
     this.stateIntegration.on('state:error', (type, error) => {

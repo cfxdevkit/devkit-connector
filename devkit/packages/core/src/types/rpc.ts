@@ -12,7 +12,9 @@ export interface EvmClient {
   waitForTransactionReceipt: (
     hash: `0x${string}`
   ) => Promise<TransactionReceipt>;
-  readContract: (params: ReadContractParams) => Promise<unknown>;
+  readContract: (
+    params: ReadContractParams
+  ) => Promise<string | number | bigint | boolean | `0x${string}` | unknown[]>;
   writeContract: (params: WriteContractParams) => Promise<`0x${string}`>;
   sendTransaction: (params: SendTransactionParams) => Promise<`0x${string}`>;
   getGasPrice: () => Promise<bigint>;

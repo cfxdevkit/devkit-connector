@@ -53,7 +53,7 @@ export interface UnifiedWalletInterface {
   readContract(
     params: ReadContractParams,
     network: NetworkConfig
-  ): Promise<unknown>;
+  ): Promise<string | number | bigint | boolean | `0x${string}` | unknown[]>;
   writeContract(
     wallet: WalletInfo,
     params: WriteContractParams,
@@ -159,7 +159,7 @@ export class UnifiedWalletManager implements UnifiedWalletInterface {
   async readContract(
     params: ReadContractParams,
     network: NetworkConfig
-  ): Promise<unknown> {
+  ): Promise<string | number | bigint | boolean | `0x${string}` | unknown[]> {
     const client = this.getClient(network);
     return await client.readContract(params);
   }

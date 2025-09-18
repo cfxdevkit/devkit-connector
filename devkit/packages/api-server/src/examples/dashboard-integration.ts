@@ -118,21 +118,21 @@ export class DashboardIntegration {
       // Fetch all dashboard data in parallel
       const [systemStatus, contracts, wallets, nodeStatus, systemHealth] =
         await Promise.all([
-          fetch(endpoints.system.status).then(res => res.json()),
-          fetch(endpoints.contracts.list).then(res => res.json()),
-          fetch(endpoints.wallets.list).then(res => res.json()),
-          fetch(endpoints.node.status).then(res => res.json()),
-          fetch(endpoints.system.health).then(res => res.json()),
+          fetch(endpoints.system.status).then((res) => res.json()),
+          fetch(endpoints.contracts.list).then((res) => res.json()),
+          fetch(endpoints.wallets.list).then((res) => res.json()),
+          fetch(endpoints.node.status).then((res) => res.json()),
+          fetch(endpoints.system.health).then((res) => res.json()),
         ]);
 
       return {
         system: {
-          status: (systemStatus as any).data,
-          health: (systemHealth as any).data,
+          status: (systemStatus as { data: unknown }).data,
+          health: (systemHealth as { data: unknown }).data,
         },
-        contracts: (contracts as any).data,
-        wallets: (wallets as any).data,
-        node: (nodeStatus as any).data,
+        contracts: (contracts as { data: unknown }).data,
+        wallets: (wallets as { data: unknown }).data,
+        node: (nodeStatus as { data: unknown }).data,
         timestamp: new Date().toISOString(),
       };
     } catch (error) {
@@ -144,8 +144,8 @@ export class DashboardIntegration {
   /**
    * Example of real-time data subscription
    */
-  async subscribeToRealTimeUpdates(callback: (data: any) => void) {
-    const endpoints = this.getApiEndpoints();
+  async subscribeToRealTimeUpdates(callback: (data: unknown) => void) {
+    const _endpoints = this.getApiEndpoints();
 
     // Poll for updates every 5 seconds
     const interval = setInterval(async () => {
@@ -168,7 +168,7 @@ export class DashboardIntegration {
    */
   async deployContractForDashboard(
     contractName: string,
-    constructorArgs: any[] = []
+    constructorArgs: unknown[] = []
   ) {
     const endpoints = this.getApiEndpoints();
 
@@ -210,7 +210,7 @@ export class DashboardIntegration {
   /**
    * Example of node operations for dashboard
    */
-  async startNodeForDashboard(config?: any) {
+  async startNodeForDashboard(config?: unknown) {
     const endpoints = this.getApiEndpoints();
 
     const response = await fetch(endpoints.node.start, {
@@ -288,7 +288,7 @@ export async function exampleDashboardIntegration() {
     console.log('Dashboard data:', data);
 
     // Set up real-time updates
-    const cleanup = await integration.subscribeToRealTimeUpdates(data => {
+    const cleanup = await integration.subscribeToRealTimeUpdates((data) => {
       console.log('Real-time update:', data);
     });
 

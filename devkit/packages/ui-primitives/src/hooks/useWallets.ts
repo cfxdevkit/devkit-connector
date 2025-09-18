@@ -1,8 +1,14 @@
 // Wallet Data Hook - Provides wallet data and actions
 
-import { useCallback, useMemo } from 'react';
+import type { BrowserWalletInfo } from '@conflux-devkit/core';
 import { useAppStore } from '@conflux-devkit/state';
+import { useCallback, useMemo } from 'react';
 import type { UseWalletsReturn, WalletContextData } from '../types/ui';
+
+// Extended wallet interface with network information
+interface WalletWithNetwork extends BrowserWalletInfo {
+  network?: string;
+}
 
 export function useWallets(): UseWalletsReturn {
   const store = useAppStore();
@@ -72,7 +78,7 @@ export function useWallets(): UseWalletsReturn {
       store.setLoading('refreshWallets', true);
       // Refresh wallets from API
       // This would call the API server to get updated wallet data
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Mock delay
     } catch (error) {
       console.error('Failed to refresh wallets:', error);
       throw error;
@@ -96,8 +102,8 @@ export function useWallets(): UseWalletsReturn {
 
   const walletsByNetwork = useMemo(() => {
     const grouped: Record<string, typeof walletData.wallets> = {};
-    walletData.wallets.forEach(wallet => {
-      const network = (wallet as any).network || 'unknown';
+    walletData.wallets.forEach((wallet) => {
+      const network = (wallet as WalletWithNetwork).network || 'unknown';
       if (!grouped[network]) {
         grouped[network] = [];
       }
@@ -123,7 +129,7 @@ export function useWallets(): UseWalletsReturn {
 export function useWallet(address: string) {
   const { wallets, selectWallet } = useWallets();
 
-  const wallet = wallets.find(w => w.address === address);
+  const wallet = wallets.find((w) => w.address === address);
 
   const select = useCallback(() => {
     if (!wallet) {
@@ -143,7 +149,7 @@ export function useWallet(address: string) {
   return {
     wallet,
     isActive:
-      wallet?.address === wallets.find(w => w.address === address)?.address,
+      wallet?.address === wallets.find((w) => w.address === address)?.address,
     select,
     refreshBalance,
     isLoading: false, // Would be based on specific wallet loading state
@@ -189,7 +195,7 @@ export function useWalletCreation() {
 export function useWalletBalance(address: string) {
   const { wallets } = useWallets();
 
-  const wallet = wallets.find(w => w.address === address);
+  const wallet = wallets.find((w) => w.address === address);
   const balance = wallet?.balance || '0';
 
   const formatBalance = useCallback((value: string) => {

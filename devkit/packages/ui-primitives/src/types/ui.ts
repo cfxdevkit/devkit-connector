@@ -5,6 +5,7 @@ import type {
   BrowserNetworkConfig,
   BrowserNodeStatus,
   BrowserWalletInfo,
+  NodeConfig,
 } from '@conflux-devkit/core';
 
 // ============================================================================
@@ -154,9 +155,9 @@ export interface UseWalletsReturn extends WalletContextData {
 
 export interface UseNodeReturn extends NodeContextData {
   // Actions
-  startNode: (config?: any) => Promise<void>;
+  startNode: (config?: NodeConfig) => Promise<void>;
   stopNode: () => Promise<void>;
-  restartNode: (config?: any) => Promise<void>;
+  restartNode: (config?: NodeConfig) => Promise<void>;
   refreshStatus: () => Promise<void>;
 
   // Computed

@@ -3,6 +3,16 @@ import { createWalletClient, http, parseEther } from 'viem';
 import { ConfluxNode } from './ConfluxNode';
 import type { ExecutionResult, NodeConfig } from './types';
 
+interface AbiItem {
+  type: string;
+  name?: string;
+  inputs?: Array<{ name: string; type: string }>;
+  outputs?: Array<{ name: string; type: string }>;
+  stateMutability?: string;
+}
+
+type ContractAbi = AbiItem[];
+
 export async function deployContract(
   contractCode: string,
   abi: unknown[],
@@ -64,7 +74,7 @@ export async function callContractMethod(
     // Read contract method
     const result = await (evmClient as EvmClient).readContract({
       address: contractAddress as `0x${string}`,
-      abi: abi as any[],
+      abi: abi as ContractAbi,
       functionName: methodName,
       args,
     });

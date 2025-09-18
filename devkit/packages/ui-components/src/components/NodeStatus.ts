@@ -256,7 +256,10 @@ export class NodeStatus extends LitElement {
       <div class="info-row">
         <span class="info-label">Health:</span>
         <span class="info-value"
-          >${(this.status as any).health || 'Unknown'}</span
+          >${
+            (this.status as BrowserNodeStatus & { health?: string }).health ||
+            'Unknown'
+          }</span
         >
       </div>
 

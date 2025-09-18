@@ -3,7 +3,6 @@
 import type {
   Block,
   CoreClient as ICoreClient,
-  NetworkConfig,
   ReadContractParams,
   TransactionReceipt,
   TransactionRequest,
@@ -12,12 +11,6 @@ import type {
 import { networkManager } from '../network';
 
 export class CoreClient implements ICoreClient {
-  private networkConfig: NetworkConfig;
-
-  constructor(network: NetworkConfig) {
-    this.networkConfig = network;
-  }
-
   private throwNotImplemented(method: string): never {
     throw new Error(
       `CoreClient.${method} is not implemented - Core functionality is disabled for development`
@@ -32,7 +25,7 @@ export class CoreClient implements ICoreClient {
     if (!network) {
       throw new Error(`Network not found: ${networkId}`);
     }
-    return new CoreClient(network);
+    return new CoreClient();
   }
 
   static createLocal(): CoreClient {
@@ -40,7 +33,7 @@ export class CoreClient implements ICoreClient {
     if (!network) {
       throw new Error('Core local network not found');
     }
-    return new CoreClient(network);
+    return new CoreClient();
   }
 
   static createTestnet(): CoreClient {
@@ -48,7 +41,7 @@ export class CoreClient implements ICoreClient {
     if (!network) {
       throw new Error('Core testnet network not found');
     }
-    return new CoreClient(network);
+    return new CoreClient();
   }
 
   static createMainnet(): CoreClient {
@@ -56,7 +49,7 @@ export class CoreClient implements ICoreClient {
     if (!network) {
       throw new Error('Core mainnet network not found');
     }
-    return new CoreClient(network);
+    return new CoreClient();
   }
 
   // Mock implementations that throw graceful errors
@@ -99,7 +92,9 @@ export class CoreClient implements ICoreClient {
     this.throwNotImplemented('getGasPrice');
   }
 
-  async readContract(_params: ReadContractParams): Promise<unknown> {
+  async readContract(
+    _params: ReadContractParams
+  ): Promise<string | number | bigint | boolean | `0x${string}` | unknown[]> {
     this.throwNotImplemented('readContract');
   }
 

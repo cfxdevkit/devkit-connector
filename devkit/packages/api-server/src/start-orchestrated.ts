@@ -40,7 +40,7 @@ async function startServer() {
 }
 
 // Handle uncaught exceptions
-process.on('uncaughtException', error => {
+process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught Exception:', error);
   process.exit(1);
 });
@@ -51,7 +51,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // Start the server
-startServer().catch(error => {
+startServer().catch((error) => {
   console.error('❌ Failed to start server:', error);
   process.exit(1);
 });

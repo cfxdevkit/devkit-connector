@@ -4,6 +4,15 @@ import type { BrowserContractOrchestrator } from '@conflux-devkit/core';
 import { css, html, LitElement } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
+interface ContractCapabilities {
+  canRead?: boolean;
+  canWrite?: boolean;
+  hasEvents?: boolean;
+  isUpgradeable?: boolean;
+  isPausable?: boolean;
+  isOwnable?: boolean;
+}
+
 @customElement('conflux-contract-card')
 export class ContractCard extends LitElement {
   @property({ type: Object }) contract!: BrowserContractOrchestrator;
@@ -217,21 +226,23 @@ export class ContractCard extends LitElement {
   }
 
   private renderCapabilities() {
-    const capabilities = this.contract.capabilities || {};
+    const capabilities = (this.contract.capabilities ||
+      {}) as ContractCapabilities;
     const capabilityLabels = [
-      { key: 'canRead', label: 'Read' },
-      { key: 'canWrite', label: 'Write' },
-      { key: 'hasEvents', label: 'Events' },
-      { key: 'isUpgradeable', label: 'Upgradeable' },
-      { key: 'isPausable', label: 'Pausable' },
-      { key: 'isOwnable', label: 'Ownable' },
+      { key: 'canRead' as keyof ContractCapabilities, label: 'Read' },
+      { key: 'canWrite' as keyof ContractCapabilities, label: 'Write' },
+      { key: 'hasEvents' as keyof ContractCapabilities, label: 'Events' },
+      {
+        key: 'isUpgradeable' as keyof ContractCapabilities,
+        label: 'Upgradeable',
+      },
+      { key: 'isPausable' as keyof ContractCapabilities, label: 'Pausable' },
+      { key: 'isOwnable' as keyof ContractCapabilities, label: 'Ownable' },
     ];
 
     return capabilityLabels.map(
       (cap) => html`
-        <span
-          class="capability ${(capabilities as any)[cap.key] ? 'active' : ''}"
-        >
+        <span class="capability ${capabilities[cap.key] ? 'active' : ''}">
           ${cap.label}
         </span>
       `

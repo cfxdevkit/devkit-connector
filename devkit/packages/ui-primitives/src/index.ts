@@ -1,43 +1,42 @@
 // UI Primitives - Main export file
 
-// Types
-export * from './types/ui';
+// Re-export from state package for convenience
+export { useAppStore } from '@conflux-devkit/state';
 
 // Context
 export {
   UIProvider,
-  useUI,
-  useTheme,
-  useSidebar,
-  useNotifications,
-  useModals,
   useLoading,
+  useModals,
+  useNotifications,
+  useSidebar,
+  useTheme,
+  useUI,
 } from './context/UIContext';
 
 // Hooks
 export {
-  useContracts,
   useContract,
   useContractDeployment,
+  useContracts,
 } from './hooks/useContracts';
 export {
-  useWallets,
-  useWallet,
-  useWalletCreation,
-  useWalletBalance,
-} from './hooks/useWallets';
+  useCurrentNetwork,
+  useNetwork,
+  useNetworkStatus,
+  useNetworkSwitcher,
+} from './hooks/useNetwork';
 export {
   useNode,
-  useNodeStatus,
   useNodeControls,
   useNodeMetrics,
+  useNodeStatus,
 } from './hooks/useNode';
 export {
-  useNetwork,
-  useCurrentNetwork,
-  useNetworkSwitcher,
-  useNetworkStatus,
-} from './hooks/useNetwork';
-
-// Re-export from state package for convenience
-export { useAppStore } from '@conflux-devkit/state';
+  useWallet,
+  useWalletBalance,
+  useWalletCreation,
+  useWallets,
+} from './hooks/useWallets';
+// Types
+export * from './types/ui';

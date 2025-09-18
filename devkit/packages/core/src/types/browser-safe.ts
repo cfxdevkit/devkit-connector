@@ -102,6 +102,8 @@ export interface BrowserNodeStatus {
   walletMode: 'mnemonic' | 'privatekey';
   wallets: BrowserWalletInfo[];
   miningAddress: BrowserAddress | null;
+  health: 'healthy' | 'unhealthy' | 'unknown' | 'starting' | 'stopping';
+  lastHealthCheck: string;
 }
 
 // Browser-safe network configuration

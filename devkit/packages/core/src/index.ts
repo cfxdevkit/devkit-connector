@@ -74,6 +74,9 @@ export {
   isTestnet,
   validateNetworkConfig,
 } from './utils/network';
+// Export RPC utilities
+export * from './utils/rpc-cache';
+export * from './utils/rpc-monitor';
 // Export browser-safe utilities
 export * from './utils/type-normalization';
 export * from './wallet';

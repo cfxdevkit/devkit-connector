@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "type-check": "tsc --noEmit",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "cli": "ts-node src/cli/unified.ts",
@@ -29,6 +30,7 @@
     "format:fix": "biome format --write src/",
     "check": "biome check src/",
     "check:fix": "biome check --write src/",
+    "check:fix:unsafe": "biome check --write --unsafe src/",
     "checkpoint": "echo \"Checkpoint: @conflux-devkit/node - All checks passed\""
   },
   "dependencies": {

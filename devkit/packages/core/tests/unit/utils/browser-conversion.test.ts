@@ -382,6 +382,8 @@ describe('Browser Conversion Utilities', () => {
         walletMode: 'mnemonic',
         wallets: [],
         miningAddress: '0x1234567890abcdef1234567890abcdef12345678',
+        health: 'unknown',
+        lastHealthCheck: '2024-01-01T00:00:00.000Z',
       });
     });
 
@@ -410,7 +412,8 @@ describe('Browser Conversion Utilities', () => {
       expect(result.blockNumber).toBe('0');
       expect(result.peerCount).toBe('0');
       expect(result.evmChainId).toBe('0');
-      expect(result.lastHealthCheck).toBeUndefined();
+      expect(result.lastHealthCheck).toBeDefined();
+      expect(result.health).toBe('unknown');
     });
   });
 

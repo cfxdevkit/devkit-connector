@@ -29,7 +29,7 @@ export interface NodeStatus extends CoreNodeStatus {
   pid?: number;
   startTime?: Date;
   uptime?: number;
-  health: 'healthy' | 'unhealthy' | 'starting' | 'stopping';
+  health: 'healthy' | 'unhealthy' | 'unknown' | 'starting' | 'stopping';
   lastHealthCheck?: Date;
   error?: string;
 }
@@ -166,7 +166,7 @@ export interface IContractService {
     contractAddress: string,
     method: string,
     args?: unknown[]
-  ): Promise<unknown>;
+  ): Promise<string | number | bigint | boolean | `0x${string}` | unknown[]>;
   validateContract(contractAddress: string): Promise<ValidationResult>;
 }
 

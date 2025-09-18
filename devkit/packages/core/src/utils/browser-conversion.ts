@@ -189,6 +189,10 @@ export function toBrowserNodeStatus(status: NodeStatus): BrowserNodeStatus {
     miningAddress: status.miningAddress
       ? normalizeAddress(status.miningAddress)
       : null,
+    health: status.health || 'unknown',
+    lastHealthCheck: status.lastHealthCheck
+      ? status.lastHealthCheck.toISOString()
+      : new Date().toISOString(),
   };
 }
 

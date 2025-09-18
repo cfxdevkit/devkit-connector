@@ -1,12 +1,9 @@
 // Wallet Orchestration Service - Manages wallet operations with state integration
 // This service provides high-level wallet management using the state store
 
-import { getStateIntegrationService } from './StateIntegrationService';
+import type { BrowserWalletInfo } from '@conflux-devkit/core';
 import type { StateIntegrationService } from './StateIntegrationService';
-import type {
-  BrowserWalletInfo,
-  BrowserNetworkConfig,
-} from '@conflux-devkit/core';
+import { getStateIntegrationService } from './StateIntegrationService';
 
 export interface WalletCreationRequest {
   mnemonic?: string;
@@ -73,15 +70,21 @@ export class WalletOrchestrationService {
    */
   async getActiveWallet(): Promise<BrowserWalletInfo | null> {
     const walletState = this.stateIntegration.getWalletState();
-    return walletState.activeWallet;
+    // For now, return the first wallet as active
+    // This should be updated when the state service provides activeWallet
+    return walletState.wallets[0] || null;
   }
 
   /**
    * Get wallets by network
+   * Note: BrowserWalletInfo doesn't include network information
+   * This would need to be implemented at the state level
    */
-  async getWalletsByNetwork(networkId: string): Promise<BrowserWalletInfo[]> {
-    const allWallets = await this.getAllWallets();
-    return allWallets.filter(wallet => (wallet as any).network === networkId);
+  async getWalletsByNetwork(_networkId: string): Promise<BrowserWalletInfo[]> {
+    // For now, return all wallets since network info is not available
+    // This would need to be implemented in the state service
+    console.warn('Network filtering not implemented - returning all wallets');
+    return this.getAllWallets();
   }
 
   // ========================================================================
@@ -160,7 +163,7 @@ export class WalletOrchestrationService {
     const walletState = this.stateIntegration.getWalletState();
     // TODO: Implement selection history tracking
     return {
-      current: walletState.activeWallet?.address || null,
+      current: walletState.wallets[0]?.address || null,
       history: [],
     };
   }
@@ -257,11 +260,8 @@ export class WalletOrchestrationService {
         ? (totalBalance / BigInt(wallets.length)).toString()
         : '0';
 
-    const walletsByNetwork: Record<string, number> = {};
-    wallets.forEach(wallet => {
-      walletsByNetwork[(wallet as any).network] =
-        (walletsByNetwork[(wallet as any).network] || 0) + 1;
-    });
+    // Network-based statistics not available in BrowserWalletInfo
+    const walletsByNetwork: Record<string, number> = { all: wallets.length };
 
     // Balance distribution (simplified)
     const balanceDistribution = [
@@ -271,7 +271,7 @@ export class WalletOrchestrationService {
       { range: '100+ CFX', count: 0 },
     ];
 
-    balances.forEach(balance => {
+    balances.forEach((balance) => {
       const balanceNum = parseFloat(balance.balanceFormatted);
       if (balanceNum < 1) balanceDistribution[0].count++;
       else if (balanceNum < 10) balanceDistribution[1].count++;
@@ -283,7 +283,7 @@ export class WalletOrchestrationService {
 
     return {
       totalWallets: wallets.length,
-      activeWallet: walletState.activeWallet?.address || null,
+      activeWallet: walletState.wallets[0]?.address || null,
       totalBalance: totalBalance.toString(),
       averageBalance,
       walletsByNetwork,

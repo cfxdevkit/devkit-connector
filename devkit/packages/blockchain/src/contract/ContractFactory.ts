@@ -5,6 +5,7 @@ import type {
   ContractEvent,
   ContractMethod,
   ContractOrchestrator,
+  BrowserContractOrchestrator as CoreBrowserContractOrchestrator,
   NetworkConfig,
 } from '@conflux-devkit/core';
 import { createContractError } from '@conflux-devkit/core';
@@ -30,7 +31,7 @@ export function createContract(
     if (orchestrator.chainType === 'evm') {
       evmClient = new EvmClient(networkConfig, privateKey);
     } else if (orchestrator.chainType === 'core') {
-      coreClient = new CoreClient(networkConfig);
+      coreClient = new CoreClient();
     }
 
     // Register contract with manager
@@ -262,10 +263,54 @@ export function getContract(
 }
 
 /**
+ * Convert blockchain BrowserContractOrchestrator to core BrowserContractOrchestrator
+ */
+function toCoreBrowserContractOrchestrator(
+  contract: BrowserContractOrchestrator
+): CoreBrowserContractOrchestrator {
+  return {
+    name: contract.name,
+    address: contract.address,
+    abi: JSON.stringify(contract.abi), // Convert ABI to string
+    bytecode: contract.bytecode,
+    deployedBytecode: contract.deployedBytecode,
+    chainType: contract.chainType,
+    networkId: contract.networkId,
+    chainId: contract.chainId.toString(), // Convert to string
+    evmChainId: contract.evmChainId?.toString(),
+    network: {
+      name: contract.network.name,
+      rpcUrl: contract.network.rpcUrl,
+      chainId: contract.chainId.toString(),
+      evmChainId: contract.evmChainId?.toString(),
+      currency: {
+        name: contract.network.currency.name,
+        symbol: contract.network.currency.symbol,
+        decimals: contract.network.currency.decimals.toString(),
+      },
+      isTestnet: contract.network.isTestnet,
+      networkType: contract.chainType,
+    },
+    methods: {
+      read: contract.methods.read.map((m) => m.name),
+      write: contract.methods.write.map((m) => m.name),
+      events: contract.methods.events.map((e) => e.name),
+    },
+    capabilities: {
+      read: contract.capabilities.canRead,
+      write: contract.capabilities.canWrite,
+      events: contract.capabilities.hasEvents,
+    },
+  };
+}
+
+/**
  * Get all contracts
  */
-export function getAllContracts(): BrowserContractOrchestrator[] {
-  return browserContractManager.getAllContracts();
+export function getAllContracts(): CoreBrowserContractOrchestrator[] {
+  return browserContractManager
+    .getAllContracts()
+    .map(toCoreBrowserContractOrchestrator);
 }
 
 /**

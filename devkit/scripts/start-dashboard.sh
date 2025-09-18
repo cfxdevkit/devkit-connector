@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# Start only the Dashboard
+# Dashboard has been disabled - renamed to .dashboard
 
-echo "🎨 Starting Conflux DevKit Dashboard..."
-
-cd packages/dashboard
-pnpm run dev
+echo "❌ Dashboard has been disabled and renamed to .dashboard"
+echo "   To re-enable, rename packages/.dashboard back to packages/dashboard"

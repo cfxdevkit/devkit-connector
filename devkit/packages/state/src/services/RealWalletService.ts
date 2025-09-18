@@ -152,8 +152,11 @@ export class RealWalletService {
 
     try {
       const _account = privateKeyToAccount(privateKey as `0x${string}`);
+      if (!this.currentNetwork) {
+        throw new Error('Current network not set');
+      }
       const evmClientWithWallet = new EvmClient(
-        this.currentNetwork!,
+        this.currentNetwork,
         privateKey as `0x${string}`
       );
 

@@ -12,6 +12,7 @@ import { getStateEventEmitter, useAppStore } from '../stores/appStore';
 import type {
   AppState,
   AppStore,
+  ContractAbi,
   ContractCallParams,
   ContractCallState,
   IStateService,
@@ -41,7 +42,7 @@ export class StateService implements IStateService {
   // Store Management
   // ========================================================================
 
-  getStore(): AppStore {
+  getStore() {
     return this.store;
   }
 
@@ -64,14 +65,14 @@ export class StateService implements IStateService {
     event: K,
     callback: (...args: StateEvents[K]) => void
   ): void {
-    this.eventEmitter.on(event, callback as (...args: any[]) => void);
+    this.eventEmitter.on(event, callback as (...args: unknown[]) => void);
   }
 
   off<K extends keyof StateEvents>(
     event: K,
     callback: (...args: StateEvents[K]) => void
   ): void {
-    this.eventEmitter.off(event, callback as (...args: any[]) => void);
+    this.eventEmitter.off(event, callback as (...args: unknown[]) => void);
   }
 
   emit<K extends keyof StateEvents>(event: K, ...args: StateEvents[K]): void {
@@ -95,7 +96,7 @@ export class StateService implements IStateService {
   }
 
   clear(): void {
-    this.store.reset();
+    this.store.getState().reset();
     this.stopAllIntervals();
     console.log('State cleared');
   }
@@ -145,7 +146,10 @@ export class StateService implements IStateService {
     // Node status refresh
     if (this.config.nodeStatusInterval > 0) {
       const interval = setInterval(() => {
-        if (this.store.isConnected && this.store.node.isRunning) {
+        if (
+          this.store.getState().isConnected &&
+          this.store.getState().node.isRunning
+        ) {
           this.refreshNodeStatus();
         }
       }, this.config.nodeStatusInterval);
@@ -155,9 +159,9 @@ export class StateService implements IStateService {
     // Wallet balance refresh
     if (this.config.walletBalanceInterval > 0) {
       const interval = setInterval(() => {
-        const activeWallet = this.store.wallets.activeWallet;
+        const activeWallet = this.store.getState().wallets.activeWallet;
         if (activeWallet) {
-          this.store.refreshWalletBalance(activeWallet.address);
+          this.store.getState().refreshWalletBalance(activeWallet.address);
         }
       }, this.config.walletBalanceInterval);
       this.intervals.set('walletBalance', interval);
@@ -166,7 +170,7 @@ export class StateService implements IStateService {
     // Contract events refresh
     if (this.config.contractEventsInterval > 0) {
       const interval = setInterval(() => {
-        if (this.store.contracts.deployed.length > 0) {
+        if (this.store.getState().contracts.deployed.length > 0) {
           this.refreshContractEvents();
         }
       }, this.config.contractEventsInterval);
@@ -193,6 +197,7 @@ export class StateService implements IStateService {
         type: 'success',
         title: 'Connected',
         message: 'Successfully connected to Conflux network',
+        persistent: false,
       });
     });
 
@@ -202,16 +207,18 @@ export class StateService implements IStateService {
         type: 'info',
         title: 'Disconnected',
         message: 'Disconnected from Conflux network',
+        persistent: false,
       });
     });
 
     // Node events
-    this.on('state:node:started', status => {
+    this.on('state:node:started', (status) => {
       console.log('State: Node started', status);
       this.addNotification({
         type: 'success',
         title: 'Node Started',
         message: `Conflux node is running on port ${status.corePort}`,
+        persistent: false,
       });
     });
 
@@ -221,48 +228,52 @@ export class StateService implements IStateService {
         type: 'info',
         title: 'Node Stopped',
         message: 'Conflux node has been stopped',
+        persistent: false,
       });
     });
 
     // Wallet events
-    this.on('state:wallet:created', wallet => {
+    this.on('state:wallet:created', (wallet) => {
       console.log('State: Wallet created', wallet.address);
       this.addNotification({
         type: 'success',
         title: 'Wallet Created',
         message: `New wallet created: ${wallet.address.slice(0, 10)}...`,
+        persistent: false,
       });
     });
 
-    this.on('state:wallet:selected', wallet => {
+    this.on('state:wallet:selected', (wallet) => {
       console.log('State: Wallet selected', wallet.address);
     });
 
     // Contract events
-    this.on('state:contract:deployed', contract => {
+    this.on('state:contract:deployed', (contract) => {
       console.log('State: Contract deployed', contract.address);
       this.addNotification({
         type: 'success',
         title: 'Contract Deployed',
         message: `${contract.name} deployed at ${contract.address.slice(0, 10)}...`,
+        persistent: false,
       });
     });
 
-    this.on('state:contract:called', call => {
+    this.on('state:contract:called', (call) => {
       console.log('State: Contract called', call.method);
     });
 
-    this.on('state:contract:event', event => {
+    this.on('state:contract:event', (event) => {
       console.log('State: Contract event', event.eventName);
     });
 
     // Network events
-    this.on('state:network:switched', network => {
+    this.on('state:network:switched', (network) => {
       console.log('State: Network switched', network.name);
       this.addNotification({
         type: 'info',
         title: 'Network Switched',
         message: `Switched to ${network.name}`,
+        persistent: false,
       });
     });
 
@@ -273,11 +284,12 @@ export class StateService implements IStateService {
         type: 'error',
         title: 'Error',
         message: `${type}: ${message}`,
+        persistent: true,
       });
     });
 
     // Notification events
-    this.on('state:notification', notification => {
+    this.on('state:notification', (notification) => {
       console.log('State: Notification', notification.title);
     });
   }
@@ -312,43 +324,43 @@ export class StateService implements IStateService {
 
   // Connection management
   async connect(config: Partial<NodeConfig>): Promise<void> {
-    return this.store.connect(config);
+    return this.store.getState().connect(config);
   }
 
   async disconnect(): Promise<void> {
-    return this.store.disconnect();
+    return this.store.getState().disconnect();
   }
 
   // Node management
   async startNode(config?: Partial<NodeConfig>): Promise<void> {
-    return this.store.startNode(config);
+    return this.store.getState().startNode(config);
   }
 
   async stopNode(): Promise<void> {
-    return this.store.stopNode();
+    return this.store.getState().stopNode();
   }
 
   async restartNode(config?: Partial<NodeConfig>): Promise<void> {
-    return this.store.restartNode(config);
+    return this.store.getState().restartNode(config);
   }
 
   // Wallet management
   async createWallet(mnemonic?: string): Promise<BrowserWalletInfo> {
     const wallet = await realWalletService.createWallet(mnemonic);
-    this.store.createWallet(mnemonic);
+    this.store.getState().createWallet(mnemonic);
     return wallet;
   }
 
   async importWallet(privateKey: string): Promise<BrowserWalletInfo> {
-    return this.store.importWallet(privateKey);
+    return this.store.getState().importWallet(privateKey);
   }
 
   selectWallet(address: string): void {
-    this.store.selectWallet(address);
+    this.store.getState().selectWallet(address);
   }
 
   async refreshWalletBalance(address: string): Promise<void> {
-    return this.store.refreshWalletBalance(address);
+    return this.store.getState().refreshWalletBalance(address);
   }
 
   async getWallets(): Promise<BrowserWalletInfo[]> {
@@ -366,7 +378,7 @@ export class StateService implements IStateService {
   async deployContract(
     contractName: string,
     bytecode: string,
-    abi: any[],
+    abi: ContractAbi,
     constructorArgs?: unknown[]
   ): Promise<BrowserContractOrchestrator> {
     // Call the real contract service
@@ -385,7 +397,7 @@ export class StateService implements IStateService {
   }
 
   selectContract(address: string): void {
-    this.store.selectContract(address);
+    this.store.getState().selectContract(address);
   }
 
   async callContractMethod(
@@ -412,7 +424,7 @@ export class StateService implements IStateService {
     };
 
     // Add to store
-    this.store.contracts.contractCalls.push(callState);
+    this.store.getState().contracts.contractCalls.push(callState);
 
     return callState;
   }
@@ -421,7 +433,7 @@ export class StateService implements IStateService {
     contractAddress: string,
     methodName: string,
     args?: unknown[]
-  ): Promise<unknown> {
+  ): Promise<string | number | bigint | boolean | `0x${string}` | unknown[]> {
     // Call the real contract service
     const result = await realContractService.callContract(
       contractAddress,
@@ -429,65 +441,110 @@ export class StateService implements IStateService {
       args || []
     );
 
-    return result;
+    return result.result as
+      | string
+      | number
+      | bigint
+      | boolean
+      | `0x${string}`
+      | unknown[];
   }
 
   async getContracts(): Promise<BrowserContractOrchestrator[]> {
+    // Get contracts from the real contract service
     const contracts = await realContractService.getContracts();
-    return contracts;
+    // Convert to browser-safe format
+    return contracts.map((contract) => ({
+      name: contract.name,
+      address: contract.address as `0x${string}`,
+      abi: JSON.stringify(contract.abi),
+      bytecode: contract.bytecode || '',
+      deployedBytecode: '',
+      chainType: 'evm' as const,
+      networkId: '1',
+      chainId: '1',
+      evmChainId: '1',
+      network: {
+        name: 'Ethereum',
+        rpcUrl: 'https://mainnet.infura.io/v3/your-key',
+        chainId: '1',
+        evmChainId: '1',
+        currency: {
+          name: 'Ether',
+          symbol: 'ETH',
+          decimals: '18',
+        },
+        isTestnet: false,
+        networkType: 'evm' as const,
+      },
+      methods: {
+        read: [],
+        write: [],
+        events: [],
+      },
+      capabilities: {
+        read: true,
+        write: true,
+        events: true,
+      },
+    }));
   }
 
   subscribeToEvents(contractAddress: string, eventName?: string): void {
-    this.store.subscribeToEvents(contractAddress, eventName);
+    this.store.getState().subscribeToEvents(contractAddress, eventName);
   }
 
   unsubscribeFromEvents(contractAddress: string, eventName?: string): void {
-    this.store.unsubscribeFromEvents(contractAddress, eventName);
+    this.store.getState().unsubscribeFromEvents(contractAddress, eventName);
   }
 
   // Network management
   async switchNetwork(networkId: string): Promise<void> {
-    return this.store.switchNetwork(networkId);
+    return this.store.getState().switchNetwork(networkId);
   }
 
   // UI management
   toggleSidebar(): void {
-    this.store.toggleSidebar();
+    this.store.getState().toggleSidebar();
   }
 
   setActiveTab(tab: string): void {
-    this.store.setActiveTab(tab);
+    this.store.getState().setActiveTab(tab);
+  }
+
+  setTheme(theme: 'light' | 'dark' | 'system'): void {
+    this.store.getState().setTheme(theme);
   }
 
   addNotification(
     notification: Omit<NotificationState, 'id' | 'timestamp'>
   ): void {
-    this.store.addNotification(notification);
+    this.store.getState().addNotification(notification);
   }
 
   removeNotification(id: string): void {
-    this.store.removeNotification(id);
+    this.store.getState().removeNotification(id);
   }
 
   openModal(type: string, props?: Record<string, unknown>): string {
-    return this.store.openModal(type, props);
+    return this.store.getState().openModal(type, props);
   }
 
   closeModal(id: string): void {
-    this.store.closeModal(id);
+    this.store.getState().closeModal(id);
   }
 
   setLoading(key: string, loading: boolean): void {
-    this.store.setLoading(key, loading);
+    this.store.getState().setLoading(key, loading);
   }
 
   // Utility methods
   reset(): void {
-    this.store.reset();
+    this.store.getState().reset();
   }
 
   async refreshAll(): Promise<void> {
-    return this.store.refreshAll();
+    return this.store.getState().refreshAll();
   }
 
   // ========================================================================
@@ -496,61 +553,62 @@ export class StateService implements IStateService {
 
   getConnectionState() {
     return {
-      isConnected: this.store.isConnected,
-      isConnecting: this.store.isConnecting,
-      error: this.store.connectionError,
+      isConnected: this.store.getState().isConnected,
+      isConnecting: this.store.getState().isConnecting,
+      error: this.store.getState().connectionError,
     };
   }
 
   getNodeState() {
     return {
-      status: this.store.node.status,
-      isRunning: this.store.node.isRunning,
-      isStarting: this.store.node.isStarting,
-      isStopping: this.store.node.isStopping,
-      error: this.store.node.error,
-      uptime: this.store.node.uptime,
+      status: this.store.getState().node.status,
+      isRunning: this.store.getState().node.isRunning,
+      isStarting: this.store.getState().node.isStarting,
+      isStopping: this.store.getState().node.isStopping,
+      error: this.store.getState().node.error,
+      uptime: this.store.getState().node.uptime,
     };
   }
 
   getWalletState() {
     return {
-      activeWallet: this.store.wallets.activeWallet,
-      wallets: this.store.wallets.wallets,
-      balance: this.store.wallets.balance,
-      isCreating: this.store.wallets.isCreating,
-      isImporting: this.store.wallets.isImporting,
-      error: this.store.wallets.error,
+      activeWallet: this.store.getState().wallets.activeWallet,
+      wallets: this.store.getState().wallets.wallets,
+      balance: this.store.getState().wallets.balance,
+      isCreating: this.store.getState().wallets.isCreating,
+      isImporting: this.store.getState().wallets.isImporting,
+      error: this.store.getState().wallets.error,
     };
   }
 
   getContractState() {
     return {
-      deployed: this.store.contracts.deployed,
-      activeContract: this.store.contracts.activeContract,
-      contractCalls: this.store.contracts.contractCalls,
-      events: this.store.contracts.events,
-      isDeploying: this.store.contracts.isDeploying,
-      error: this.store.contracts.deploymentError,
+      deployed: this.store.getState().contracts.deployed,
+      activeContract: this.store.getState().contracts.activeContract,
+      contractCalls: this.store.getState().contracts.contractCalls,
+      events: this.store.getState().contracts.events,
+      isDeploying: this.store.getState().contracts.isDeploying,
+      deploymentError: this.store.getState().contracts.deploymentError,
+      error: this.store.getState().contracts.error,
     };
   }
 
   getNetworkState() {
     return {
-      current: this.store.network.current,
-      available: this.store.network.available,
-      isSwitching: this.store.network.isSwitching,
-      error: this.store.network.switchError,
+      current: this.store.getState().network.current,
+      available: this.store.getState().network.available,
+      isSwitching: this.store.getState().network.isSwitching,
+      error: this.store.getState().network.switchError,
     };
   }
 
   getUIState() {
     return {
-      sidebarOpen: this.store.ui.sidebarOpen,
-      activeTab: this.store.ui.activeTab,
-      notifications: this.store.ui.notifications,
-      modals: this.store.ui.modals,
-      loading: this.store.ui.loading,
+      sidebarOpen: this.store.getState().ui.sidebarOpen,
+      activeTab: this.store.getState().ui.activeTab,
+      notifications: this.store.getState().ui.notifications,
+      modals: this.store.getState().ui.modals,
+      loading: this.store.getState().ui.loading,
     };
   }
 
@@ -571,39 +629,44 @@ export class StateService implements IStateService {
   }
 
   getContractDataForAPI(contractAddress: string) {
-    const contract = this.store.contracts.deployed.find(
-      c => c.address === contractAddress
-    );
+    const contract = this.store
+      .getState()
+      .contracts.deployed.find((c) => c.address === contractAddress);
     if (!contract) {
       return null;
     }
 
-    const calls = this.store.contracts.contractCalls.filter(
-      c => c.contractAddress === contractAddress
-    );
-    const events = this.store.contracts.events.filter(
-      e => e.contractAddress === contractAddress
-    );
+    const calls = this.store
+      .getState()
+      .contracts.contractCalls.filter(
+        (c) => c.contractAddress === contractAddress
+      );
+    const events = this.store
+      .getState()
+      .contracts.events.filter((e) => e.contractAddress === contractAddress);
 
     return {
       contract,
       calls,
       events,
       isActive:
-        this.store.contracts.activeContract?.address === contractAddress,
+        this.store.getState().contracts.activeContract?.address ===
+        contractAddress,
     };
   }
 
   getWalletDataForAPI(address: string) {
-    const wallet = this.store.wallets.wallets.find(w => w.address === address);
+    const wallet = this.store
+      .getState()
+      .wallets.wallets.find((w) => w.address === address);
     if (!wallet) {
       return null;
     }
 
     return {
       wallet,
-      isActive: this.store.wallets.activeWallet?.address === address,
-      balance: this.store.wallets.balance,
+      isActive: this.store.getState().wallets.activeWallet?.address === address,
+      balance: this.store.getState().wallets.balance,
     };
   }
 }

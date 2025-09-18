@@ -185,7 +185,7 @@ router.post('/stop', async (_req, res) => {
 router.get('/services/contract', async (_req, res) => {
   try {
     orchestrator.trackRequest();
-    const service = orchestrator.getContractService();
+    const _service = orchestrator.getContractService();
     orchestrator.trackRequest(true);
     res.json(
       createApiResponse({
@@ -218,7 +218,7 @@ router.get('/services/contract', async (_req, res) => {
 router.get('/services/wallet', async (_req, res) => {
   try {
     orchestrator.trackRequest();
-    const service = orchestrator.getWalletService();
+    const _service = orchestrator.getWalletService();
     orchestrator.trackRequest(true);
     res.json(
       createApiResponse({
@@ -251,7 +251,7 @@ router.get('/services/wallet', async (_req, res) => {
 router.get('/services/node', async (_req, res) => {
   try {
     orchestrator.trackRequest();
-    const service = orchestrator.getNodeService();
+    const _service = orchestrator.getNodeService();
     orchestrator.trackRequest(true);
     res.json(
       createApiResponse({
@@ -284,7 +284,7 @@ router.get('/services/node', async (_req, res) => {
 router.get('/services/state', async (_req, res) => {
   try {
     orchestrator.trackRequest();
-    const service = orchestrator.getStateService();
+    const _service = orchestrator.getStateService();
     orchestrator.trackRequest(true);
     res.json(
       createApiResponse({

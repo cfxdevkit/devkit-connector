@@ -1,13 +1,13 @@
 // Node Orchestration Service - Manages node operations with state integration
 // This service provides high-level node management using the state store
 
-import { getStateIntegrationService } from './StateIntegrationService';
-import type { StateIntegrationService } from './StateIntegrationService';
 import type {
-  NodeConfig,
-  BrowserNodeStatus,
   BrowserNetworkConfig,
+  BrowserNodeStatus,
+  NodeConfig,
 } from '@conflux-devkit/core';
+import type { StateIntegrationService } from './StateIntegrationService';
+import { getStateIntegrationService } from './StateIntegrationService';
 
 export interface NodeStartRequest {
   config?: Partial<NodeConfig>;
@@ -106,16 +106,16 @@ export class NodeOrchestrationService {
     // This would involve checking RPC endpoints, P2P connections, etc.
     const checks = {
       rpc: status.running,
-      p2p: status.peerCount ? parseInt(status.peerCount) > 0 : false,
+      p2p: status.peerCount ? parseInt(status.peerCount, 10) > 0 : false,
       mining: false, // TODO: Check mining status
       sync: true, // TODO: Check sync status
     };
 
-    const isHealthy = Object.values(checks).every(check => check);
+    const isHealthy = Object.values(checks).every((check) => check);
 
     return {
       status: isHealthy ? 'healthy' : 'unhealthy',
-      uptime: status.uptime || 0,
+      uptime: 0, // TODO: Calculate uptime from node start time
       lastCheck: new Date().toISOString(),
       checks,
       metrics: {
@@ -228,7 +228,7 @@ export class NodeOrchestrationService {
       await this.stopNode({ graceful: true });
 
       // Wait a bit
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Start the node
       await this.startNode({ config, autoConnect, waitForReady, timeout });
@@ -247,8 +247,8 @@ export class NodeOrchestrationService {
    * Get current node configuration
    */
   async getNodeConfiguration(): Promise<NodeConfiguration> {
-    const nodeState = this.stateIntegration.getNodeState();
-    const networkState = this.stateIntegration.getNetworkState();
+    const _nodeState = this.stateIntegration.getNodeState();
+    const _networkState = this.stateIntegration.getNetworkState();
 
     // TODO: Get actual configuration from node manager
     const currentConfig: NodeConfig = {
@@ -339,7 +339,7 @@ export class NodeOrchestrationService {
           decimals: '18',
         },
         isTestnet: true,
-        networkType: 'local' as any,
+        networkType: 'evm' as const,
       },
     ];
   }
@@ -407,7 +407,7 @@ export class NodeOrchestrationService {
       if (await this.isNodeRunning()) {
         return;
       }
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     throw new Error('Node failed to start within timeout');
@@ -423,7 +423,7 @@ export class NodeOrchestrationService {
       if (!(await this.isNodeRunning())) {
         return;
       }
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     throw new Error('Node failed to stop within timeout');

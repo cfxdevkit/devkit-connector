@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
+    "type-check": "tsc --noEmit",
     "test": "vitest --run",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
@@ -16,9 +17,9 @@
     "clean": "rm -rf dist",
     "check": "biome check src/",
     "check:fix": "biome check --write src/",
+    "check:fix:unsafe": "biome check --write --unsafe src/",
     "format": "biome format --write src/",
-    "lint": "biome lint src/",
-    "type-check": "tsc --noEmit"
+    "lint": "biome lint src/"
   },
   "dependencies": {
     "@conflux-devkit/blockchain": "workspace:*",

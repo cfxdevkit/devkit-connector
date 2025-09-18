@@ -1,10 +1,10 @@
 // Showcase WebApp Server - Serves the demonstration webapp
 
-import express from 'express';
+import path from 'node:path';
 import cors from 'cors';
-import helmet from 'helmet';
+import express from 'express';
 import rateLimit from 'express-rate-limit';
-import path from 'path';
+import helmet from 'helmet';
 
 const app: express.Application = express();
 const port = process.env.PORT || 3002;
@@ -35,7 +35,7 @@ app.use('/api', async (req, res) => {
         'Content-Type': 'application/json',
         ...Object.fromEntries(
           Object.entries(req.headers).filter(
-            ([key, value]) => typeof value === 'string' || Array.isArray(value)
+            ([_key, value]) => typeof value === 'string' || Array.isArray(value)
           )
         ),
       } as HeadersInit,
@@ -54,7 +54,7 @@ app.use('/api', async (req, res) => {
 });
 
 // Health check
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.json({
     success: true,
     message: 'Showcase WebApp is running',
@@ -63,7 +63,7 @@ app.get('/health', (req, res) => {
 });
 
 // Root route
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 

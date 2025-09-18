@@ -21,7 +21,7 @@ export class RpcManager {
   ): Promise<void> {
     try {
       this.evmClient = new EvmClient(network, privateKey);
-      this.coreClient = new CoreClient(network);
+      this.coreClient = new CoreClient();
     } catch (error) {
       throw new Error(
         `Failed to initialize RPC clients: ${error instanceof Error ? error.message : 'Unknown error'}`

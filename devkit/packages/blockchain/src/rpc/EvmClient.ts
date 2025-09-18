@@ -9,23 +9,25 @@ import type {
   TransactionRequest,
   WriteContractParams,
 } from '@conflux-devkit/core';
-import { normalizeAddress } from '@conflux-devkit/core';
+import { normalizeAddress, rpcMethods } from '@conflux-devkit/core';
 import {
   type Address,
+  type CallReturnType,
   createPublicClient,
   createWalletClient,
   http,
+  type Block as ViemBlock,
+  type TransactionReceipt as ViemTransactionReceipt,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { networkManager } from '../network';
 
 export class EvmClient implements IEvmClient {
-  private networkConfig: NetworkConfig;
   private client: ReturnType<typeof createPublicClient>;
   private walletClient: ReturnType<typeof createWalletClient> | null = null;
 
   constructor(network: NetworkConfig, privateKey?: `0x${string}`) {
-    this.networkConfig = network;
+    // Network config stored for future use
 
     // Create public client
     this.client = createPublicClient({
@@ -80,25 +82,30 @@ export class EvmClient implements IEvmClient {
     return new EvmClient(network, privateKey);
   }
 
-  // Functional implementations using viem
+  // Functional implementations using viem with RPC caching
   async getBalance(params: { address: `0x${string}` }): Promise<bigint> {
     const normalizedAddress = normalizeAddress(params.address);
     if (!normalizedAddress.startsWith('0x')) {
       throw new Error(`Invalid EVM address format: ${normalizedAddress}`);
     }
-    return await this.client.getBalance({
-      address: normalizedAddress as Address,
-    });
+
+    return await rpcMethods.getBalance({ address: normalizedAddress }, () =>
+      this.client.getBalance({
+        address: normalizedAddress as Address,
+      })
+    );
   }
 
   async getBlockNumber(): Promise<bigint> {
-    return await this.client.getBlockNumber();
+    return await rpcMethods.getBlockNumber(() => this.client.getBlockNumber());
   }
 
   async getBlock(
     params: { blockNumber: bigint } | { blockTag: 'latest' }
   ): Promise<Block> {
-    const block = await this.client.getBlock(params);
+    const block = (await rpcMethods.getBlock(params, () =>
+      this.client.getBlock(params)
+    )) as ViemBlock;
     return {
       number: block.number ? BigInt(block.number.toString()) : null,
       hash: block.hash,
@@ -114,9 +121,10 @@ export class EvmClient implements IEvmClient {
   async getTransactionReceipt(params: {
     hash: `0x${string}`;
   }): Promise<TransactionReceipt | null> {
-    const receipt = await this.client.getTransactionReceipt({
-      hash: params.hash,
-    });
+    const receipt = (await rpcMethods.getTransactionReceipt(
+      { hash: params.hash },
+      () => this.client.getTransactionReceipt({ hash: params.hash })
+    )) as ViemTransactionReceipt | null;
     if (!receipt) return null;
 
     return {
@@ -153,28 +161,40 @@ export class EvmClient implements IEvmClient {
     to: `0x${string}`;
     data: `0x${string}`;
   }): Promise<`0x${string}`> {
-    const result = await this.client.call({
+    // Direct call without RPC cache for now since viem call returns CallReturnType
+    const result = (await this.client.call({
       to: params.to as Address,
       data: params.data,
-    });
-    return result as unknown as `0x${string}`;
+    })) as CallReturnType;
+    return result.data as `0x${string}`;
   }
 
   async getNetworkId(): Promise<number> {
-    return await this.client.getChainId();
+    return await rpcMethods.getNetworkId(() => this.client.getChainId());
   }
 
   async getGasPrice(): Promise<bigint> {
-    return await this.client.getGasPrice();
+    return await rpcMethods.getGasPrice(() => this.client.getGasPrice());
   }
 
-  async readContract(params: ReadContractParams): Promise<unknown> {
-    return await this.client.readContract({
-      address: params.address as Address,
-      abi: params.abi,
-      functionName: params.functionName,
-      args: params.args,
-    });
+  async readContract(
+    params: ReadContractParams
+  ): Promise<string | number | bigint | boolean | `0x${string}` | unknown[]> {
+    return (await rpcMethods.readContract(
+      {
+        address: params.address,
+        abi: params.abi,
+        functionName: params.functionName,
+        args: params.args,
+      },
+      () =>
+        this.client.readContract({
+          address: params.address as Address,
+          abi: params.abi,
+          functionName: params.functionName,
+          args: params.args,
+        })
+    )) as string | number | bigint | boolean | `0x${string}` | unknown[];
   }
 
   async writeContract(_params: WriteContractParams): Promise<`0x${string}`> {
@@ -185,14 +205,22 @@ export class EvmClient implements IEvmClient {
   }
 
   async getChainId(): Promise<number> {
-    return await this.client.getChainId();
+    return await rpcMethods.getChainId(() => this.client.getChainId());
   }
 
   async estimateGas(params: TransactionRequest): Promise<bigint> {
-    return await this.client.estimateGas({
-      to: params.to as Address,
-      value: params.value || 0n,
-      data: params.data || '0x',
-    });
+    return await rpcMethods.estimateGas(
+      {
+        to: params.to,
+        value: params.value,
+        data: params.data,
+      },
+      () =>
+        this.client.estimateGas({
+          to: params.to as Address,
+          value: params.value || 0n,
+          data: params.data || '0x',
+        })
+    );
   }
 }
