@@ -55,11 +55,56 @@ export function UiComponentsShowcase({
                 className="network-selector"
               >
                 <option value="">Select Network</option>
-                {state.networks.map(network => (
-                  <option key={network.chainId} value={network.chainId}>
-                    {network.name} (Chain ID: {network.chainId})
-                  </option>
-                ))}
+
+                {/* Main Networks */}
+                <optgroup label="🌐 Main">
+                  {state.networks
+                    .filter(
+                      network =>
+                        !network.isTestnet &&
+                        !network.rpcUrl.includes('localhost')
+                    )
+                    .map(network => (
+                      <option
+                        key={`main-${network.networkType}-${network.chainId}`}
+                        value={network.chainId}
+                      >
+                        {network.name} ({network.networkType.toUpperCase()})
+                      </option>
+                    ))}
+                </optgroup>
+
+                {/* Test Networks */}
+                <optgroup label="🧪 Test">
+                  {state.networks
+                    .filter(
+                      network =>
+                        network.isTestnet &&
+                        !network.rpcUrl.includes('localhost')
+                    )
+                    .map(network => (
+                      <option
+                        key={`test-${network.networkType}-${network.chainId}`}
+                        value={network.chainId}
+                      >
+                        {network.name} ({network.networkType.toUpperCase()})
+                      </option>
+                    ))}
+                </optgroup>
+
+                {/* Local Networks */}
+                <optgroup label="🏠 Local">
+                  {state.networks
+                    .filter(network => network.rpcUrl.includes('localhost'))
+                    .map(network => (
+                      <option
+                        key={`local-${network.networkType}-${network.chainId}`}
+                        value={network.chainId}
+                      >
+                        {network.name} ({network.networkType.toUpperCase()})
+                      </option>
+                    ))}
+                </optgroup>
               </select>
             </div>
           </div>

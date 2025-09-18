@@ -13,7 +13,7 @@ export const DEFAULT_NETWORKS: Record<string, NetworkConfig> = {
       symbol: 'CFX',
       decimals: 18,
     },
-    isTestnet: true,
+    isTestnet: false,
     networkType: 'core',
   },
   'core-testnet': {
@@ -45,14 +45,14 @@ export const DEFAULT_NETWORKS: Record<string, NetworkConfig> = {
   'evm-local': {
     name: 'Conflux eSpace Local',
     rpcUrl: 'http://localhost:8545',
-    chainId: 2030,
+    chainId: 2029,
     evmChainId: 2030,
     currency: {
       name: 'Conflux',
       symbol: 'CFX',
       decimals: 18,
     },
-    isTestnet: true,
+    isTestnet: false,
     networkType: 'evm',
   },
   'evm-testnet': {
@@ -97,13 +97,13 @@ export function getNetworkConfig(networkId: string): NetworkConfig {
 
 export function getCoreNetworks(): NetworkConfig[] {
   return Object.values(DEFAULT_NETWORKS).filter(
-    (network) => network.networkType === 'core'
+    network => network.networkType === 'core'
   );
 }
 
 export function getEvmNetworks(): NetworkConfig[] {
   return Object.values(DEFAULT_NETWORKS).filter(
-    (network) => network.networkType === 'evm'
+    network => network.networkType === 'evm'
   );
 }
 

@@ -59,13 +59,22 @@ function OverviewTab({
                 <strong>Name:</strong> {state.currentNetwork.name}
               </p>
               <p>
+                <strong>Type:</strong>{' '}
+                {state.currentNetwork.networkType?.toUpperCase() || 'Unknown'}
+              </p>
+              <p>
                 <strong>Chain ID:</strong> {state.currentNetwork.chainId}
               </p>
               <p>
-                <strong>EVM Chain ID:</strong> {state.currentNetwork.evmChainId}
+                <strong>EVM Chain ID:</strong>{' '}
+                {state.currentNetwork.evmChainId || 'N/A'}
               </p>
               <p>
                 <strong>RPC URL:</strong> {state.currentNetwork.rpcUrl}
+              </p>
+              <p>
+                <strong>Testnet:</strong>{' '}
+                {state.currentNetwork.isTestnet ? 'Yes' : 'No'}
               </p>
             </div>
           ) : (

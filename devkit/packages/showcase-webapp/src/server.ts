@@ -55,15 +55,17 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Serve static files with proper MIME types
-app.use(express.static(path.join(__dirname, 'public'), {
-  setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.css')) {
-      res.setHeader('Content-Type', 'text/css');
-    } else if (filePath.endsWith('.js') || filePath.endsWith('.mjs')) {
-      res.setHeader('Content-Type', 'application/javascript');
-    }
-  }
-}));
+app.use(
+  express.static(path.join(__dirname, 'public'), {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.css')) {
+        res.setHeader('Content-Type', 'text/css');
+      } else if (filePath.endsWith('.js') || filePath.endsWith('.mjs')) {
+        res.setHeader('Content-Type', 'application/javascript');
+      }
+    },
+  })
+);
 
 // Initialize DevKit services with fallback
 let devKitServices: {
@@ -82,10 +84,15 @@ try {
   const nodeModule = await import('@conflux-devkit/node');
 
   // Extract classes handling potential default export wrapping
-  const WalletManager = blockchainModule.WalletManager || blockchainModule.default?.WalletManager;
-  const NetworkManager = blockchainModule.NetworkManager || blockchainModule.default?.NetworkManager;
-  const ContractManager = blockchainModule.ContractManager || blockchainModule.default?.ContractManager;
-  const StateService = stateModule.StateService || stateModule.default?.StateService;
+  const WalletManager =
+    blockchainModule.WalletManager || blockchainModule.default?.WalletManager;
+  const NetworkManager =
+    blockchainModule.NetworkManager || blockchainModule.default?.NetworkManager;
+  const ContractManager =
+    blockchainModule.ContractManager ||
+    blockchainModule.default?.ContractManager;
+  const StateService =
+    stateModule.StateService || stateModule.default?.StateService;
   const ConfluxNode = nodeModule.ConfluxNode || nodeModule.default?.ConfluxNode;
 
   // Initialize services
@@ -149,26 +156,48 @@ app.get('/api/state', (_req, res) => {
   });
 });
 
-app.get('/api/networks', (_req, res) => {
-  res.json({
-    success: true,
-    data: [
-      {
-        id: 'mainnet',
-        name: 'Conflux Mainnet',
-        chainId: 1029,
-        rpcUrl: 'https://main.confluxrpc.com',
-        status: 'active',
-      },
-      {
-        id: 'testnet',
-        name: 'Conflux Testnet',
-        chainId: 1,
-        rpcUrl: 'https://test.confluxrpc.com',
-        status: 'active',
-      },
-    ],
-  });
+app.get('/api/networks', async (_req, res) => {
+  try {
+    // Use core library network definitions
+    const coreModule = await import('@conflux-devkit/core');
+    const { getAllNetworks, networkConfigToBrowser } = coreModule;
+
+    // Get all networks from core library
+    const coreNetworks = getAllNetworks();
+
+    // Convert to browser-safe format and add block explorer URLs
+    const browserNetworks = coreNetworks.map((network: any) => {
+      const browserNetwork = networkConfigToBrowser(network);
+
+      // Add block explorer URLs based on network type
+      let blockExplorer = '';
+      if (network.isTestnet) {
+        if (network.rpcUrl.includes('localhost')) {
+          blockExplorer = 'http://localhost:3000';
+        } else {
+          blockExplorer = 'https://testnet.confluxscan.net';
+        }
+      } else {
+        blockExplorer = 'https://confluxscan.net';
+      }
+
+      return {
+        ...browserNetwork,
+        blockExplorer,
+      };
+    });
+
+    res.json({
+      success: true,
+      data: browserNetworks,
+    });
+  } catch (error) {
+    console.error('Failed to load networks from core library:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to load network configurations',
+    });
+  }
 });
 
 app.get('/api/packages', (_req, res) => {
