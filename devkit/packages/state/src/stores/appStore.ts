@@ -882,21 +882,26 @@ export const useAppStore = create<AppStore>()(
               : null,
           },
         }),
-        serialize: (state) => {
-          return JSON.stringify(state, (_key, value) => {
-            if (typeof value === 'bigint') {
-              return value.toString();
-            }
-            return value;
-          });
-        },
-        deserialize: (str) => {
-          return JSON.parse(str, (key, value) => {
-            if (key === 'balance' && typeof value === 'string') {
-              return BigInt(value);
-            }
-            return value;
-          });
+        storage: {
+          getItem: (name) => {
+            const str = localStorage.getItem(name);
+            if (!str) return null;
+            return JSON.parse(str, (key, value) => {
+              if (key === 'balance' && typeof value === 'string') {
+                return BigInt(value);
+              }
+              return value;
+            });
+          },
+          setItem: (name, value) => {
+            localStorage.setItem(name, JSON.stringify(value, (_key, val) => {
+              if (typeof val === 'bigint') {
+                return val.toString();
+              }
+              return val;
+            }));
+          },
+          removeItem: (name) => localStorage.removeItem(name),
         },
       }
     )

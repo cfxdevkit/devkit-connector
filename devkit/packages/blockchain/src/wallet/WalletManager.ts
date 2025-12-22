@@ -74,7 +74,7 @@ export class WalletManager {
       }
 
       const privateKey =
-        `0x${child.privateKey.toString('hex')}` as `0x${string}`;
+        `0x${Buffer.from(child.privateKey).toString('hex')}` as `0x${string}`;
       const account = privateKeyToAccount(privateKey);
       const address = account.address;
 

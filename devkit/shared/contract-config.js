@@ -32,5 +32,5 @@ module.exports = {
     }
   },
   "contracts": {},
-  "generatedAt": "2025-09-18T20:14:28.232Z"
+  "generatedAt": "2025-12-22T08:20:51.199Z"
 };

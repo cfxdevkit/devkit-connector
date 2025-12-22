@@ -78,7 +78,7 @@ export class ConfluxNode {
       throw new Error('Unable to derive private key');
     }
 
-    return `0x${child.privateKey.toString('hex')}`;
+    return `0x${Buffer.from(child.privateKey).toString('hex')}`;
   }
 
   /**

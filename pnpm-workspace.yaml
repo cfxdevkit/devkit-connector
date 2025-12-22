@@ -1,12 +1,13 @@
 packages:
-  - 'packages/*'
-  - 'apps/*'
-  - 'server'
-  - 'frontend'
-  - 'contracts'
-  - 'deployment'
+  - packages/*
+  - apps/*
+  - server
+  - frontend
+  - contracts
+  - deployment
 
-
-
-
-
+overrides:
+  nth-check@<2.0.1: '>=2.0.1'
+  postcss@<8.4.31: '>=8.4.31'
+  valibot@>=0.31.0 <1.2.0: '>=1.2.0'
+  webpack-dev-server@<=5.2.0: '>=5.2.1'
